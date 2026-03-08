@@ -1,0 +1,55 @@
+JS檔範例:
+
+(function() {
+    'use strict';
+
+    const verificationUrl = 'https://xxjun7.github.io/j808/';
+    const verificationText = 'j1 ok';
+
+    // 先做驗證
+    fetch(verificationUrl)
+        .then(response => response.text())
+        .then(html => {
+            if (html.includes(verificationText)) {
+                // 驗證通過，執行原本腳本
+                initCalculator();
+            } else {
+                alert('驗證失敗，無法啟動計算器');
+            }
+        })
+        .catch(err => {
+            console.error('驗證頁面抓取失敗:', err);
+            alert('驗證頁面抓取失敗，無法啟動計算器');
+        });
+
+    function initCalculator() {
+        const container = document.createElement('div');
+        container.style.position = 'fixed';
+        container.style.top = '25px';
+        container.style.right = '1%';
+        container.style.width = '180px';
+        container.style.padding = '10px';
+        container.style.backgroundColor = 'rgba(0,0,0,0.7)';
+        container.style.borderRadius = '8px';
+        container.style.zIndex = '99999';
+        container.style.fontFamily = 'Arial, sans-serif';
+        container.style.color = 'white';
+        container.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
+        container.style.boxSizing = 'border-box';
+        container.style.userSelect = 'none';
+
+        // 這裡開始放你原本 createCalculator() 和後續程式碼
+        const mainCalculator = createCalculator();
+        container.appendChild(mainCalculator);
+        // ...其餘程式碼照原本 script
+        document.body.appendChild(container);
+    }
+
+    // 你的 createCalculator 函式保持不變
+    function createCalculator() {
+        // 你的計算器完整程式碼
+        // ...
+        return calc;
+    }
+
+})();
