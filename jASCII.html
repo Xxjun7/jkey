@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ASCII 加/解密轉換器 LINE ID: jimi102</title>
+    <style>
+        /* Reset & base */
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            user-select: none;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgb(0 0 0 / 0.7);
+            user-select: none;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+        }
+        h2 {
+            margin-top: 0;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: 1.2px;
+            transition: color 0.3s ease;
+        }
+        .desc {
+            font-size: 0.9rem;
+            margin: 15px 0 25px;
+            line-height: 1.5;
+            border-left: 4px solid;
+            padding-left: 12px;
+            font-style: italic;
+            transition: color 0.3s ease, border-color 0.3s ease;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px 15px;
+            font-size: 1rem;
+            border-radius: 8px;
+            resize: vertical;
+            font-family: 'Courier New', Courier, monospace;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+            border-style: solid;
+        }
+        textarea::placeholder {
+            transition: color 0.3s ease;
+        }
+        textarea:focus {
+            outline: none;
+            box-shadow: 0 0 8px rgba(74, 144, 226, 0.6);
+        }
+        input[type="number"] {
+            width: 70px;
+            padding: 8px 10px;
+            font-size: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+            border-style: solid;
+        }
+        input[type="number"]::placeholder {
+            transition: color 0.3s ease;
+        }
+        input[type="number"]:focus {
+            outline: none;
+            box-shadow: 0 0 8px rgba(74, 144, 226, 0.6);
+        }
+        .btn-group {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        button {
+            cursor: pointer;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgb(74 144 226 / 0.6);
+            transition: background-color 0.25s ease, box-shadow 0.25s ease;
+            user-select: none;
+            flex: 1 1 140px;
+            max-width: 180px;
+            text-align: center;
+        }
+        button:hover {
+            box-shadow: 0 6px 16px rgb(53 122 189 / 0.8);
+        }
+        button:active {
+            box-shadow: 0 2px 6px rgb(42 93 143 / 0.9);
+        }
+        .copy-btn {
+            max-width: 120px;
+            margin: 25px auto 0;
+            display: block;
+            user-select: none;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 18px 20px;
+            border-left: 6px solid;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            min-height: 48px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            user-select: text;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* 深色模式 (預設) */
+        body.dark {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        body.dark .container {
+            background-color: #1e1e1e;
+            box-shadow: 0 8px 20px rgb(0 0 0 / 0.7);
+            color: #e0e0e0;
+        }
+        body.dark h2 {
+            color: #f0f0f0;
+        }
+        body.dark .desc {
+            color: #aaa;
+            border-color: #4a90e2;
+        }
+        body.dark label {
+            color: #ccc;
+        }
+        body.dark textarea {
+            background-color: #222;
+            border-color: #444;
+            color: #eee;
+        }
+        body.dark textarea::placeholder {
+            color: #666;
+        }
+        body.dark textarea:focus {
+            background-color: #292929;
+            border-color: #4a90e2;
+            color: #fff;
+        }
+        body.dark input[type="number"] {
+            background-color: #222;
+            border-color: #444;
+            color: #eee;
+        }
+        body.dark input[type="number"]::placeholder {
+            color: #666;
+        }
+        body.dark input[type="number"]:focus {
+            background-color: #292929;
+            border-color: #4a90e2;
+            color: #fff;
+        }
+        body.dark button {
+            background: #4a90e2;
+            box-shadow: 0 4px 12px rgb(74 144 226 / 0.6);
+            color: #fff;
+        }
+        body.dark button:hover {
+            background: #357abd;
+            box-shadow: 0 6px 16px rgb(53 122 189 / 0.8);
+        }
+        body.dark button:active {
+            background: #2a5d8f;
+            box-shadow: 0 2px 6px rgb(42 93 143 / 0.9);
+        }
+        body.dark .copy-btn {
+            background: #34a853;
+            box-shadow: 0 4px 12px rgb(52 168 83 / 0.6);
+            color: #fff;
+        }
+        body.dark .copy-btn:hover {
+            background: #2c8c43;
+            box-shadow: 0 6px 16px rgb(44 140 67 / 0.8);
+        }
+        body.dark .copy-btn:active {
+            background: #20692e;
+            box-shadow: 0 2px 6px rgb(32 105 46 / 0.9);
+        }
+        body.dark .result {
+            background-color: #2a2a2a;
+            border-color: #4a90e2;
+            color: #a8d0ff;
+        }
+
+        /* 淺色模式 */
+        body.light {
+            background-color: #f0f4f8;
+            color: #333;
+        }
+        body.light .container {
+            background-color: #fff;
+            box-shadow: 0 8px 20px rgb(0 0 0 / 0.1);
+            color: #333;
+        }
+        body.light h2 {
+            color: #222;
+        }
+        body.light .desc {
+            color: #666;
+            border-color: #4a90e2;
+        }
+        body.light label {
+            color: #444;
+        }
+        body.light textarea {
+            background-color: #fafafa;
+            border-color: #ccc;
+            color: #222;
+        }
+        body.light textarea::placeholder {
+            color: #999;
+        }
+        body.light textarea:focus {
+            background-color: #fff;
+            border-color: #4a90e2;
+            color: #000;
+        }
+        body.light input[type="number"] {
+            background-color: #fafafa;
+            border-color: #ccc;
+            color: #222;
+        }
+        body.light input[type="number"]::placeholder {
+            color: #999;
+        }
+        body.light input[type="number"]:focus {
+            background-color: #fff;
+            border-color: #4a90e2;
+            color: #000;
+        }
+        body.light button {
+            background: #4a90e2;
+            box-shadow: 0 4px 12px rgb(74 144 226 / 0.4);
+            color: #fff;
+        }
+        body.light button:hover {
+            background: #357abd;
+            box-shadow: 0 6px 16px rgb(53 122 189 / 0.6);
+        }
+        body.light button:active {
+            background: #2a5d8f;
+            box-shadow: 0 2px 6px rgb(42 93 143 / 0.7);
+        }
+        body.light .copy-btn {
+            background: #34a853;
+            box-shadow: 0 4px 12px rgb(52 168 83 / 0.4);
+            color: #fff;
+        }
+        body.light .copy-btn:hover {
+            background: #2c8c43;
+            box-shadow: 0 6px 16px rgb(44 140 67 / 0.6);
+        }
+        body.light .copy-btn:active {
+            background: #20692e;
+            box-shadow: 0 2px 6px rgb(32 105 46 / 0.7);
+        }
+        body.light .result {
+            background-color: #eaf4ff;
+            border-color: #4a90e2;
+            color: #1e3a8a;
+        }
+
+        /* 切換按鈕 */
+        #modeToggle {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            background-color: transparent;
+            border: 2px solid currentColor;
+            border-radius: 24px;
+            padding: 6px 14px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: inherit;
+            user-select: none;
+            transition:
+                background-color 0.3s ease,
+                color 0.3s ease,
+                border-color 0.3s ease;
+            z-index: 1000;
+        }
+        #modeToggle:hover {
+            background-color: rgba(74, 144, 226, 0.15);
+        }
+        #modeToggle:focus {
+            outline: none;
+            box-shadow: 0 0 6px 3px rgba(74, 144, 226, 0.6);
+        }
+
+        @media (max-width: 480px) {
+            .btn-group {
+                flex-direction: column;
+            }
+            button {
+                max-width: 100%;
+            }
+            .copy-btn {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button id="modeToggle" aria-label="切換深色或淺色模式">淺色模式</button>
+
+    <div class="container" role="main" aria-label="ASCII 加解密轉換器">
+        <h2>ASCII 加/解密轉換器 <small style="font-weight: 400; font-size: 0.6em; color: #888;">LINE ID: jimi102</small></h2>
+        <p class="desc" aria-live="polite">
+            <strong>說明：</strong>（2025/10/02 00:00:00）<br />
+            請輸入要的數字（範圍：1～94，建議不超過此範圍以避免出現不可見或控制字元）。
+        </p>
+
+        <label for="inputText">輸入文字：</label>
+        <textarea id="inputText" aria-describedby="descInput" placeholder="請輸入要加密或解密的文字"></textarea>
+
+        <label for="offset">加解數字：</label>
+        <input type="number" id="offset" value="1" min="1" max="94" aria-describedby="descOffset" />
+
+        <div class="btn-group">
+            <button type="button" onclick="encrypt()" aria-label="執行加密">加密（ASCII +N）</button>
+            <button type="button" onclick="decrypt()" aria-label="執行解密">解密（ASCII -N）</button>
+        </div>
+
+        <div class="result" id="result" aria-live="polite" aria-atomic="true" tabindex="0" role="region" aria-label="加密或解密結果"></div>
+
+        <button type="button" class="copy-btn" onclick="copyResult()" aria-label="複製結果到剪貼簿">複製結果</button>
+    </div>
+
+    <script>
+        const modeToggle = document.getElementById('modeToggle');
+        const body = document.body;
+
+        // 預設深色模式
+        // 嘗試從 localStorage 讀取
+        const savedMode = localStorage.getItem('mode');
+        if (savedMode === 'light') {
+            setLightMode();
+        } else {
+            setDarkMode();
+        }
+
+        modeToggle.addEventListener('click', () => {
+            if (body.classList.contains('dark')) {
+                setLightMode();
+                localStorage.setItem('mode', 'light');
+            } else {
+                setDarkMode();
+                localStorage.setItem('mode', 'dark');
+            }
+        });
+
+        function setDarkMode() {
+            body.classList.remove('light');
+            body.classList.add('dark');
+            modeToggle.textContent = '淺色模式';
+            modeToggle.setAttribute('aria-label', '切換到淺色模式');
+        }
+
+        function setLightMode() {
+            body.classList.remove('dark');
+            body.classList.add('light');
+            modeToggle.textContent = '深色模式';
+            modeToggle.setAttribute('aria-label', '切換到深色模式');
+        }
+
+        function encrypt() {
+            const input = document.getElementById('inputText').value;
+            const offset = parseInt(document.getElementById('offset').value, 10);
+            if (isNaN(offset) || offset < 1 || offset > 94) {
+                alert('請輸入有效的加解數字（1～94）');
+                return;
+            }
+            let encrypted = '';
+            for (let char of input) {
+                encrypted += String.fromCharCode(char.charCodeAt(0) + offset);
+            }
+            const resultEl = document.getElementById('result');
+            resultEl.innerText = '加密結果：' + encrypted;
+            resultEl.focus();
+        }
+
+        function decrypt() {
+            const input = document.getElementById('inputText').value;
+            const offset = parseInt(document.getElementById('offset').value, 10);
+            if (isNaN(offset) || offset < 1 || offset > 94) {
+                alert('請輸入有效的加解數字（1～94）');
+                return;
+            }
+            let decrypted = '';
+            for (let char of input) {
+                decrypted += String.fromCharCode(char.charCodeAt(0) - offset);
+            }
+            const resultEl = document.getElementById('result');
+            resultEl.innerText = '解密結果：' + decrypted;
+            resultEl.focus();
+        }
+
+        function copyResult() {
+            const resultEl = document.getElementById('result');
+            const resultText = resultEl.innerText.replace(/^(加密結果|解密結果)：/, '');
+            if (resultText) {
+                navigator.clipboard.writeText(resultText).then(() => {
+                    const originalText = resultEl.innerText;
+                    resultEl.innerText = '已複製到剪貼簿！';
+                    setTimeout(() => {
+                        resultEl.innerText = originalText;
+                    }, 1500);
+                }).catch(() => {
+                    alert('複製失敗，請手動複製。');
+                });
+            } else {
+                alert('目前沒有結果可供複製。');
+            }
+        }
+    </script>
+</body>
+</html>
