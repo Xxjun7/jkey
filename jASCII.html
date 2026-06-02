@@ -424,23 +424,70 @@
             resultEl.focus();
         }
 
-        function copyResult() {
-            const resultEl = document.getElementById('result');
-            const resultText = resultEl.innerText.replace(/^(加密結果|解密結果)：/, '');
-            if (resultText) {
-                navigator.clipboard.writeText(resultText).then(() => {
-                    const originalText = resultEl.innerText;
-                    resultEl.innerText = '已複製到剪貼簿！';
-                    setTimeout(() => {
-                        resultEl.innerText = originalText;
-                    }, 1500);
-                }).catch(() => {
-                    alert('複製失敗，請手動複製。');
-                });
+       
+function copyResult() {
+    const resultEl = document.getElementById('result');
+    const resultText = resultEl.innerText.replace(/^(加密結果|解密結果)：/, '');
+
+    if (!resultText) {
+        alert('目前沒有結果可供複製。');
+        return;
+    }
+
+    // 成功提示
+    function showCopySuccess() {
+        const originalText = resultEl.innerText;
+        resultEl.innerText = '已複製到剪貼簿！';
+
+        setTimeout(() => {
+            resultEl.innerText = originalText;
+        }, 1500);
+    }
+
+    // 備援複製方式
+    function fallbackCopy(text) {
+        const textarea = document.createElement('textarea');
+
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        textarea.style.top = '-9999px';
+
+        document.body.appendChild(textarea);
+
+        textarea.focus();
+        textarea.select();
+        textarea.setSelectionRange(0, 99999);
+
+        try {
+            const successful = document.execCommand('copy');
+
+            if (successful) {
+                showCopySuccess();
             } else {
-                alert('目前沒有結果可供複製。');
+                alert('複製失敗，請手動複製。');
             }
+        } catch (err) {
+            alert('複製失敗，請手動複製。');
         }
+
+        document.body.removeChild(textarea);
+    }
+
+    // 優先使用 Clipboard API
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(resultText)
+            .then(() => {
+                showCopySuccess();
+            })
+            .catch(() => {
+                fallbackCopy(resultText);
+            });
+    } else {
+        fallbackCopy(resultText);
+    }
+}
+
     </script>
 </body>
 </html>
