@@ -15,11 +15,16 @@
         .btn-reset:hover { background-color: #c82333; }
         .btn-save { background-color: #007bff; color: white; border: none; }
         .btn-save:hover { background-color: #0069d9; }
-        
+         
         table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
         th { background-color: #f2f2f2; }
-        input[type="text"], input[type="number"] { width: 90%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; }
+        
+        /* 統一欄位輸入框基本樣式 */
+        input[type="text"], input[type="number"] { width: 90%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        
+        /* 針對兩位數的格子縮短寬度 */
+        .cell-no, .cell-level { width: 45px !important; text-align: center; }
         
         /* 勾選與倒數區塊樣式 */
         .chk-container { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
@@ -56,8 +61,8 @@
     <table id="dataTable">
         <thead>
             <tr>
-                <th>編號</th>
-                <th>等級</th>
+                <th style="width: 55px;">編號</th>
+                <th style="width: 55px;">等級</th>
                 <th>名稱</th>
                 <th>幣量</th>
                 <th>領1</th>
@@ -103,11 +108,12 @@
                 `;
             }
 
+            // 調整編號與等級的 class，並將幣量改為 type="text"
             tr.innerHTML = `
                 <td><input type="text" class="cell-no" value="${data.no || rowCount}"></td>
                 <td><input type="text" class="cell-level" value="${data.level || ''}"></td>
                 <td><input type="text" class="cell-name" value="${data.name || ''}"></td>
-                <td><input type="number" class="cell-coin" value="${data.coin || ''}"></td>
+                <td><input type="text" class="cell-coin" value="${data.coin || ''}"></td>
                 ${receiveColsHtml}
                 <td><input type="text" class="cell-f1" value="${data.f1 || ''}"></td>
                 <td><input type="text" class="cell-f2" value="${data.f2 || ''}"></td>
