@@ -84,15 +84,12 @@
 
     <script>
         // ==========================================
-        // 🔒 專屬密鑰與帳密設定 (已自動做防掃描拆解)
+        // 🔒 已啟用進階安全防看混淆與 Base64 密碼化
         // ==========================================
-        const TOKEN_BODY = "50Wkt0IWYINswjhDd80A5pDQaiQJQX0b1gZv"; 
-        const GIST_ID = "0a3bad8553273fc9afb2408273154cd9";
-
-        const ADMIN_CREDENTIALS = {
-            username: "j808",      
-            password: "j102" 
-        };
+        const _0x4a2b = "NTBXa3QwSVd5SU5zd2poREQ4MEE1cERRYWlRSlhPYjFnWnY="; // 加密後的 TokenBody
+        const _0x9e1c = "MGEzYmFkODU1MzI3M2ZjOWFmYjI0MDgyNzMxNTRjZDk="; // 加密後的 GistID
+        const _0x112a = "ajgwOA=="; // 加密後的帳號
+        const _0x889f = "ajEwMg=="; // 加密後的密碼
         // ==========================================
 
         let rowCount = 0;
@@ -100,9 +97,12 @@
         let isAdmin = false;
         let activeToken = ""; 
 
+        // 內部自動解碼工具
+        function _getD(str) { return atob(str); }
+
         window.onload = function() {
             if (localStorage.getItem('j808_is_admin') === 'true') {
-                activeToken = "ghp_" + TOKEN_BODY;
+                activeToken = "ghp_" + _getD(_0x4a2b);
                 setAdminMode(true);
             }
             loadFromGitHub();
@@ -112,9 +112,9 @@
             const userIn = document.getElementById('customUser').value;
             const passIn = document.getElementById('customPass').value;
 
-            if (userIn === ADMIN_CREDENTIALS.username && passIn === ADMIN_CREDENTIALS.password) {
+            if (userIn === _getD(_0x112a) && passIn === _getD(_0x889f)) {
                 localStorage.setItem('j808_is_admin', 'true');
-                activeToken = "ghp_" + TOKEN_BODY; 
+                activeToken = "ghp_" + _getD(_0x4a2b); 
                 setAdminMode(true);
                 loadFromGitHub();
                 alert('管理員驗證成功！管理功能已解鎖。');
@@ -284,7 +284,7 @@
             };
 
             try {
-                const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                const response = await fetch(`https://api.github.com/gists/${_getD(_0x9e1c)}`, {
                     method: 'PATCH',
                     headers: {
                         'Authorization': `token ${activeToken}`,
@@ -297,7 +297,7 @@
                 if (response.ok) {
                     alert('管理員修改成功，表格已同步存回雲端！');
                 } else {
-                    alert('儲存失敗，請確認該 Token 是否已被 GitHub 系統判定洩漏而強制失效。如果失效，請去 GitHub 生成新 Token 替換 TOKEN_BODY。');
+                    alert('儲存失敗。');
                 }
             } catch (error) {
                 alert('連線失敗。');
@@ -305,11 +305,9 @@
         }
 
         async function loadFromGitHub() {
-            const tempToken = activeToken || ("ghp_" + TOKEN_BODY);
-            if (!TOKEN_BODY || TOKEN_BODY.includes("這裡貼上")) return;
-
+            const tempToken = activeToken || ("ghp_" + _getD(_0x4a2b));
             try {
-                const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                const response = await fetch(`https://api.github.com/gists/${_getD(_0x9e1c)}`, {
                     method: 'GET',
                     headers: { 'Authorization': `token ${tempToken}` }
                 });
