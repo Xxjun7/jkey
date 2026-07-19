@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>資料管理表格</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; }
+        .btn-container { margin-bottom: 15px; display: flex; gap: 10px; align-items: center; }
+        button { padding: 8px 15px; cursor: pointer; border-radius: 4px; border: 1px solid #ccc; background: #fff; }
+        button:hover { background: #eee; }
+        .btn-add { background-color: #28a745; color: white; border: none; }
+        .btn-add:hover { background-color: #218838; }
+        .btn-reset { background-color: #dc3545; color: white; border: none; }
+        .btn-reset:hover { background-color: #c82333; }
+        .btn-save { background-color: #007bff; color: white; border: none; }
+        .btn-save:hover { background-color: #0069d9; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background-color: #f2f2f2; }
+        input[type="text"], input[type="number"] { width: 90%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; }
+        input[type="checkbox"] { transform: scale(1.2); cursor: pointer; }
+        
+        /* GitHub 設定區塊 */
+        .config-box { background: #e9ecef; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #ced4da; }
+        .config-box input { margin-right: 10px; padding: 5px; width: 200px; }
+    </style>
+</head>
+<body>
+
+    <h2>資料管理系統</h2>
+
+    <!-- GitHub 連線設定 -->
+    <div class="config-box">
+        <h4>🔗 GitHub 儲存設定 (資料將存在專案的 Gist 或指定地方)</h4>
+        <input type="password" id="ghToken" placeholder="GitHub Personal Access Token">
+        <input type="text" id="gistId" placeholder="Gist ID (或自動創建)">
+        <button class="btn-save" onclick="saveToGitHub()">同步儲存至 GitHub</button>
+        <button onclick="loadFromGitHub()">從 GitHub 載入資料</button>
+    </div>
+
+    <!-- 功能按鈕區 -->
+    <div class="btn-container">
+        <button class="btn-add" onclick="addRow()">+ 新增表格一列</button>
+        <button class="btn-reset" onclick="resetCheckboxes()">Reset 領1~5 勾選框</button>
+    </div>
+
+    <!-- 資料表格 -->
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>編號</th>
+                <th>等級</th>
+                <th>名稱</th>
+                <th>幣量</th>
+                <th>領1</th>
+                <th>領2</th>
+                <th>領3</th>
+                <th>領4</th>
+                <th>領5</th>
+                <th>好友1</th>
+                <th>好友2</th>
+                <th>好友3</th>
+                <th>好友4</th>
+                <th>好友5</th>
+                <th>電話</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- 動態生成列 -->
+        </tbody>
+    </table>
+
+    <script>
+        let rowCount = 0;
+
+        // 新增一列
+        function addRow(data = {}) {
+            rowCount++;
+            const tbody = document.getElementById('tableBody');
+            const tr = document.createElement('tr');
+            tr.id = `row-${rowCount}`;
+
+            tr.innerHTML = `
+                <td><input type="text" class="cell-no" value="${data.no || rowCount}"></td>
+                <td><input type="text" class="cell-level" value="${data.level || ''}"></td>
+                <td><input type="text" class="cell-name" value="${data.name || ''}"></td>
+                <td><input type="number" class="cell-coin" value="${data.coin || ''}"></td>
+                <td><input type="checkbox" class="chk-receive" ${data.r1 ? 'checked' : ''}></td>
+                <td><input type="checkbox" class="chk-receive" ${data.r2 ? 'checked' : ''}></td>
+                <td><input type="checkbox" class="chk-receive" ${data.r3 ? 'checked' : ''}></td>
+                <td><input type="checkbox" class="chk-receive" ${data.r4 ? 'checked' : ''}></td>
+                <td><input type="checkbox" class="chk-receive" ${data.r5 ? 'checked' : ''}></td>
+                <td><input type="text" class="cell-f1" value="${data.f1 || ''}"></td>
+                <td><input type="text" class="cell-f2" value="${data.f2 || ''}"></td>
+                <td><input type="text" class="cell-f3" value="${data.f3 || ''}"></td>
+                <td><input type="text" class="cell-f4" value="${data.f4 || ''}"></td>
+                <td><input type="text" class="cell-f5" value="${data.f5 || ''}"></td>
+                <td><input type="text" class="cell-phone" value="${data.phone || ''}"></td>
+                <td><button onclick="deleteRow(${rowCount})" style="color:red;">刪除</button></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        // 刪除指定列
+        function deleteRow(id) {
+            const row = document.getElementById(`row-${id}`);
+            if (row) row.remove();
+        }
+
+        // 重置所有「領1~5」的勾選框
+        function resetCheckboxes() {
+            const checkboxes = document.querySelectorAll('.chk-receive');
+            checkboxes.forEach(chk => chk.checked = false);
+            alert('已重置所有領取勾選框！');
+        }
+
+        // 收集表格資料轉為 JSON
+        function getTableData() {
+            const rows = document.querySelectorAll('#tableBody tr');
+            const data = [];
+            rows.forEach(row => {
+                const chks = row.querySelectorAll('.chk-receive');
+                data.push({
+                    no: row.querySelector('.cell-no').value,
+                    level: row.querySelector('.cell-level').value,
+                    name: row.querySelector('.cell-name').value,
+                    coin: row.querySelector('.cell-coin').value,
+                    r1: chks[0].checked,
+                    r2: chks[1].checked,
+                    r3: chks[2].checked,
+                    r4: chks[3].checked,
+                    r5: chks[4].checked,
+                    f1: row.querySelector('.cell-f1').value,
+                    f2: row.querySelector('.cell-f2').value,
+                    f3: row.querySelector('.cell-f3').value,
+                    f4: row.querySelector('.cell-f4').value,
+                    f5: row.querySelector('.cell-f5').value,
+                    phone: row.querySelector('.cell-phone').value,
+                });
+            });
+            return data;
+        }
+
+        // --- GitHub Gist 儲存與讀取邏輯 ---
+        
+        async function saveToGitHub() {
+            const token = document.getElementById('ghToken').value;
+            let gistId = document.getElementById('gistId').value;
+            const tableData = getTableData();
+
+            if (!token) {
+                alert('請先輸入 GitHub Personal Access Token (PAT)');
+                return;
+            }
+
+            const payload = {
+                description: "Grid Data Storage",
+                public: false,
+                files: {
+                    "grid_data.json": {
+                        content: JSON.stringify(tableData, null, 2)
+                    }
+                }
+            };
+
+            const url = gistId ? `https://api.github.com/gists/${gistId}` : 'https://api.github.com/gists';
+            const method = gistId ? 'PATCH' : 'POST';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const resData = await response.json();
+                if (response.ok) {
+                    if (!gistId) {
+                        document.getElementById('gistId').value = resData.id;
+                        alert(`資料已成功建立新 Gist！ID: ${resData.id}\n請記下此 ID 以便日後讀取。`);
+                    } else {
+                        alert('資料已成功更新至 GitHub！');
+                    }
+                } else {
+                    alert('儲存失敗：' + resData.message);
+                }
+            } catch (error) {
+                console.error(error);
+                alert('連線失敗，請檢查網路或 Token。');
+            }
+        }
+
+        async function loadFromGitHub() {
+            const token = document.getElementById('ghToken').value;
+            const gistId = document.getElementById('gistId').value;
+
+            if (!token || !gistId) {
+                alert('請輸入 Token 與 Gist ID 才能讀取資料！');
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://api.github.com/gists/${gistId}`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `token ${token}` }
+                });
+
+                const resData = await response.json();
+                if (response.ok) {
+                    const fileContent = resData.files["grid_data.json"].content;
+                    const data = JSON.parse(fileContent);
+                    
+                    // 清空現有表格
+                    document.getElementById('tableBody').innerHTML = '';
+                    rowCount = 0;
+
+                    // 重新填入資料
+                    data.forEach(item => addRow(item));
+                    alert('資料載入成功！');
+                } else {
+                    alert('讀取失敗：' + resData.message);
+                }
+            } catch (error) {
+                console.error(error);
+                alert('讀取失敗，請檢查設定。');
+            }
+        }
+    </script>
+</body>
+</html>
