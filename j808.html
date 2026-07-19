@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>資料管理表格</title>
+    <title>j808管理表格</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; }
         .btn-container { margin-bottom: 15px; display: flex; gap: 10px; align-items: center; }
@@ -20,8 +20,14 @@
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
         th { background-color: #f2f2f2; }
         input[type="text"], input[type="number"] { width: 90%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; }
-        input[type="checkbox"] { transform: scale(1.2); cursor: pointer; }
         
+        /* 勾選與倒數區塊樣式 */
+        .chk-container { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+        input[type="checkbox"] { transform: scale(1.2); cursor: pointer; margin: 0; }
+        .timer-label { font-size: 11px; color: #666; font-family: monospace; min-height: 14px; }
+        .countdown-running { color: #e11d48; font-weight: bold; } /* 倒數中：紅色 */
+        .countdown-done { color: #28a745; font-weight: bold; }    /* 時間到：綠色 */
+
         /* GitHub 設定區塊 */
         .config-box { background: #e9ecef; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #ced4da; }
         .config-box input { margin-right: 10px; padding: 5px; width: 200px; }
@@ -29,7 +35,7 @@
 </head>
 <body>
 
-    <h2>資料管理系統</h2>
+    <h2>資料管理系統 (含勾選 10 分鐘倒數)</h2>
 
     <!-- GitHub 連線設定 -->
     <div class="config-box">
@@ -75,6 +81,7 @@
 
     <script>
         let rowCount = 0;
+        const timers = {};
 
         // 新增一列
         function addRow(data = {}) {
@@ -83,16 +90,25 @@
             const tr = document.createElement('tr');
             tr.id = `row-${rowCount}`;
 
+            let receiveColsHtml = '';
+            for(let i = 1; i <= 5; i++) {
+                const isChecked = data[`r${i}`] ? 'checked' : '';
+                receiveColsHtml += `
+                    <td>
+                        <div class="chk-container">
+                            <input type="checkbox" class="chk-receive" data-row="${rowCount}" data-idx="${i}" ${isChecked} onchange="toggleTimer(this)">
+                            <div class="timer-label" id="timer-${rowCount}-${i}">00:00</div>
+                        </div>
+                    </td>
+                `;
+            }
+
             tr.innerHTML = `
                 <td><input type="text" class="cell-no" value="${data.no || rowCount}"></td>
                 <td><input type="text" class="cell-level" value="${data.level || ''}"></td>
                 <td><input type="text" class="cell-name" value="${data.name || ''}"></td>
                 <td><input type="number" class="cell-coin" value="${data.coin || ''}"></td>
-                <td><input type="checkbox" class="chk-receive" ${data.r1 ? 'checked' : ''}></td>
-                <td><input type="checkbox" class="chk-receive" ${data.r2 ? 'checked' : ''}></td>
-                <td><input type="checkbox" class="chk-receive" ${data.r3 ? 'checked' : ''}></td>
-                <td><input type="checkbox" class="chk-receive" ${data.r4 ? 'checked' : ''}></td>
-                <td><input type="checkbox" class="chk-receive" ${data.r5 ? 'checked' : ''}></td>
+                ${receiveColsHtml}
                 <td><input type="text" class="cell-f1" value="${data.f1 || ''}"></td>
                 <td><input type="text" class="cell-f2" value="${data.f2 || ''}"></td>
                 <td><input type="text" class="cell-f3" value="${data.f3 || ''}"></td>
@@ -102,19 +118,86 @@
                 <td><button onclick="deleteRow(${rowCount})" style="color:red;">刪除</button></td>
             `;
             tbody.appendChild(tr);
+
+            // 如果是從 GitHub 載入且原本就是勾選狀態，自動觸發倒數
+            for(let i = 1; i <= 5; i++) {
+                if (data[`r${i}`]) {
+                    const chk = tr.querySelector(`.chk-receive[data-idx="${i}"]`);
+                    toggleTimer(chk);
+                }
+            }
+        }
+
+        // 處理倒數計時啟動與關閉
+        function toggleTimer(checkbox) {
+            const rowId = checkbox.getAttribute('data-row');
+            const idx = checkbox.getAttribute('data-idx');
+            const timerId = `${rowId}-${idx}`;
+            const label = document.getElementById(`timer-${timerId}`);
+
+            // 如果有舊的計時器先清除
+            if (timers[timerId]) {
+                clearInterval(timers[timerId].interval);
+                delete timers[timerId];
+            }
+
+            // 移除所有狀態樣式
+            label.classList.remove('countdown-running', 'countdown-done');
+
+            if (checkbox.checked) {
+                let timeLeft = 600; // 10 分鐘 = 600 秒
+                label.classList.add('countdown-running');
+                
+                const updateDisplay = () => {
+                    const mins = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+                    const secs = String(timeLeft % 60).padStart(2, '0');
+                    label.innerText = `${mins}:${secs}`;
+                };
+
+                updateDisplay();
+
+                const interval = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft <= 0) {
+                        clearInterval(interval);
+                        label.innerText = "00:00";
+                        label.classList.remove('countdown-running');
+                        label.classList.add('countdown-done'); // 時間到變成亮綠色提示
+                        delete timers[timerId];
+                    } else {
+                        updateDisplay();
+                    }
+                }, 1000);
+
+                timers[timerId] = { interval: interval };
+            } else {
+                // 手動取消勾選時歸零與重置顏色
+                label.innerText = "00:00";
+            }
         }
 
         // 刪除指定列
         function deleteRow(id) {
             const row = document.getElementById(`row-${id}`);
-            if (row) row.remove();
+            if (row) {
+                for(let i = 1; i <= 5; i++) {
+                    if (timers[`${id}-${i}`]) {
+                        clearInterval(timers[`${id}-${i}`].interval);
+                        delete timers[`${id}-${i}`];
+                    }
+                }
+                row.remove();
+            }
         }
 
-        // 重置所有「領1~5」的勾選框
+        // 重置所有「領1~5」的勾選框與計時器
         function resetCheckboxes() {
             const checkboxes = document.querySelectorAll('.chk-receive');
-            checkboxes.forEach(chk => chk.checked = false);
-            alert('已重置所有領取勾選框！');
+            checkboxes.forEach(chk => {
+                chk.checked = false;
+                toggleTimer(chk);
+            });
+            alert('已重置所有領取勾選框與倒數計時！');
         }
 
         // 收集表格資料轉為 JSON
@@ -145,7 +228,6 @@
         }
 
         // --- GitHub Gist 儲存與讀取邏輯 ---
-        
         async function saveToGitHub() {
             const token = document.getElementById('ghToken').value;
             let gistId = document.getElementById('gistId').value;
@@ -157,7 +239,7 @@
             }
 
             const payload = {
-                description: "Grid Data Storage",
+                description: "Grid Data Storage with Timers",
                 public: false,
                 files: {
                     "grid_data.json": {
@@ -217,11 +299,14 @@
                     const fileContent = resData.files["grid_data.json"].content;
                     const data = JSON.parse(fileContent);
                     
-                    // 清空現有表格
+                    const rows = document.querySelectorAll('#tableBody tr');
+                    rows.forEach(row => {
+                        const id = row.id.replace('row-', '');
+                        deleteRow(id);
+                    });
                     document.getElementById('tableBody').innerHTML = '';
                     rowCount = 0;
 
-                    // 重新填入資料
                     data.forEach(item => addRow(item));
                     alert('資料載入成功！');
                 } else {
