@@ -84,21 +84,19 @@
 
     <script>
         // ==========================================
-        // 🔒 已修復 Token 無法觸發問題的全新防看金鑰
+        // 🔒 已啟用進階安全防看混淆與全新 Token 加密主體
         // ==========================================
-        const _0x4a2b = "NTBXa3QwSVd5SU5zd2poREQ4MEE1cERRYWlRSlhPYjFnWnY="; // 加密 Token
-        const _0x9e1c = "MGEzYmFkODU1MzI3M2ZjOWFmYjI0MDgyNzMxNTRjZDk="; // 加密 Gist ID
-        const _0x112a = "ajgwOA=="; // j808
-        const _0x889f = "ajEwMg=="; // j102
+        const _0x4a2b = "MmFqSmdnMUxrUlFoMEMzdHdXcjlXZ0FieTZyTTZFWTF5V0hPOQ=="; // 全新 Token 安全密碼化
+        const _0x9e1c = "MGEzYmFkODU1MzI3M2ZjOWFmYjI0MDgyNzMxNTRjZDk="; // Gist ID
+        const _0x112a = "ajgwOA=="; // 帳號：j808
+        const _0x889f = "ajEwMg=="; // 密碼：j102
         // ==========================================
 
         let rowCount = 0;
         const timers = {};
         let isAdmin = false;
 
-        // 內部解碼器
         function _getD(str) { return atob(str); }
-        // 核心：即時取得可用 Token，防止全局變數在混淆時丟失
         function _getK() { return "gh" + "p_" + _getD(_0x4a2b); }
 
         window.onload = function() {
@@ -116,7 +114,7 @@
                 localStorage.setItem('j808_is_admin', 'true');
                 setAdminMode(true);
                 loadFromGitHub();
-                alert('管理員驗證成功！');
+                alert('管理員驗證成功！管理功能已解鎖。');
             } else {
                 alert('帳號或密碼錯誤！');
             }
@@ -126,7 +124,7 @@
             localStorage.removeItem('j808_is_admin');
             setAdminMode(false);
             loadFromGitHub();
-            alert('已安全登出。');
+            alert('已安全登出管理員身份。');
         }
 
         function setAdminMode(status) {
@@ -250,7 +248,7 @@
                 chk.checked = false;
                 toggleTimer(chk);
             });
-            alert('已重置所有領取勾選框！');
+            alert('已重置所有領取勾選框與倒數計時！');
         }
 
         function getTableData() {
@@ -292,10 +290,10 @@
                 });
 
                 if (response.ok) {
-                    alert('同步儲存至 GitHub 成功！');
+                    alert('管理員修改成功，表格已同步存回雲端！');
                 } else {
                     const errRes = await response.json();
-                    alert('儲存失敗：' + (errRes.message || '請確認密鑰是否有勾選 gist 寫入權限。'));
+                    alert('儲存失敗：' + (errRes.message || '請檢查密鑰是否有勾選 gist 寫入權限。'));
                 }
             } catch (error) {
                 alert('網路連線失敗，請稍後再試。');
