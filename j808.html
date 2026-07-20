@@ -5,34 +5,124 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>j808管理表格</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; }
-        .header-container { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ccc; padding-bottom: 10px; margin-bottom: 15px; }
-        h2 { margin: 0; }
-        .login-box { background: #e9ecef; padding: 10px 15px; border-radius: 4px; display: flex; gap: 8px; align-items: center; font-size: 14px; }
-        .login-box input { padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; width: 100px; }
-        .user-status { font-weight: bold; color: #495057; display: flex; align-items: center; gap: 10px; }
-        .btn-container { margin-bottom: 15px; display: flex; gap: 10px; align-items: center; }
-        button { padding: 8px 15px; cursor: pointer; border-radius: 4px; border: 1px solid #ccc; background: #fff; }
+        body { font-family: Arial, sans-serif; margin: 15px; background-color: #f9f9f9; color: #333; }
+        
+        .header-container { 
+            display: flex; 
+            flex-direction: column;
+            gap: 15px;
+            border-bottom: 2px solid #ccc; 
+            padding-bottom: 15px; 
+            margin-bottom: 15px; 
+        }
+        h2 { margin: 0; font-size: 24px; text-align: center; }
+        
+        .login-box { 
+            background: #e9ecef; 
+            padding: 12px; 
+            border-radius: 6px; 
+            display: flex; 
+            flex-direction: column;
+            gap: 10px; 
+            align-items: stretch; 
+            font-size: 16px; 
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .login-form-inner {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+        .login-box input { 
+            padding: 8px 10px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            flex: 1;
+            width: 100%;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+        
+        .user-status { 
+            font-weight: bold; 
+            color: #495057; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            gap: 10px; 
+            width: 100%;
+        }
+        
+        .btn-container { 
+            margin-bottom: 15px; 
+            display: flex; 
+            flex-wrap: wrap;
+            gap: 8px; 
+            align-items: center; 
+        }
+        button { 
+            padding: 10px 16px; 
+            cursor: pointer; 
+            border-radius: 4px; 
+            border: 1px solid #ccc; 
+            background: #fff; 
+            font-size: 14px;
+            font-weight: 500;
+        }
         button:hover { background: #eee; }
-        .btn-add { background-color: #28a745; color: white; border: none; }
+        
+        .btn-add { background-color: #28a745; color: white; border: none; flex: 1; min-width: 100px; }
         .btn-add:hover { background-color: #218838; }
-        .btn-reset { background-color: #dc3545; color: white; border: none; }
+        .btn-reset { background-color: #dc3545; color: white; border: none; flex: 1; min-width: 120px; }
         .btn-reset:hover { background-color: #c82333; }
-        .btn-save { background-color: #007bff; color: white; border: none; }
+        .btn-save { background-color: #007bff; color: white; border: none; flex: 2; min-width: 180px; }
         .btn-save:hover { background-color: #0069d9; }
-        .btn-login { background-color: #6c757d; color: white; border: none; }
+        .btn-login { background-color: #6c757d; color: white; border: none; white-space: nowrap; padding: 8px 12px; }
         .btn-login:hover { background-color: #5a6268; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-        th { background-color: #f2f2f2; }
-        input[type="text"], input[type="number"] { width: 90%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        .cell-no, .cell-level { width: 45px !important; text-align: center; }
-        .chk-container { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
-        input[type="checkbox"] { transform: scale(1.2); cursor: pointer; margin: 0; }
-        .timer-label { font-size: 11px; color: #666; font-family: monospace; min-height: 14px; }
+        
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            margin-top: 10px;
+        }
+        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+        th, td { border: 1px solid #ddd; padding: 10px 6px; text-align: center; }
+        th { background-color: #f2f2f2; font-size: 14px; }
+        
+        input[type="text"], input[type="number"] { 
+            width: 100%; 
+            padding: 6px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            box-sizing: border-box; 
+            font-size: 14px;
+            min-width: 65px;
+        }
+        .cell-no, .cell-level { min-width: 45px !important; text-align: center; }
+        .cell-name { min-width: 90px !important; }
+        .cell-coin { min-width: 80px !important; }
+        .cell-phone { min-width: 110px !important; }
+        
+        .chk-container { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 50px; }
+        input[type="checkbox"] { transform: scale(1.3); cursor: pointer; margin: 4px 0; }
+        .timer-label { font-size: 12px; color: #666; font-family: monospace; min-height: 14px; }
         .countdown-running { color: #e11d48; font-weight: bold; }
         .countdown-done { color: #28a745; font-weight: bold; }
         .admin-only { display: none !important; }
+
+        @media (min-width: 576px) {
+            .header-container { flex-direction: row; justify-content: space-between; align-items: center; }
+            h2 { text-align: left; }
+            .login-box { width: auto; flex-direction: row; }
+            .login-box input { width: 110px; flex: none; }
+            .btn-add, .btn-reset, .btn-save { flex: none; }
+            .user-status { width: auto; justify-content: flex-start; }
+        }
     </style>
 </head>
 <body>
@@ -40,14 +130,14 @@
     <div class="header-container">
         <h2>j808管理表格</h2>
         <div class="login-box" id="loginBox">
-            <div id="loginForm" style="display: flex; gap: 8px; align-items: center;">
+            <div id="loginForm" class="login-form-inner">
                 <input type="text" id="customUser" placeholder="帳號">
                 <input type="password" id="customPass" placeholder="密碼">
                 <button class="btn-login" onclick="handleLogin()">管理員登入</button>
             </div>
             <div id="userInfo" class="user-status" style="display: none;">
                 <span>👤 管理員已登入</span>
-                <button onclick="handleLogout()" style="padding: 2px 8px; font-size: 12px;">登出</button>
+                <button onclick="handleLogout()" style="padding: 4px 10px; font-size: 13px;">登出</button>
             </div>
         </div>
     </div>
@@ -58,54 +148,72 @@
         <button class="btn-save admin-only" onclick="saveToGitHub()">同步儲存至 GitHub</button>
     </div>
 
-    <table id="dataTable">
-        <thead>
-            <tr>
-                <th style="width: 55px;">編號</th>
-                <th style="width: 55px;">等級</th>
-                <th>名稱</th>
-                <th>幣量</th>
-                <th>領1</th>
-                <th>領2</th>
-                <th>領3</th>
-                <th>領4</th>
-                <th>領5</th>
-                <th>好友1</th>
-                <th>好友2</th>
-                <th>好友3</th>
-                <th>好友4</th>
-                <th>好友5</th>
-                <th>電話</th>
-                <th class="admin-only" style="width: 65px;">操作</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-    </table>
+    <div class="table-responsive">
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th style="width: 55px;">編號</th>
+                    <th style="width: 55px;">等級</th>
+                    <th>名稱</th>
+                    <th>幣量</th>
+                    <th>領1</th>
+                    <th>領2</th>
+                    <th>領3</th>
+                    <th>領4</th>
+                    <th>領5</th>
+                    <th>好友1</th>
+                    <th>好友2</th>
+                    <th>好友3</th>
+                    <th>好友4</th>
+                    <th>好友5</th>
+                    <th>電話</th>
+                    <th class="admin-only" style="width: 75px;">操作</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
 
     <script>
-        // ==========================================
-        // 🔒 專屬金鑰設定區 (已混淆與防機器人偵測)
-        // ==========================================
-        // 新  物理大卸三塊，徹底阻斷 機器人掃描
         const T_PART1 = "2ajJg1LkRQh0Cz";
         const T_PART2 = "twHr9WgAby6rM6";
         const T_PART3 = "EY1ywTH9";
         
-        // 新 G ID (安全字串，無需拆解)
         const G_ID = "a3f8fa6f452b98b777440a5c0558c190";
         
-        // 帳號密碼防看加密 (Base64 編碼，右鍵原始碼看不出明文)
-        const _0x112a = "ajgwOA=="; // 還原後即為 "808"
-        const _0x889f = "ajEwMg=="; // 還原後即為 "102"
-        // ==========================================
+        const _0x112a = "ajgwOA=="; // "808"
+        const _0x889f = "ajEwMg=="; // "102"
 
         let rowCount = 0;
         const timers = {};
+        const endTimes = {}; // 紀錄記憶體中的目標結束時間戳記
         let isAdmin = false;
 
-        // 內部解碼工具與動態 Token 拼接器
         function _getD(str) { return atob(str); }
         function _getK() { return "gh" + "p_" + T_PART1 + T_PART2 + T_PART3; }
+
+        const LOCAL_STATE_KEY = 'j808_user_timers';
+
+        function getLocalTimers() {
+            try { return JSON.parse(localStorage.getItem(LOCAL_STATE_KEY)) || {}; } 
+            catch (e) { return {}; }
+        }
+
+        function saveLocalTimer(timerId, endTime) {
+            const data = getLocalTimers();
+            data[timerId] = endTime;
+            localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify(data));
+        }
+
+        function removeLocalTimer(timerId) {
+            const data = getLocalTimers();
+            delete data[timerId];
+            localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify(data));
+        }
+
+        function clearAllLocalTimers() {
+            localStorage.removeItem(LOCAL_STATE_KEY);
+        }
 
         window.onload = function() {
             if (localStorage.getItem('j808_is_admin') === 'true') {
@@ -118,12 +226,10 @@
             const userIn = document.getElementById('customUser').value;
             const passIn = document.getElementById('customPass').value;
 
-            // 比對輸入與混淆解密後的帳密
             if (userIn === _getD(_0x112a) && passIn === _getD(_0x889f)) {
                 localStorage.setItem('j808_is_admin', 'true');
                 setAdminMode(true);
                 loadFromGitHub();
-                alert('管理員驗證成功！管理功能已解鎖。');
             } else {
                 alert('帳號或密碼錯誤！');
             }
@@ -133,21 +239,20 @@
             localStorage.removeItem('j808_is_admin');
             setAdminMode(false);
             loadFromGitHub();
-            alert('已安全登出管理員身份。');
         }
 
         function setAdminMode(status) {
             isAdmin = status;
             const adminElements = document.querySelectorAll('.admin-only');
             if (isAdmin) {
-                document.getElementById('loginForm').style.display = 'none';
-                document.getElementById('userInfo').style.display = 'flex';
+                document.getElementById('loginForm').style.setProperty('display', 'none', 'important');
+                document.getElementById('userInfo').style.setProperty('display', 'flex', 'important');
                 adminElements.forEach(el => el.style.setProperty('display', 'block', 'important'));
                 const thOp = document.querySelector('th.admin-only');
                 if(thOp) thOp.style.setProperty('display', 'table-cell', 'important');
             } else {
-                document.getElementById('loginForm').style.display = 'flex';
-                document.getElementById('userInfo').style.display = 'none';
+                document.getElementById('loginForm').style.setProperty('display', 'flex', 'important');
+                document.getElementById('userInfo').style.setProperty('display', 'none', 'important');
                 document.getElementById('customUser').value = '';
                 document.getElementById('customPass').value = '';
                 adminElements.forEach(el => el.style.setProperty('display', 'none', 'important'));
@@ -166,7 +271,7 @@
                 receiveColsHtml += `
                     <td>
                         <div class="chk-container">
-                            <input type="checkbox" class="chk-receive" data-row="${rowCount}" data-idx="${i}" ${isChecked} onchange="toggleTimer(this)">
+                            <input type="checkbox" class="chk-receive" data-row="${rowCount}" data-idx="${i}" ${isChecked} onchange="toggleTimer(this, true)">
                             <div class="timer-label" id="timer-${rowCount}-${i}">00:00</div>
                         </div>
                     </td>
@@ -174,7 +279,7 @@
             }
 
             const isDisabled = isAdmin ? '' : 'disabled';
-            const deleteBtnHtml = isAdmin ? `<td><button onclick="deleteRow(${rowCount})" style="color:red; padding: 2px 8px;">刪除</button></td>` : `<td class="admin-only"></td>`;
+            const deleteBtnHtml = isAdmin ? `<td><button onclick="deleteRow(${rowCount})" style="color:red; padding: 4px 10px;">刪除</button></td>` : `<td class="admin-only"></td>`;
 
             tr.innerHTML = `
                 <td><input type="text" class="cell-no" value="${data.no || rowCount}" ${isDisabled}></td>
@@ -192,15 +297,77 @@
             `;
             tbody.appendChild(tr);
 
+            // 載入與判斷時間戳記
+            const localTimers = getLocalTimers();
             for(let i = 1; i <= 5; i++) {
-                if (data[`r${i}`]) {
-                    const chk = tr.querySelector(`.chk-receive[data-idx="${i}"]`);
-                    toggleTimer(chk);
+                const timerId = `${rowCount}-${i}`;
+                const chk = tr.querySelector(`.chk-receive[data-idx="${i}"]`);
+
+                // 優先順序：1. LocalStorage 本地時間 -> 2. 雲端 GitHub 儲存的時間
+                let targetEndTime = localTimers[timerId] || data[`r${i}_time`];
+
+                if (targetEndTime && chk.checked) {
+                    endTimes[timerId] = targetEndTime;
+                    initTimerWithEndTime(chk, targetEndTime);
+                } else if (data[`r${i}`]) {
+                    // 若舊資料只有 true/false 卻無時間戳，設定當下時間為起點倒數 600 秒
+                    const defaultEndTime = Date.now() + 600 * 1000;
+                    endTimes[timerId] = defaultEndTime;
+                    initTimerWithEndTime(chk, defaultEndTime);
                 }
             }
         }
 
-        function toggleTimer(checkbox) {
+        function initTimerWithEndTime(checkbox, endTime) {
+            const rowId = checkbox.getAttribute('data-row');
+            const idx = checkbox.getAttribute('data-idx');
+            const timerId = `${rowId}-${idx}`;
+            const label = document.getElementById(`timer-${timerId}`);
+
+            if (timers[timerId]) {
+                clearInterval(timers[timerId].interval);
+                delete timers[timerId];
+            }
+
+            label.classList.remove('countdown-running', 'countdown-done');
+
+            const now = Date.now();
+            let remainingSeconds = Math.floor((endTime - now) / 1000);
+
+            if (remainingSeconds <= 0) {
+                // 已過期/倒數完成
+                label.innerText = "00:00";
+                label.classList.add('countdown-done');
+                return;
+            }
+
+            label.classList.add('countdown-running');
+            
+            const updateDisplay = (secs) => {
+                const mins = String(Math.floor(secs / 60)).padStart(2, '0');
+                const s = String(secs % 60).padStart(2, '0');
+                label.innerText = `${mins}:${s}`;
+            };
+
+            updateDisplay(remainingSeconds);
+
+            const interval = setInterval(() => {
+                const currentRemaining = Math.floor((endTime - Date.now()) / 1000);
+                if (currentRemaining <= 0) {
+                    clearInterval(interval);
+                    label.innerText = "00:00";
+                    label.classList.remove('countdown-running');
+                    label.classList.add('countdown-done');
+                    delete timers[timerId];
+                } else {
+                    updateDisplay(currentRemaining);
+                }
+            }, 1000);
+
+            timers[timerId] = { interval: interval };
+        }
+
+        function toggleTimer(checkbox, isUserClick = true) {
             const rowId = checkbox.getAttribute('data-row');
             const idx = checkbox.getAttribute('data-idx');
             const timerId = `${rowId}-${idx}`;
@@ -214,29 +381,14 @@
             label.classList.remove('countdown-running', 'countdown-done');
 
             if (checkbox.checked) {
-                let timeLeft = 600; 
-                label.classList.add('countdown-running');
-                const updateDisplay = () => {
-                    const mins = String(Math.floor(timeLeft / 60)).padStart(2, '0');
-                    const secs = String(timeLeft % 60).padStart(2, '0');
-                    label.innerText = `${mins}:${secs}`;
-                };
-                updateDisplay();
-                const interval = setInterval(() => {
-                    timeLeft--;
-                    if (timeLeft <= 0) {
-                        clearInterval(interval);
-                        label.innerText = "00:00";
-                        label.classList.remove('countdown-running');
-                        label.classList.add('countdown-done'); 
-                        delete timers[timerId];
-                    } else {
-                        updateDisplay();
-                    }
-                }, 1000);
-                timers[timerId] = { interval: interval };
+                const endTime = Date.now() + 600 * 1000; // 600 秒
+                endTimes[timerId] = endTime;
+                saveLocalTimer(timerId, endTime);
+                initTimerWithEndTime(checkbox, endTime);
             } else {
                 label.innerText = "00:00";
+                delete endTimes[timerId];
+                removeLocalTimer(timerId);
             }
         }
 
@@ -245,7 +397,13 @@
             const row = document.getElementById(`row-${id}`);
             if (row) {
                 for(let i = 1; i <= 5; i++) {
-                    if (timers[`${id}-${i}`]) { clearInterval(timers[`${id}-${i}`].interval); delete timers[`${id}-${i}`]; }
+                    const timerId = `${id}-${i}`;
+                    if (timers[timerId]) { 
+                        clearInterval(timers[timerId].interval); 
+                        delete timers[timerId]; 
+                    }
+                    delete endTimes[timerId];
+                    removeLocalTimer(timerId);
                 }
                 row.remove();
             }
@@ -253,24 +411,31 @@
 
         function resetCheckboxes() {
             if(!isAdmin) return;
+            clearAllLocalTimers();
             document.querySelectorAll('.chk-receive').forEach(chk => {
                 chk.checked = false;
-                toggleTimer(chk);
+                toggleTimer(chk, false);
             });
             alert('已重置所有領取勾選框與倒數計時！');
         }
 
+        // 關鍵修改：將倒數目標時間 r1_time ~ r5_time 一併包進 JSON 存回 GitHub
         function getTableData() {
             const rows = document.querySelectorAll('#tableBody tr');
             const data = [];
-            rows.forEach(row => {
+            rows.forEach((row, rowIndex) => {
+                const rowNum = rowIndex + 1;
                 const chks = row.querySelectorAll('.chk-receive');
                 data.push({
                     no: row.querySelector('.cell-no').value,
                     level: row.querySelector('.cell-level').value,
                     name: row.querySelector('.cell-name').value,
                     coin: row.querySelector('.cell-coin').value,
-                    r1: chks[0].checked, r2: chks[1].checked, r3: chks[2].checked, r4: chks[3].checked, r5: chks[4].checked,
+                    r1: chks[0].checked, r1_time: chks[0].checked ? (endTimes[`${rowNum}-1`] || 0) : 0,
+                    r2: chks[1].checked, r2_time: chks[1].checked ? (endTimes[`${rowNum}-2`] || 0) : 0,
+                    r3: chks[2].checked, r3_time: chks[2].checked ? (endTimes[`${rowNum}-3`] || 0) : 0,
+                    r4: chks[3].checked, r4_time: chks[3].checked ? (endTimes[`${rowNum}-4`] || 0) : 0,
+                    r5: chks[4].checked, r5_time: chks[4].checked ? (endTimes[`${rowNum}-5`] || 0) : 0,
                     f1: row.querySelector('.cell-f1').value, f2: row.querySelector('.cell-f2').value, f3: row.querySelector('.cell-f3').value, f4: row.querySelector('.cell-f4').value, f5: row.querySelector('.cell-f5').value,
                     phone: row.querySelector('.cell-phone').value,
                 });
@@ -299,7 +464,7 @@
                 });
 
                 if (response.ok) {
-                    alert('管理員修改成功，表格已同步存回雲端！');
+                    alert('管理員修改成功，表格與倒數時間已同步存回雲端！');
                 } else {
                     const errRes = await response.json();
                     alert('儲存失敗：' + (errRes.message || '請確認密鑰是否有勾選 gist 寫入權限。'));
