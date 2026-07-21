@@ -186,7 +186,7 @@
 
         let rowCount = 0;
         const timers = {};
-        const endTimes = {}; // 紀錄記憶體中的目標結束時間戳記
+        const endTimes = {}; 
         let isAdmin = false;
 
         function _getD(str) { return atob(str); }
@@ -194,20 +194,20 @@
 
         const LOCAL_STATE_KEY = 'j808_user_timers';
 
-        function getLocalTimers() {
+        // 讀取本地端儲存的勾選狀態與結束時間戳記
+        function getLocalStates() {
             try { return JSON.parse(localStorage.getItem(LOCAL_STATE_KEY)) || {}; } 
             catch (e) { return {}; }
         }
 
-        function saveLocalTimer(timerId, endTime) {
-            const data = getLocalTimers();
-            data[timerId] = endTime;
-            localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify(data));
-        }
-
-        function removeLocalTimer(timerId) {
-            const data = getLocalTimers();
-            delete data[timerId];
+        // 保存勾選狀態與時間戳記至 LocalStorage
+        function saveLocalState(timerId, checked, endTime) {
+            const data = getLocalStates();
+            if (checked) {
+                data[timerId] = { checked: true, endTime: endTime };
+            } else {
+                delete data[timerId];
+            }
             localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify(data));
         }
 
@@ -265,14 +265,27 @@
             const tr = document.createElement('tr');
             tr.id = `row-${rowCount}`;
 
+            const localStates = getLocalStates();
+
             let receiveColsHtml = '';
             for(let i = 1; i <= 5; i++) {
-                const isChecked = data[`r${i}`] ? 'checked' : '';
+                const timerId = `${rowCount}-${i}`;
+                const local = localStates[timerId];
+                
+                // 優先使用手機本地記錄的勾選狀態，次之才用 GitHub 雲端狀態
+                let isChecked = false;
+                if (local !== undefined) {
+                    isChecked = local.checked;
+                } else {
+                    isChecked = !!data[`r${i}`];
+                }
+
+                const chkAttribute = isChecked ? 'checked' : '';
                 receiveColsHtml += `
                     <td>
                         <div class="chk-container">
-                            <input type="checkbox" class="chk-receive" data-row="${rowCount}" data-idx="${i}" ${isChecked} onchange="toggleTimer(this, true)">
-                            <div class="timer-label" id="timer-${rowCount}-${i}">00:00</div>
+                            <input type="checkbox" class="chk-receive" data-row="${rowCount}" data-idx="${i}" ${chkAttribute} onchange="toggleTimer(this, true)">
+                            <div class="timer-label" id="timer-${timerId}">00:00</div>
                         </div>
                     </td>
                 `;
@@ -297,23 +310,26 @@
             `;
             tbody.appendChild(tr);
 
-            // 載入與判斷時間戳記
-            const localTimers = getLocalTimers();
+            // 初始化倒數計時器
             for(let i = 1; i <= 5; i++) {
                 const timerId = `${rowCount}-${i}`;
                 const chk = tr.querySelector(`.chk-receive[data-idx="${i}"]`);
+                const local = localStates[timerId];
 
-                // 優先順序：1. LocalStorage 本地時間 -> 2. 雲端 GitHub 儲存的時間
-                let targetEndTime = localTimers[timerId] || data[`r${i}_time`];
+                // 優先使用本地儲存的目標結束時間，若無則讀取雲端時間
+                let targetEndTime = (local && local.endTime) ? local.endTime : data[`r${i}_time`];
 
-                if (targetEndTime && chk.checked) {
-                    endTimes[timerId] = targetEndTime;
-                    initTimerWithEndTime(chk, targetEndTime);
-                } else if (data[`r${i}`]) {
-                    // 若舊資料只有 true/false 卻無時間戳，設定當下時間為起點倒數 600 秒
-                    const defaultEndTime = Date.now() + 600 * 1000;
-                    endTimes[timerId] = defaultEndTime;
-                    initTimerWithEndTime(chk, defaultEndTime);
+                if (chk.checked) {
+                    if (targetEndTime) {
+                        endTimes[timerId] = targetEndTime;
+                        initTimerWithEndTime(chk, targetEndTime);
+                    } else {
+                        // 當有勾選但無任何時間戳上記時，自動預設 600 秒
+                        const defaultEndTime = Date.now() + 600 * 1000;
+                        endTimes[timerId] = defaultEndTime;
+                        saveLocalState(timerId, true, defaultEndTime);
+                        initTimerWithEndTime(chk, defaultEndTime);
+                    }
                 }
             }
         }
@@ -323,6 +339,8 @@
             const idx = checkbox.getAttribute('data-idx');
             const timerId = `${rowId}-${idx}`;
             const label = document.getElementById(`timer-${timerId}`);
+
+            if (!label) return;
 
             if (timers[timerId]) {
                 clearInterval(timers[timerId].interval);
@@ -335,7 +353,7 @@
             let remainingSeconds = Math.floor((endTime - now) / 1000);
 
             if (remainingSeconds <= 0) {
-                // 已過期/倒數完成
+                // 已過期 / 倒數完成
                 label.innerText = "00:00";
                 label.classList.add('countdown-done');
                 return;
@@ -383,12 +401,12 @@
             if (checkbox.checked) {
                 const endTime = Date.now() + 600 * 1000; // 600 秒
                 endTimes[timerId] = endTime;
-                saveLocalTimer(timerId, endTime);
+                saveLocalState(timerId, true, endTime);
                 initTimerWithEndTime(checkbox, endTime);
             } else {
                 label.innerText = "00:00";
                 delete endTimes[timerId];
-                removeLocalTimer(timerId);
+                saveLocalState(timerId, false, 0);
             }
         }
 
@@ -403,7 +421,7 @@
                         delete timers[timerId]; 
                     }
                     delete endTimes[timerId];
-                    removeLocalTimer(timerId);
+                    saveLocalState(timerId, false, 0);
                 }
                 row.remove();
             }
@@ -419,7 +437,6 @@
             alert('已重置所有領取勾選框與倒數計時！');
         }
 
-        // 關鍵修改：將倒數目標時間 r1_time ~ r5_time 一併包進 JSON 存回 GitHub
         function getTableData() {
             const rows = document.querySelectorAll('#tableBody tr');
             const data = [];
