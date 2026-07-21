@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>j808 管理面板 - 英雄聯盟風格</title>
+    <!-- 引入LOL風格英文字體與符文風字體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* 英雄聯盟 UI 色彩系統 */
+            --lol-gold-1: #f0e6d2;
+            --lol-gold-2: #c8aa6e;
+            --lol-gold-3: #785a28;
+            --lol-gold-4: #463714;
+            
+            --lol-hextech-blue: #0ac8b9;
+            --lol-hextech-glow: rgba(10, 200, 185, 0.4);
+            
+            --lol-purple-dark: #090614;
+            --lol-purple-panel: rgba(20, 16, 38, 0.75);
+            --lol-purple-border: rgba(120, 90, 40, 0.6);
+            --lol-purple-glow: rgba(147, 51, 234, 0.25);
+
+            --lol-red: #e84057;
+            --lol-green: #20c997;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: 'Noto Sans TC', 'Cinzel', Arial, sans-serif; 
+            margin: 0;
+            padding: 20px;
+            background: #05030a radial-gradient(circle at 50% 20%, #1a0f35 0%, #06040d 70%);
+            color: var(--lol-gold-1); 
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+
+        /* 頂部標題與登入區塊 */
+        .header-container { 
+            display: flex; 
+            flex-direction: column;
+            gap: 15px;
+            border-bottom: 2px solid var(--lol-gold-3); 
+            padding-bottom: 20px; 
+            margin-bottom: 20px; 
+            position: relative;
+            background: var(--lol-purple-panel);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.7), inset 0 0 15px var(--lol-purple-glow);
+            border: 1px solid var(--lol-gold-3);
+        }
+
+        h2 { 
+            margin: 0; 
+            font-family: 'Cinzel', 'Noto Sans TC', serif;
+            font-size: 26px; 
+            text-align: center; 
+            color: var(--lol-gold-1);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(200, 170, 110, 0.5), 0 0 20px rgba(120, 90, 40, 0.8);
+            font-weight: 700;
+        }
+        
+        .login-box { 
+            background: rgba(10, 8, 20, 0.8); 
+            padding: 12px 16px; 
+            border-radius: 2px; 
+            border: 1px solid var(--lol-gold-3);
+            display: flex; 
+            flex-direction: column;
+            gap: 10px; 
+            align-items: stretch; 
+            font-size: 15px; 
+            width: 100%;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
+        }
+        .login-form-inner {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+        
+        input[type="text"], input[type="password"], input[type="number"] { 
+            background: rgba(5, 3, 10, 0.7);
+            color: var(--lol-gold-1);
+            padding: 8px 10px; 
+            border: 1px solid var(--lol-gold-3); 
+            border-radius: 2px; 
+            flex: 1;
+            width: 100%;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus {
+            border-color: var(--lol-hextech-blue);
+            box-shadow: 0 0 8px var(--lol-hextech-glow);
+            background: rgba(10, 15, 25, 0.9);
+        }
+        input:disabled {
+            background: rgba(15, 12, 25, 0.3);
+            border-color: rgba(120, 90, 40, 0.2);
+            color: #7a7060;
+        }
+        
+        .user-status { 
+            font-weight: bold; 
+            color: var(--lol-gold-2); 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            gap: 10px; 
+            width: 100%;
+        }
+        
+        /* 按鈕風格 (LoL 金屬邊框按鈕) */
+        .btn-container { 
+            margin-bottom: 20px; 
+            display: flex; 
+            flex-wrap: wrap;
+            gap: 12px; 
+            align-items: center; 
+        }
+        button { 
+            padding: 10px 20px; 
+            cursor: pointer; 
+            border-radius: 2px; 
+            border: 1px solid var(--lol-gold-2); 
+            background: linear-gradient(180deg, #1e2328 0%, #111318 100%); 
+            color: var(--lol-gold-2);
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Cinzel', 'Noto Sans TC', serif;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+            position: relative;
+            box-shadow: 0 0 5px rgba(0,0,0,0.8);
+        }
+        button:hover { 
+            color: var(--lol-gold-1);
+            border-color: var(--lol-gold-1);
+            background: linear-gradient(180deg, #2b3138 0%, #1a1d24 100%);
+            box-shadow: 0 0 10px rgba(200, 170, 110, 0.4);
+        }
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-add { 
+            border-color: #1e7e34;
+            color: #5cdb95;
+            background: linear-gradient(180deg, #122b1c 0%, #08140d 100%);
+            flex: 1; min-width: 110px; 
+        }
+        .btn-add:hover { 
+            border-color: #28a745; 
+            color: #fff;
+            box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+            background: linear-gradient(180deg, #193d27 0%, #0d2115 100%);
+        }
+        
+        .btn-reset { 
+            border-color: #a71d2a;
+            color: #ff6b6b;
+            background: linear-gradient(180deg, #381216 0%, #1a080a 100%);
+            flex: 1; min-width: 130px; 
+        }
+        .btn-reset:hover { 
+            border-color: var(--lol-red); 
+            color: #fff;
+            box-shadow: 0 0 10px rgba(232, 64, 87, 0.5);
+            background: linear-gradient(180deg, #521a20 0%, #290d10 100%);
+        }
+        
+        .btn-save { 
+            border-color: var(--lol-hextech-blue);
+            color: var(--lol-hextech-blue);
+            background: linear-gradient(180deg, #092830 0%, #031015 100%);
+            flex: 2; min-width: 180px; 
+        }
+        .btn-save:hover { 
+            border-color: #00ffff;
+            color: #fff;
+            box-shadow: 0 0 12px var(--lol-hextech-glow);
+            background: linear-gradient(180deg, #0d3b47 0%, #061f26 100%);
+        }
+        
+        .btn-login { 
+            border-color: var(--lol-gold-3);
+            color: var(--lol-gold-2);
+            white-space: nowrap; 
+            padding: 8px 16px; 
+        }
+        
+        /* 表格風格 (海克斯/符文網格) */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border: 1px solid var(--lol-gold-3);
+            border-radius: 4px;
+            background: var(--lol-purple-panel);
+            backdrop-filter: blur(10px);
+            margin-top: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+        th, td { 
+            border: 1px solid rgba(120, 90, 40, 0.3); 
+            padding: 8px 6px; 
+            text-align: center; 
+        }
+        th { 
+            background: rgba(15, 11, 25, 0.9);
+            color: var(--lol-gold-2);
+            font-family: 'Cinzel', 'Noto Sans TC', serif;
+            font-size: 14px; 
+            letter-spacing: 1px;
+            border-bottom: 2px solid var(--lol-gold-3);
+        }
+        tbody tr {
+            transition: background 0.2s ease;
+        }
+        tbody tr:hover {
+            background: rgba(147, 51, 234, 0.08);
+        }
+        
+        .cell-no, .cell-level { min-width: 45px !important; text-align: center; }
+        .cell-name { min-width: 90px !important; }
+        .cell-coin { min-width: 80px !important; color: #ffeb7b; font-weight: bold; }
+        .cell-phone { min-width: 110px !important; }
+        
+        /* 複選框與魔法倒數計時 */
+        .chk-container { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 50px; }
+        input[type="checkbox"] { 
+            appearance: none;
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 1px solid var(--lol-gold-3);
+            background: rgba(5, 3, 10, 0.8);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            border-radius: 2px;
+        }
+        input[type="checkbox"]:checked {
+            border-color: var(--lol-hextech-blue);
+            background: rgba(10, 200, 185, 0.2);
+            box-shadow: 0 0 8px var(--lol-hextech-glow);
+        }
+        input[type="checkbox"]:checked::after {
+            content: '◆';
+            font-size: 12px;
+            color: var(--lol-hextech-blue);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-shadow: 0 0 5px var(--lol-hextech-blue);
+        }
+
+        .timer-label { 
+            font-size: 12px; 
+            color: #888; 
+            font-family: monospace; 
+            min-height: 14px; 
+            letter-spacing: 1px;
+        }
+        .countdown-running { 
+            color: var(--lol-red); 
+            font-weight: bold; 
+            text-shadow: 0 0 6px rgba(232, 64, 87, 0.6);
+        }
+        .countdown-done { 
+            color: var(--lol-hextech-blue); 
+            font-weight: bold; 
+            text-shadow: 0 0 6px var(--lol-hextech-glow);
+        }
+        
+        .admin-only { display: none !important; }
+
+        @media (min-width: 576px) {
+            .header-container { flex-direction: row; justify-content: space-between; align-items: center; }
+            h2 { text-align: left; }
+            .login-box { width: auto; flex-direction: row; }
+            .login-box input { width: 110px; flex: none; }
+            .btn-add, .btn-reset, .btn-save { flex: none; }
+            .user-status { width: auto; justify-content: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <h2>j808 管理控制台</h2>
+        <div class="login-box" id="loginBox">
+            <div id="loginForm" class="login-form-inner">
+                <input type="text" id="customUser" placeholder="帳號">
+                <input type="password" id="customPass" placeholder="密碼">
+                <button class="btn-login" onclick="handleLogin()">管理員登入</button>
+            </div>
+            <div id="userInfo" class="user-status" style="display: none;">
+                <span>✦ 管理員權限已驗證</span>
+                <button onclick="handleLogout()" style="padding: 4px 10px; font-size: 12px;">登出</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="btn-container">
+        <button class="btn-add admin-only" onclick="addRow()">+ 新增紀錄</button>
+        <button class="btn-reset admin-only" onclick="resetCheckboxes()">重置 領取的狀態</button>
+        <button class="btn-save admin-only" onclick="saveToGitHub()">同步雲端儲存 (GitHub)</button>
+    </div>
+
+    <div class="table-responsive">
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th style="width: 55px;">編號</th>
+                    <th style="width: 55px;">等級</th>
+                    <th>名稱</th>
+                    <th>幣量</th>
+                    <th>領1</th>
+                    <th>領2</th>
+                    <th>領3</th>
+                    <th>領4</th>
+                    <th>領5</th>
+                    <th>好友1</th>
+                    <th>好友2</th>
+                    <th>好友3</th>
+                    <th>好友4</th>
+                    <th>好友5</th>
+                    <th>電話</th>
+                    <th class="admin-only" style="width: 75px;">操作</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        const T_PART1 = "2ajJg1LkRQh0Cz";
+        const T_PART2 = "twHr9WgAby6rM6";
+        const T_PART3 = "EY1ywTH9";
+        
+        const G_ID = "a3f8fa6f452b98b777440a5c0558c190";
+        
+        const _0x112a = "ajgwOA=="; // "808"
+        const _0x889f = "ajEwMg=="; // "102"
+
+        let rowCount = 0;
+        const timers = {};
+        const endTimes = {}; 
+        let isAdmin = false;
+
+        function _getD(str) { return atob(str); }
+        function _getK() { return "gh" + "p_" + T_PART1 + T_PART2 + T_PART3; }
+
+        const LOCAL_STATE_KEY = 'j808_user_timers';
+
+        function getLocalStates() {
+            try { return JSON.parse(localStorage.getItem(LOCAL_STATE_KEY)) || {}; } 
+            catch (e) { return {}; }
+        }
+
+        function saveLocalState(timerId, checked, endTime) {
+            const data = getLocalStates();
+            if (checked) {
+                data[timerId] = { checked: true, endTime: endTime };
+            } else {
+                delete data[timerId];
+            }
+            localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify(data));
+        }
+
+        function clearAllLocalTimers() {
+            localStorage.removeItem(LOCAL_STATE_KEY);
+        }
+
+        window.onload = function() {
+            if (localStorage.getItem('j808_is_admin') === 'true') {
+                setAdminMode(true);
+            }
+            loadFromGitHub();
+        };
+
+        function handleLogin() {
+            const userIn = document.getElementById('customUser').value;
+            const passIn = document.getElementById('customPass').value;
+
+            if (userIn === _getD(_0x112a) && passIn === _getD(_0x889f)) {
+                localStorage.setItem('j808_is_admin', 'true');
+                setAdminMode(true);
+                loadFromGitHub();
+            } else {
+                alert('帳號或密碼錯誤！');
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('j808_is_admin');
+            setAdminMode(false);
+            loadFromGitHub();
+        }
+
+        function setAdminMode(status) {
+            isAdmin = status;
+            const adminElements = document.querySelectorAll('.admin-only');
+            if (isAdmin) {
+                document.getElementById('loginForm').style.setProperty('display', 'none', 'important');
+                document.getElementById('userInfo').style.setProperty('display', 'flex', 'important');
+                adminElements.forEach(el => el.style.setProperty('display', 'block', 'important'));
+                const thOp = document.querySelector('th.admin-only');
+                if(thOp) thOp.style.setProperty('display', 'table-cell', 'important');
+            } else {
+                document.getElementById('loginForm').style.setProperty('display', 'flex', 'important');
+                document.getElementById('userInfo').style.setProperty('display', 'none', 'important');
+                document.getElementById('customUser').value = '';
+                document.getElementById('customPass').value = '';
+                adminElements.forEach(el => el.style.setProperty('display', 'none', 'important'));
+            }
+        }
+
+        function addRow(data = {}) {
+            rowCount++;
+            const tbody = document.getElementById('tableBody');
+            const tr = document.createElement('tr');
+            tr.id = `row-${rowCount}`;
+
+            const localStates = getLocalStates();
+
+            let receiveColsHtml = '';
+            for(let i = 1; i <= 5; i++) {
+                const timerId = `${rowCount}-${i}`;
+                const local = localStates[timerId];
+                
+                let isChecked = false;
+                if (local !== undefined) {
+                    isChecked = local.checked;
+                } else {
+                    isChecked = !!data[`r${i}`];
+                }
+
+                const chkAttribute = isChecked ? 'checked' : '';
+                receiveColsHtml += `
+                    <td>
+                        <div class="chk-container">
+                            <input type="checkbox" class="chk-receive" data-row="${rowCount}" data-idx="${i}" ${chkAttribute} onchange="toggleTimer(this, true)">
+                            <div class="timer-label" id="timer-${timerId}">00:00</div>
+                        </div>
+                    </td>
+                `;
+            }
+
+            const isDisabled = isAdmin ? '' : 'disabled';
+            const deleteBtnHtml = isAdmin ? `<td><button onclick="deleteRow(${rowCount})" style="color:var(--lol-red); border-color:var(--lol-red); padding: 4px 10px;">刪除</button></td>` : `<td class="admin-only"></td>`;
+
+            tr.innerHTML = `
+                <td><input type="text" class="cell-no" value="${data.no || rowCount}" ${isDisabled}></td>
+                <td><input type="text" class="cell-level" value="${data.level || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-name" value="${data.name || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-coin" value="${data.coin || ''}" ${isDisabled}></td>
+                ${receiveColsHtml}
+                <td><input type="text" class="cell-f1" value="${data.f1 || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-f2" value="${data.f2 || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-f3" value="${data.f3 || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-f4" value="${data.f4 || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-f5" value="${data.f5 || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-phone" value="${data.phone || ''}" ${isDisabled}></td>
+                ${deleteBtnHtml}
+            `;
+            tbody.appendChild(tr);
+
+            for(let i = 1; i <= 5; i++) {
+                const timerId = `${rowCount}-${i}`;
+                const chk = tr.querySelector(`.chk-receive[data-idx="${i}"]`);
+                const local = localStates[timerId];
+
+                let targetEndTime = (local && local.endTime) ? local.endTime : data[`r${i}_time`];
+
+                if (chk.checked) {
+                    if (targetEndTime) {
+                        endTimes[timerId] = targetEndTime;
+                        initTimerWithEndTime(chk, targetEndTime);
+                    } else {
+                        const defaultEndTime = Date.now() + 600 * 1000;
+                        endTimes[timerId] = defaultEndTime;
+                        saveLocalState(timerId, true, defaultEndTime);
+                        initTimerWithEndTime(chk, defaultEndTime);
+                    }
+                }
+            }
+        }
+
+        function initTimerWithEndTime(checkbox, endTime) {
+            const rowId = checkbox.getAttribute('data-row');
+            const idx = checkbox.getAttribute('data-idx');
+            const timerId = `${rowId}-${idx}`;
+            const label = document.getElementById(`timer-${timerId}`);
+
+            if (!label) return;
+
+            if (timers[timerId]) {
+                clearInterval(timers[timerId].interval);
+                delete timers[timerId];
+            }
+
+            label.classList.remove('countdown-running', 'countdown-done');
+
+            const now = Date.now();
+            let remainingSeconds = Math.floor((endTime - now) / 1000);
+
+            if (remainingSeconds <= 0) {
+                label.innerText = "00:00";
+                label.classList.add('countdown-done');
+                return;
+            }
+
+            label.classList.add('countdown-running');
+            
+            const updateDisplay = (secs) => {
+                const mins = String(Math.floor(secs / 60)).padStart(2, '0');
+                const s = String(secs % 60).padStart(2, '0');
+                label.innerText = `${mins}:${s}`;
+            };
+
+            updateDisplay(remainingSeconds);
+
+            const interval = setInterval(() => {
+                const currentRemaining = Math.floor((endTime - Date.now()) / 1000);
+                if (currentRemaining <= 0) {
+                    clearInterval(interval);
+                    label.innerText = "00:00";
+                    label.classList.remove('countdown-running');
+                    label.classList.add('countdown-done');
+                    delete timers[timerId];
+                } else {
+                    updateDisplay(currentRemaining);
+                }
+            }, 1000);
+
+            timers[timerId] = { interval: interval };
+        }
+
+        function toggleTimer(checkbox, isUserClick = true) {
+            const rowId = checkbox.getAttribute('data-row');
+            const idx = checkbox.getAttribute('data-idx');
+            const timerId = `${rowId}-${idx}`;
+            const label = document.getElementById(`timer-${timerId}`);
+
+            if (timers[timerId]) {
+                clearInterval(timers[timerId].interval);
+                delete timers[timerId];
+            }
+
+            label.classList.remove('countdown-running', 'countdown-done');
+
+            if (checkbox.checked) {
+                const endTime = Date.now() + 600 * 1000;
+                endTimes[timerId] = endTime;
+                saveLocalState(timerId, true, endTime);
+                initTimerWithEndTime(checkbox, endTime);
+            } else {
+                label.innerText = "00:00";
+                delete endTimes[timerId];
+                saveLocalState(timerId, false, 0);
+            }
+        }
+
+        function deleteRow(id) {
+            if(!isAdmin) return;
+            const row = document.getElementById(`row-${id}`);
+            if (row) {
+                for(let i = 1; i <= 5; i++) {
+                    const timerId = `${id}-${i}`;
+                    if (timers[timerId]) { 
+                        clearInterval(timers[timerId].interval); 
+                        delete timers[timerId]; 
+                    }
+                    delete endTimes[timerId];
+                    saveLocalState(timerId, false, 0);
+                }
+                row.remove();
+            }
+        }
+
+        function resetCheckboxes() {
+            if(!isAdmin) return;
+            clearAllLocalTimers();
+            document.querySelectorAll('.chk-receive').forEach(chk => {
+                chk.checked = false;
+                toggleTimer(chk, false);
+            });
+            alert('已重置所有領取勾選框與倒數計時！');
+        }
+
+        function getTableData() {
+            const rows = document.querySelectorAll('#tableBody tr');
+            const data = [];
+            rows.forEach((row, rowIndex) => {
+                const rowNum = rowIndex + 1;
+                const chks = row.querySelectorAll('.chk-receive');
+                data.push({
+                    no: row.querySelector('.cell-no').value,
+                    level: row.querySelector('.cell-level').value,
+                    name: row.querySelector('.cell-name').value,
+                    coin: row.querySelector('.cell-coin').value,
+                    r1: chks[0].checked, r1_time: chks[0].checked ? (endTimes[`${rowNum}-1`] || 0) : 0,
+                    r2: chks[1].checked, r2_time: chks[1].checked ? (endTimes[`${rowNum}-2`] || 0) : 0,
+                    r3: chks[2].checked, r3_time: chks[2].checked ? (endTimes[`${rowNum}-3`] || 0) : 0,
+                    r4: chks[3].checked, r4_time: chks[3].checked ? (endTimes[`${rowNum}-4`] || 0) : 0,
+                    r5: chks[4].checked, r5_time: chks[4].checked ? (endTimes[`${rowNum}-5`] || 0) : 0,
+                    f1: row.querySelector('.cell-f1').value, f2: row.querySelector('.cell-f2').value, f3: row.querySelector('.cell-f3').value, f4: row.querySelector('.cell-f4').value, f5: row.querySelector('.cell-f5').value,
+                    phone: row.querySelector('.cell-phone').value,
+                });
+            });
+            return data;
+        }
+
+        async function saveToGitHub() {
+            if(!isAdmin) { alert('請先登入管理員權限！'); return; }
+            const tableData = getTableData();
+
+            const payload = {
+                description: "Grid Data Storage with Timers",
+                files: { "grid_data.json": { content: JSON.stringify(tableData, null, 2) } }
+            };
+
+            try {
+                const response = await fetch(`https://api.github.com/gists/${G_ID}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${_getK()}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    alert('管理員修改成功，表格與倒數時間已同步存回雲端！');
+                } else {
+                    const errRes = await response.json();
+                    alert('儲存失敗：' + (errRes.message || '請確認密鑰是否有勾選 gist 寫入權限。'));
+                }
+            } catch (error) {
+                alert('網路連線失敗，請稍後再試。');
+            }
+        }
+
+        async function loadFromGitHub() {
+            try {
+                const response = await fetch(`https://api.github.com/gists/${G_ID}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${_getK()}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (response.ok) {
+                    const resData = await response.json();
+                    if(resData.files && resData.files["grid_data.json"]) {
+                        const data = JSON.parse(resData.files["grid_data.json"].content);
+                        document.getElementById('tableBody').innerHTML = '';
+                        rowCount = 0;
+                        data.forEach(item => addRow(item));
+                    }
+                }
+            } catch (error) {}
+        }
+    </script>
+</body>
+</html>
