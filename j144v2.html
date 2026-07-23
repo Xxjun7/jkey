@@ -269,7 +269,7 @@
             const inputVal = parseFloat(rawVal) || 0;
             const result = inputVal * RATE;
             
-            document.getElementById('processTWD').innerText = `${formatThousand(rawVal || 0)} * ${RATE} = `;
+            document.getElementById('processTWD').innerText = `${formatThousand(rawVal || 0)} × ${RATE} = `;
             document.getElementById('resultTWD').innerText = formatThousand(result);
         }
 
@@ -279,13 +279,13 @@
             const inputVal = parseFloat(rawVal) || 0;
             
             if (inputVal === 0) {
-                document.getElementById('processGameCoin').innerText = `0 / ${RATE} = `;
+                document.getElementById('processGameCoin').innerText = `0 ÷ ${RATE} = `;
                 document.getElementById('resultGameCoin').innerText = "0";
             } else {
                 const result = inputVal / RATE;
                 const formattedResult = formatThousand(parseFloat(result.toFixed(3)));
                 
-                document.getElementById('processGameCoin').innerText = `${formatThousand(rawVal)} / ${RATE} = `;
+                document.getElementById('processGameCoin').innerText = `${formatThousand(rawVal)} ÷ ${RATE} = `;
                 document.getElementById('resultGameCoin').innerText = formattedResult;
             }
         }
