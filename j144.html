@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>極簡遊戲幣換算器</title>
+    <style>
+        /* --- 基礎樣式 (Reset & Base) --- */
+        :root {
+            --bg-color: #ffffff;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --shadow-color: rgba(0, 0, 0, 0.05);
+            --primary-mint: #a8e6cf; 
+            --accent-purple: #c3aed6; 
+            --border-radius: 12px;
+            --font-family: 'PingFang TC', 'Heiti TC', 'Microsoft JhengHei', sans-serif;
+            --spacing-xs: 4px;
+            --spacing-sm: 6px;
+            --spacing-md: 10px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.4;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: var(--spacing-sm);
+            overflow-x: hidden;
+        }
+
+        /* --- 主要容器：改為 fit-content，面板寬度剛好包覆內容，完全去除右側空白 --- */
+        main {
+            display: flex;
+            flex-direction: column;
+            width: fit-content;        /* 自動貼齊內容長度 */
+            max-width: 100%;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            border-radius: var(--border-radius);
+            border: 1px solid #f0f0f0;
+            overflow: hidden;
+            background-color: var(--card-bg);
+        }
+
+        .card {
+            padding: var(--spacing-md);
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+            background-color: var(--card-bg);
+        }
+
+        /* 分割線讓上下盒子完全貼齊 */
+        .card + .card {
+            border-top: 1px solid #f0f0f0;
+        }
+
+        /* --- 1. 輸入框區塊 --- */
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        /* 輸入框固定 10 個數字寬度 */
+        input[type="text"] {
+            width: 145px; 
+            flex-shrink: 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 4px 8px;
+            border: 1.5px solid #eeeeee;
+            border-radius: calc(var(--border-radius) / 2);
+            background-color: #fafafa;
+            color: var(--text-color);
+            transition: border-color 0.2s ease;
+            text-align: left;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent-purple);
+            background-color: #ffffff;
+        }
+
+        .currency-label {
+            font-size: 1.1rem;
+            color: #888;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        /* --- 2. 可點擊複製的計算過程與結果顯示區 --- */
+        .formula-display {
+            background-color: #f9f9f9;
+            padding: 6px var(--spacing-sm);
+            border-radius: calc(var(--border-radius) / 2);
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1rem;
+            color: #555;
+            word-break: break-all;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            white-space: nowrap;      /* 防止不必要的斷行導致寬度變形 */
+        }
+
+        .formula-display:active {
+            transform: scale(0.99);
+            background-color: #f0f0f0;
+        }
+
+        .formula-content {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .result-highlight {
+            color: var(--accent-purple);
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        /* 複製成功提示文字 */
+        .copy-toast {
+            font-size: 0.75rem;
+            color: #2e7d32;
+            background-color: var(--primary-mint);
+            padding: 1px 6px;
+            border-radius: 8px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .copy-toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 主要內容區 (貼齊無縫且面板剛好包覆) -->
+    <main>
+        <!-- 上方卡片: 乘法計算 (元) -->
+        <section class="card">
+            <div class="input-row">
+                <input type="text" id="inputGameCoin" inputmode="decimal" value="" placeholder="0" 
+                       onfocus="clearInput(this)" 
+                       oninput="handleInput(this, calculateToTWD)" 
+                       onkeydown="handleKeyDown(event, 'processTWD', 'resultTWD', 'toastTWD')">
+                <span class="currency-label">元</span>
+            </div>
+            
+            <div class="formula-display" onclick="copyFormula('processTWD', 'resultTWD', 'toastTWD')">
+                <div class="formula-content">
+                    <span id="processTWD">0 * 144 = </span>
+                    <span class="result-highlight" id="resultTWD">0</span>
+                </div>
+                <span class="copy-toast" id="toastTWD">已複製！</span>
+            </div>
+        </section>
+
+        <!-- 下方卡片: 除法計算 (幣) -->
+        <section class="card">
+            <div class="input-row">
+                <input type="text" id="inputTWD" inputmode="decimal" value="" placeholder="0" 
+                       onfocus="clearInput(this)" 
+                       oninput="handleInput(this, calculateToGameCoin)" 
+                       onkeydown="handleKeyDown(event, 'processGameCoin', 'resultGameCoin', 'toastGameCoin')">
+                <span class="currency-label">幣</span>
+            </div>
+
+            <div class="formula-display" onclick="copyFormula('processGameCoin', 'resultGameCoin', 'toastGameCoin')">
+                <div class="formula-content">
+                    <span id="processGameCoin">0 / 144 = </span>
+                    <span class="result-highlight" id="resultGameCoin">0</span>
+                </div>
+                <span class="copy-toast" id="toastGameCoin">已複製！</span>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const RATE = 144;
+
+        // 數字轉千分位字串
+        function formatThousand(numStr) {
+            if (numStr === "" || numStr === null || numStr === undefined) return "0";
+            let parts = numStr.toString().split(".");
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            return parts.join(".");
+        }
+
+        // 獲取焦點時自動清空輸入框
+        function clearInput(element) {
+            element.value = '';
+            if (element.id === 'inputGameCoin') calculateToTWD();
+            if (element.id === 'inputTWD') calculateToGameCoin();
+        }
+
+        // 輸入處理
+        function handleInput(element, callback) {
+            let cleanVal = element.value.replace(/[^0-9.]/g, '');
+
+            const firstDotIndex = cleanVal.indexOf('.');
+            if (firstDotIndex !== -1) {
+                cleanVal = cleanVal.substring(0, firstDotIndex + 1) + cleanVal.substring(firstDotIndex + 1).replace(/\./g, '');
+            }
+
+            if (element.value !== cleanVal) {
+                element.value = cleanVal;
+            }
+
+            callback();
+        }
+
+        // 監聽 Enter 鍵自動複製
+        function handleKeyDown(event, processId, resultId, toastId) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                copyFormula(processId, resultId, toastId);
+                event.target.blur();
+            }
+        }
+
+        // 計算: 乘法
+        function calculateToTWD() {
+            const rawVal = document.getElementById('inputGameCoin').value;
+            const inputVal = parseFloat(rawVal) || 0;
+            const result = inputVal * RATE;
+            
+            document.getElementById('processTWD').innerText = `${formatThousand(rawVal || 0)} * ${RATE} = `;
+            document.getElementById('resultTWD').innerText = formatThousand(result);
+        }
+
+        // 計算: 除法
+        function calculateToGameCoin() {
+            const rawVal = document.getElementById('inputTWD').value;
+            const inputVal = parseFloat(rawVal) || 0;
+            
+            if (inputVal === 0) {
+                document.getElementById('processGameCoin').innerText = `0 / ${RATE} = `;
+                document.getElementById('resultGameCoin').innerText = "0";
+            } else {
+                const result = inputVal / RATE;
+                const formattedResult = formatThousand(parseFloat(result.toFixed(3)));
+                
+                document.getElementById('processGameCoin').innerText = `${formatThousand(rawVal)} / ${RATE} = `;
+                document.getElementById('resultGameCoin').innerText = formattedResult;
+            }
+        }
+
+        // 點擊或 Enter 複製
+        function copyFormula(processId, resultId, toastId) {
+            const processText = document.getElementById(processId).innerText;
+            const resultText = document.getElementById(resultId).innerText;
+            const textToCopy = `${processText}${resultText}`; 
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const toast = document.getElementById(toastId);
+                toast.classList.add('show');
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 1000);
+            }).catch(err => {
+                alert('複製失敗: ' + textToCopy);
+            });
+        }
+
+        // 初始化
+        calculateToTWD();
+        calculateToGameCoin();
+    </script>
+</body>
+</html>
