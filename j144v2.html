@@ -15,7 +15,7 @@
             --text-sub: rgba(255, 255, 255, 0.75);           /* 半透明輔助文字 */
             --accent-purple: #e0c3fc;                        /* 柔光紫色亮色 */
             --primary-mint: rgba(168, 230, 207, 0.85);       /* 半透明薄荷綠 */
-            --border-radius: 20px;                           /* 圓角風格 */
+            --border-radius: 20px;                            /* 圓角風格 */
             --font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang TC', sans-serif;
             --spacing-xs: 6px;
             --spacing-sm: 8px;
@@ -31,7 +31,6 @@
 
         body {
             font-family: var(--font-family);
-            /* 絢麗漸層背景，用來微透顯示光影穿透感 */
             background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #fbc2eb 100%);
             background-attachment: fixed;
             color: var(--text-main);
@@ -49,13 +48,13 @@
         main {
             display: flex;
             flex-direction: column;
-            width: fit-content;                           /* 貼齊內容寬度 */
+            width: fit-content;
             max-width: 100%;
             background: var(--glass-bg);
-            backdrop-filter: blur(20px);                  /* 背景模糊強度 20px */
-            -webkit-backdrop-filter: blur(20px);          /* Safari 支援 */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-radius: var(--border-radius);
-            border: 1px solid var(--glass-border);        /* 精細白色描邊 */
+            border: 1px solid var(--glass-border);
             box-shadow: var(--glass-shadow);
             overflow: hidden;
             position: relative;
@@ -79,6 +78,7 @@
             display: flex;
             align-items: center;
             gap: var(--spacing-sm);
+            position: relative; /* 作為 Toast 定位參考點 */
         }
 
         /* 玻璃風格輸入框 */
@@ -90,10 +90,10 @@
             font-weight: 600;
             padding: 6px 12px;
             border-radius: 12px;
-            background: rgba(255, 255, 255, 0.2);       /* 半透明填滿 */
-            border: 1px solid var(--glass-border);       /* 精細白色邊框 */
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid var(--glass-border);
             color: var(--text-main);
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);    /* 提升可讀性輕微陰影 */
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
             outline: none;
             transition: all 0.25s ease;
             text-align: left;
@@ -117,7 +117,7 @@
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
         }
 
-        /* --- 2. 計算過程與結果區 (內層微暗玻璃) --- */
+        /* --- 2. 計算過程與結果區 --- */
         .formula-display {
             background: var(--glass-card-bg);
             border: 1px solid rgba(255, 255, 255, 0.25);
@@ -158,7 +158,7 @@
             text-shadow: 0 0 8px var(--accent-purple);
         }
 
-        /* 半透明 Toast 提示 */
+        /* 半透明 Toast 提示：定位在「元/幣」單位文字後方 */
         .copy-toast {
             font-size: 0.75rem;
             color: #1b4332;
@@ -170,6 +170,8 @@
             white-space: nowrap;
             font-weight: 600;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            margin-left: 4px; /* 與「元/幣」保持適當距離 */
+            transform: translateY(15px); /* 向下平移 3px */
         }
 
         .copy-toast.show {
@@ -189,6 +191,7 @@
                        oninput="handleInput(this, calculateToTWD)" 
                        onkeydown="handleKeyDown(event, 'processTWD', 'resultTWD', 'toastTWD')">
                 <span class="currency-label">元</span>
+                <span class="copy-toast" id="toastTWD">已複製！</span>
             </div>
             
             <div class="formula-display" onclick="copyFormula('processTWD', 'resultTWD', 'toastTWD')">
@@ -196,7 +199,6 @@
                     <span id="processTWD">0 * 144 = </span>
                     <span class="result-highlight" id="resultTWD">0</span>
                 </div>
-                <span class="copy-toast" id="toastTWD">已複製！</span>
             </div>
         </section>
 
@@ -208,6 +210,7 @@
                        oninput="handleInput(this, calculateToGameCoin)" 
                        onkeydown="handleKeyDown(event, 'processGameCoin', 'resultGameCoin', 'toastGameCoin')">
                 <span class="currency-label">幣</span>
+                <span class="copy-toast" id="toastGameCoin">已複製！</span>
             </div>
 
             <div class="formula-display" onclick="copyFormula('processGameCoin', 'resultGameCoin', 'toastGameCoin')">
@@ -215,7 +218,6 @@
                     <span id="processGameCoin">0 / 144 = </span>
                     <span class="result-highlight" id="resultGameCoin">0</span>
                 </div>
-                <span class="copy-toast" id="toastGameCoin">已複製！</span>
             </div>
         </section>
     </main>
