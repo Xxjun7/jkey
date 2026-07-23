@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>玻璃擬態 - 遊戲幣換算器</title>
+    <style>
+        /* --- 基礎樣式 (Reset & Base) --- */
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.25);          /* 半透明玻璃背景 */
+            --glass-card-bg: rgba(255, 255, 255, 0.18);     /* 內部卡片半透明背景 */
+            --glass-border: rgba(255, 255, 255, 0.45);      /* 精細白色描邊 */
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18); /* 柔和深邃陰影 */
+            --text-main: #ffffff;                            /* 白色主要文字 */
+            --text-sub: rgba(255, 255, 255, 0.75);           /* 半透明輔助文字 */
+            --accent-purple: #e0c3fc;                        /* 柔光紫色亮色 */
+            --primary-mint: rgba(168, 230, 207, 0.85);       /* 半透明薄荷綠 */
+            --border-radius: 20px;                           /* 圓角風格 */
+            --font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang TC', sans-serif;
+            --spacing-xs: 6px;
+            --spacing-sm: 8px;
+            --spacing-md: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-family);
+            /* 絢麗漸層背景，用來微透顯示光影穿透感 */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #fbc2eb 100%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            line-height: 1.4;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: var(--spacing-md);
+            overflow-x: hidden;
+        }
+
+        /* --- 主要面板：iOS 玻璃擬態質感 --- */
+        main {
+            display: flex;
+            flex-direction: column;
+            width: fit-content;                           /* 貼齊內容寬度 */
+            max-width: 100%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);                  /* 背景模糊強度 20px */
+            -webkit-backdrop-filter: blur(20px);          /* Safari 支援 */
+            border-radius: var(--border-radius);
+            border: 1px solid var(--glass-border);        /* 精細白色描邊 */
+            box-shadow: var(--glass-shadow);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 上下卡片區塊 */
+        .card {
+            padding: var(--spacing-md) 16px;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        /* 微細分割線 */
+        .card + .card {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* --- 1. 輸入框區塊 --- */
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        /* 玻璃風格輸入框 */
+        input[type="text"] {
+            width: 145px; 
+            flex-shrink: 0;
+            font-family: 'SF Pro Display', 'Courier New', Courier, monospace;
+            font-size: 1.5rem;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.2);       /* 半透明填滿 */
+            border: 1px solid var(--glass-border);       /* 精細白色邊框 */
+            color: var(--text-main);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);    /* 提升可讀性輕微陰影 */
+            outline: none;
+            transition: all 0.25s ease;
+            text-align: left;
+        }
+
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        input[type="text"]:focus {
+            background: rgba(255, 255, 255, 0.35);
+            border-color: #ffffff;
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+        }
+
+        .currency-label {
+            font-size: 1.1rem;
+            color: var(--text-sub);
+            font-weight: 500;
+            white-space: nowrap;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+        }
+
+        /* --- 2. 計算過程與結果區 (內層微暗玻璃) --- */
+        .formula-display {
+            background: var(--glass-card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-family: 'SF Pro Display', 'Courier New', Courier, monospace;
+            font-size: 0.95rem;
+            color: var(--text-sub);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .formula-display:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .formula-display:active {
+            transform: scale(0.98);
+        }
+
+        .formula-content {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* 高亮文字與發光效果 */
+        .result-highlight {
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 1.15rem;
+            text-shadow: 0 0 8px var(--accent-purple);
+        }
+
+        /* 半透明 Toast 提示 */
+        .copy-toast {
+            font-size: 0.75rem;
+            color: #1b4332;
+            background: var(--primary-mint);
+            padding: 2px 8px;
+            border-radius: 20px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            white-space: nowrap;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .copy-toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 主要內容區 (iOS 玻璃擬態風) -->
+    <main>
+        <!-- 上方卡片: 乘法計算 (元) -->
+        <section class="card">
+            <div class="input-row">
+                <input type="text" id="inputGameCoin" inputmode="decimal" value="" placeholder="0" 
+                       onfocus="clearInput(this)" 
+                       oninput="handleInput(this, calculateToTWD)" 
+                       onkeydown="handleKeyDown(event, 'processTWD', 'resultTWD', 'toastTWD')">
+                <span class="currency-label">元</span>
+            </div>
+            
+            <div class="formula-display" onclick="copyFormula('processTWD', 'resultTWD', 'toastTWD')">
+                <div class="formula-content">
+                    <span id="processTWD">0 * 144 = </span>
+                    <span class="result-highlight" id="resultTWD">0</span>
+                </div>
+                <span class="copy-toast" id="toastTWD">已複製！</span>
+            </div>
+        </section>
+
+        <!-- 下方卡片: 除法計算 (幣) -->
+        <section class="card">
+            <div class="input-row">
+                <input type="text" id="inputTWD" inputmode="decimal" value="" placeholder="0" 
+                       onfocus="clearInput(this)" 
+                       oninput="handleInput(this, calculateToGameCoin)" 
+                       onkeydown="handleKeyDown(event, 'processGameCoin', 'resultGameCoin', 'toastGameCoin')">
+                <span class="currency-label">幣</span>
+            </div>
+
+            <div class="formula-display" onclick="copyFormula('processGameCoin', 'resultGameCoin', 'toastGameCoin')">
+                <div class="formula-content">
+                    <span id="processGameCoin">0 / 144 = </span>
+                    <span class="result-highlight" id="resultGameCoin">0</span>
+                </div>
+                <span class="copy-toast" id="toastGameCoin">已複製！</span>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const RATE = 144;
+
+        // 數字轉千分位字串
+        function formatThousand(numStr) {
+            if (numStr === "" || numStr === null || numStr === undefined) return "0";
+            let parts = numStr.toString().split(".");
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            return parts.join(".");
+        }
+
+        // 獲取焦點時自動清空輸入框
+        function clearInput(element) {
+            element.value = '';
+            if (element.id === 'inputGameCoin') calculateToTWD();
+            if (element.id === 'inputTWD') calculateToGameCoin();
+        }
+
+        // 輸入處理
+        function handleInput(element, callback) {
+            let cleanVal = element.value.replace(/[^0-9.]/g, '');
+
+            const firstDotIndex = cleanVal.indexOf('.');
+            if (firstDotIndex !== -1) {
+                cleanVal = cleanVal.substring(0, firstDotIndex + 1) + cleanVal.substring(firstDotIndex + 1).replace(/\./g, '');
+            }
+
+            if (element.value !== cleanVal) {
+                element.value = cleanVal;
+            }
+
+            callback();
+        }
+
+        // 監聽 Enter 鍵自動複製
+        function handleKeyDown(event, processId, resultId, toastId) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                copyFormula(processId, resultId, toastId);
+                event.target.blur();
+            }
+        }
+
+        // 計算: 乘法
+        function calculateToTWD() {
+            const rawVal = document.getElementById('inputGameCoin').value;
+            const inputVal = parseFloat(rawVal) || 0;
+            const result = inputVal * RATE;
+            
+            document.getElementById('processTWD').innerText = `${formatThousand(rawVal || 0)} * ${RATE} = `;
+            document.getElementById('resultTWD').innerText = formatThousand(result);
+        }
+
+        // 計算: 除法
+        function calculateToGameCoin() {
+            const rawVal = document.getElementById('inputTWD').value;
+            const inputVal = parseFloat(rawVal) || 0;
+            
+            if (inputVal === 0) {
+                document.getElementById('processGameCoin').innerText = `0 / ${RATE} = `;
+                document.getElementById('resultGameCoin').innerText = "0";
+            } else {
+                const result = inputVal / RATE;
+                const formattedResult = formatThousand(parseFloat(result.toFixed(3)));
+                
+                document.getElementById('processGameCoin').innerText = `${formatThousand(rawVal)} / ${RATE} = `;
+                document.getElementById('resultGameCoin').innerText = formattedResult;
+            }
+        }
+
+        // 點擊或 Enter 複製
+        function copyFormula(processId, resultId, toastId) {
+            const processText = document.getElementById(processId).innerText;
+            const resultText = document.getElementById(resultId).innerText;
+            const textToCopy = `${processText}${resultText}`; 
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const toast = document.getElementById(toastId);
+                toast.classList.add('show');
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 1000);
+            }).catch(err => {
+                alert('複製失敗: ' + textToCopy);
+            });
+        }
+
+        // 初始化
+        calculateToTWD();
+        calculateToGameCoin();
+    </script>
+</body>
+</html>
