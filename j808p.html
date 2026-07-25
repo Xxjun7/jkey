@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>萬能圖片 URL 參數與圖像處理工具</title>
+    <!-- Cropper.js 互動裁切套件 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <style>
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #f4f6f9; padding: 20px; max-width: 950px; margin: 0 auto; color: #333; }
+        .card { background: #ffffff; padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        h2 { margin-top: 0; color: #1a73e8; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; font-size: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 13px; color: #444; }
+        input[type="text"], input[type="number"], select, input[type="range"], input[type="color"] { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+        input[type="color"] { padding: 2px 4px; height: 38px; cursor: pointer; }
+        .input-group { display: flex; gap: 10px; }
+        button { background-color: #1a73e8; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        button:hover { background-color: #1557b0; }
+        .btn-mouse-crop { background-color: #ff9800; font-size: 14px; }
+        .btn-mouse-crop:hover { background-color: #e68a00; }
+        .btn-copy { background-color: #34a853; white-space: nowrap; }
+        .btn-copy:hover { background-color: #2d8e47; }
+        .btn-download { background-color: #9c27b0; white-space: nowrap; font-size: 15px; }
+        .btn-download:hover { background-color: #7b1fa2; }
+        .btn-preset { background-color: #f1f3f4; color: #333; border: 1px solid #dadce0; font-size: 13px; padding: 6px 12px; }
+        .btn-preset:hover { background-color: #e8eaed; color: #1a73e8; }
+        .btn-picker { background-color: #e91e63; color: white; }
+        .btn-picker:hover { background-color: #c2185b; }
+        .preset-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; align-items: center; }
+        
+        .d-pad-container { background: #e8f0fe; padding: 15px; border-radius: 8px; margin-top: 15px; }
+        .d-pad-section { display: flex; align-items: center; justify-content: flex-start; gap: 12px; flex-wrap: wrap; }
+        .d-pad-btn { background-color: #ffffff; color: #1a73e8; border: 1px solid #aecbfa; border-radius: 6px; padding: 6px 12px; font-size: 13px; cursor: pointer; font-weight: 600; }
+        .d-pad-btn:hover { background-color: #1a73e8; color: white; }
+
+        .grid-3x3 { display: inline-grid; grid-template-columns: repeat(3, 38px); gap: 4px; vertical-align: middle; }
+        .grid-3x3 button { padding: 6px 0; text-align: center; font-size: 14px; background: #ffffff; color: #333; border: 1px solid #aecbfa; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .grid-3x3 button:hover { background: #1a73e8; color: white; border-color: #1a73e8; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+        .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+        .section-title-container { display: flex; justify-content: space-between; align-items: center; margin: 15px 0 10px 0; }
+        .section-title { font-weight: bold; color: #1a73e8; font-size: 15px; border-left: 4px solid #1a73e8; padding-left: 8px; }
+        .result-box { background-color: #e8f0fe; border: 1px solid #aecbfa; }
+        .preview-container { margin-top: 15px; text-align: center; background: #fafafa; border: 1px dashed #ccc; border-radius: 8px; padding: 15px; position: relative; }
+        canvas { max-width: 100%; height: auto; border-radius: 6px; }
+        canvas.picking-mode { cursor: crosshair; outline: 3px dashed #e91e63; }
+
+        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.75); }
+        .modal-content { background-color: #fff; margin: 3% auto; padding: 20px; border-radius: 12px; width: 90%; max-width: 850px; }
+        .crop-container { max-height: 480px; width: 100%; background-color: #333; overflow: hidden; margin-bottom: 15px; border-radius: 6px; }
+        .crop-container img { max-width: 100%; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+        .btn-cancel { background-color: #757575; }
+        .btn-cancel:hover { background-color: #616161; }
+        
+        .info-badge { background: #e8f0fe; color: #1a73e8; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 13px; }
+        .picker-tip { font-size: 12px; color: #e91e63; margin-top: 5px; font-weight: bold; display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- 圖片來源區塊 -->
+    <div class="card">
+        <h2>📷 萬能圖片來源與 URL 參數</h2>
+        <div class="form-group">
+            <label for="baseUrl">圖片來源 (輸入網址 / 檔案上傳 / 直接 Ctrl+V 貼上)：</label>
+            <div class="input-group">
+                <input type="text" id="baseUrl" placeholder="請貼上網址，或直接按 Ctrl+V 貼上剪貼簿圖片..." oninput="handleUrlInput()">
+                <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileUpload(this)">
+                <button onclick="document.getElementById('fileInput').click()" style="white-space:nowrap; background-color:#607d8b;">📁 上傳檔案</button>
+            </div>
+        </div>
+
+        <div class="form-group result-box" style="padding: 15px; border-radius: 6px; margin-bottom: 0;">
+            <label for="outputUrl">Hearst 格式 URL (若伺服器支援)：</label>
+            <div class="input-group">
+                <input type="text" id="outputUrl" readonly placeholder="網址生成區">
+                <button class="btn-copy" onclick="copyUrl()">複製網址</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Canvas 即時預覽畫布 -->
+    <div class="card" id="previewCard" style="display:none;">
+        <div class="section-title-container" style="margin-top:0;">
+            <h2 style="margin:0; border:none; padding:0;">🖼️ Canvas 即時萬能預覽</h2>
+            <button class="btn-download" onclick="downloadImage()">💾 下載處理後圖片</button>
+        </div>
+
+        <div class="preview-container">
+            <canvas id="canvasPreview" onclick="handleCanvasClick(event)"></canvas>
+            <div id="pickerTip" class="picker-tip">👉 請在畫布上點擊「腰部/肚子」作為腿部延伸起始線！</div>
+        </div>
+
+        <!-- 預覽畫布下方的控制器 -->
+        <div class="d-pad-container">
+            <div class="d-pad-section" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed #aecbfa;">
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <span style="font-weight:600; font-size:13px;">🎯 九宮格平移微調：</span>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span style="font-size:12px; color:#555;">步長：</span>
+                        <select id="moveStep" style="width: auto; padding: 4px 8px; font-size: 12px;">
+                            <option value="5">5% (快速)</option>
+                            <option value="1" selected>1% (標準)</option>
+                            <option value="0.1">0.1% (精細)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 🎯 修正：九宮格與圖片縮放完美連動 -->
+                <div class="grid-3x3" style="margin-left: 10px;">
+                    <button title="向左上移動" onclick="moveImg(-1, -1)">↖️</button>
+                    <button title="向上移動" onclick="moveImg(0, -1)">⬆️</button>
+                    <button title="向右上移動" onclick="moveImg(1, -1)">↗️</button>
+                    <button title="向左移動" onclick="moveImg(-1, 0)">⬅️</button>
+                    <button title="快速對齊正中央" style="background:#e8f0fe;" onclick="centerCrop()">🎯</button>
+                    <button title="向右移動" onclick="moveImg(1, 0)">➡️</button>
+                    <button title="向左下移動" onclick="moveImg(-1, 1)">↙️</button>
+                    <button title="向下移動" onclick="moveImg(0, 1)">⬇️</button>
+                    <button title="向右下移動" onclick="moveImg(1, 1)">↘️</button>
+                </div>
+            </div>
+
+            <!-- 純粹調整「圖檔大小」，裁切框與像素尺寸絕對不會變動 -->
+            <div class="d-pad-section">
+                <span style="font-weight:600; font-size:13px; margin-right:4px;">🔍 圖片圖檔縮放：</span>
+                <button class="d-pad-btn" style="background:#673ab7; color:white;" onclick="zoomCrop('in')">🔍 圖片放大</button>
+                <button class="d-pad-btn" style="background:#673ab7; color:white;" onclick="zoomCrop('out')">🔎 圖片縮小</button>
+
+                <div style="flex:1; min-width: 220px; margin-left: 15px; display:flex; align-items:center; gap:10px;">
+                    <span style="font-weight:600; font-size:13px; white-space:nowrap;">圖檔倍率 (<span id="scaleVal">100</span>%)：</span>
+                    <input type="range" id="scaleSlider" min="50" max="300" value="100" style="margin:0;" oninput="applyImgScale(this.value)">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 幾何裁切與旋轉控制區 -->
+    <div class="card">
+        <h2>✂️ 裁切與幾何控制</h2>
+
+        <input type="hidden" id="cropWidth" value="100">
+        <input type="hidden" id="cropHeight" value="100">
+        <input type="hidden" id="cropX" value="0">
+        <input type="hidden" id="cropY" value="0">
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <label style="margin:0;">⚡ 快速選擇裁切形狀 / 比例：</label>
+            <span class="info-badge">當前裁切尺寸：<span id="pixelSizeText">0 x 0</span> px</span>
+        </div>
+
+        <div class="preset-group">
+            <button class="btn-preset" onclick="applyPresetRatio(1, 1)">1:1 正方形</button>
+            <button class="btn-preset" onclick="applyPresetRatio(16, 9)">16:9 橫向</button>
+            <button class="btn-preset" onclick="applyPresetRatio(9, 16)">9:16 直向</button>
+            <button class="btn-preset" onclick="applyPresetRatio(4, 5)">4:5 IG 貼文</button>
+            <button class="btn-preset" style="background:#fce8e6; color:#c5221f; border-color:#fad2cf;" onclick="toggleCircleMode()">🟡 圓形頭像切換</button>
+            <button class="btn-mouse-crop" onclick="openCropModal()">🖱️ 使用滑鼠拉框選取</button>
+            <button class="btn-preset" onclick="resetAll()">🔄 全部重置</button>
+        </div>
+
+        <div class="section-title-container">
+            <div class="section-title">🔄 旋轉與鏡像</div>
+        </div>
+        <div class="preset-group" style="margin-bottom:0;">
+            <button class="btn-preset" onclick="rotateImage(90)">↷ 向右 90°</button>
+            <button class="btn-preset" onclick="rotateImage(-90)">↶ 向左 90°</button>
+            <button class="btn-preset" onclick="flipImage('h')">⇄ 水平翻轉</button>
+            <button class="btn-preset" onclick="flipImage('v')">⇅ 垂直翻轉</button>
+        </div>
+    </div>
+
+    <!-- 💃 美型修圖微調 (Body Stretch & Scale) -->
+    <div class="card">
+        <h2>💃 美型修圖微調 (Stretch Body)</h2>
+        <div class="grid-3">
+            <div class="form-group">
+                <label>📍 定點腹部/腰部位置 (<span id="pivotVal">50</span>% Height)</label>
+                <button class="btn-picker" onclick="enablePivotPicker()">🎯 點選畫布確定腰部位置</button>
+            </div>
+            <div class="form-group">
+                <label>🦵 腿部延伸 (Stretch Y) (<span id="legVal">0</span>%)</label>
+                <input type="range" id="legStretch" min="0" max="50" value="0" oninput="document.getElementById('legVal').innerText=this.value; renderCanvas()">
+            </div>
+            <div class="form-group">
+                <label>👗 瘦身修飾 (Scale X) (<span id="slenderVal">100</span>%)</label>
+                <input type="range" id="slenderScale" min="80" max="100" value="100" oninput="document.getElementById('slenderVal').innerText=this.value; renderCanvas()">
+            </div>
+        </div>
+    </div>
+
+    <!-- 分類區塊 1：🎨 畫質、格式與樣式 -->
+    <div class="card">
+        <h2>🎨 畫質、格式與樣式 (Export & Formats)</h2>
+        <div class="grid-3">
+            <div class="form-group">
+                <label>輸出格式 Format</label>
+                <select id="exportFormat" onchange="renderCanvas()">
+                    <option value="image/jpeg">JPG (適合一般照片)</option>
+                    <option value="image/png">PNG (支援透明背景)</option>
+                    <option value="image/webp">WebP (高壓縮率熱門格式)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>壓縮品質 Quality (<span id="qualityVal">90</span>%)</label>
+                <input type="range" id="exportQuality" min="10" max="100" value="90" oninput="document.getElementById('qualityVal').innerText=this.value;">
+            </div>
+            <div class="form-group">
+                <label>最大輸出寬度 Max Width (px)</label>
+                <input type="number" id="maxWidth" placeholder="例如: 1080 (留空為原尺寸)" oninput="renderCanvas()">
+            </div>
+        </div>
+    </div>
+
+    <!-- 分類區塊 2：☀️ 曝光與色調微調 -->
+    <div class="card">
+        <h2>☀️ 曝光與色調微調 (Adjustments)</h2>
+        <div class="grid-4">
+            <div class="form-group">
+                <label>亮度 Brightness (<span id="brightVal">100</span>%)</label>
+                <input type="range" id="brightness" min="0" max="200" value="100" oninput="document.getElementById('brightVal').innerText=this.value; renderCanvas()">
+            </div>
+            <div class="form-group">
+                <label>對比 Contrast (<span id="contrastVal">100</span>%)</label>
+                <input type="range" id="contrast" min="0" max="200" value="100" oninput="document.getElementById('contrastVal').innerText=this.value; renderCanvas()">
+            </div>
+            <div class="form-group">
+                <label>飽和度 Saturate (<span id="saturateVal">100</span>%)</label>
+                <input type="range" id="saturate" min="0" max="300" value="100" oninput="document.getElementById('saturateVal').innerText=this.value; renderCanvas()">
+            </div>
+            <div class="form-group">
+                <label>色相 Hue Rotate (<span id="hueVal">0</span>°)</label>
+                <input type="range" id="hueRotate" min="0" max="360" value="0" oninput="document.getElementById('hueVal').innerText=this.value; renderCanvas()">
+            </div>
+        </div>
+    </div>
+
+    <!-- 分類區塊 3：✨ 濾鏡、外框與語錄 -->
+    <div class="card">
+        <h2>✨ 濾鏡、外框與語錄 (Filters & Quotes)</h2>
+        <div class="grid-3">
+            <div class="form-group">
+                <label>🔥 IG熱門/網美流行濾鏡</label>
+                <select id="presetFilter" onchange="applyPresetFilter()">
+                    <option value="none">無 (原圖色調)</option>
+                    <option value="bare-skin">🌿 自然原生美肌 (Bare Skin)</option>
+                    <option value="k-cream">🍦 韓系奶油暖調 (K-Cream)</option>
+                    <option value="french-chill">🥐 法式復古冷調 (French Chill)</option>
+                    <option value="film-grain">🎬 底片復古綠 (Film Grain)</option>
+                    <option value="grayscale">黑白灰階 (Grayscale)</option>
+                    <option value="sepia">懷舊復古 (Sepia Tone)</option>
+                    <option value="invert">底片負片 (Invert)</option>
+                    <option value="high-contrast">高對比日系 (Vivid)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>復古棕褐 Sepia (<span id="sepiaVal">0</span>%)</label>
+                <input type="range" id="sepia" min="0" max="100" value="0" oninput="document.getElementById('sepiaVal').innerText=this.value; renderCanvas()">
+            </div>
+            <div class="form-group">
+                <label>柔焦模糊 Blur (<span id="blurVal">0</span>px)</label>
+                <input type="range" id="blur" min="0" max="10" value="0" step="0.5" oninput="document.getElementById('blurVal').innerText=this.value; renderCanvas()">
+            </div>
+        </div>
+
+        <div class="section-title-container">
+            <div class="section-title">📷 外框樣式 (Photo Frame)</div>
+        </div>
+        <div class="grid-3">
+            <div class="form-group">
+                <label>選擇相框類型</label>
+                <select id="frameStyle" onchange="renderCanvas()">
+                    <option value="none">無外框</option>
+                    <option value="polaroid">📷 拍立得相框 (Polaroid Frame)</option>
+                    <option value="white-border">🖼️ 極簡留白框 (Minimal White)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="section-title-container">
+            <div class="section-title">💬 文青文字語錄 (Quotes & Text)</div>
+        </div>
+        <div class="grid-2">
+            <div class="form-group">
+                <label>自訂語錄內容</label>
+                <input type="text" id="quoteText" placeholder="輸入你想寫的話..." oninput="renderCanvas()">
+            </div>
+            <div class="form-group">
+                <label>語錄顏色與字體大小</label>
+                <div class="input-group">
+                    <input type="color" id="quoteColor" value="#333333" onchange="renderCanvas()">
+                    <input type="range" id="quoteSize" min="12" max="48" value="20" oninput="renderCanvas()">
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title-container">
+            <div class="section-title">💧 防盜浮水印 (Watermark)</div>
+        </div>
+        <div class="grid-3">
+            <div class="form-group">
+                <label>文字浮水印</label>
+                <input type="text" id="watermarkText" placeholder="例如：© Brand Protection" oninput="renderCanvas()">
+            </div>
+            <div class="form-group">
+                <label>排列款式</label>
+                <select id="watermarkStyle" onchange="renderCanvas()">
+                    <option value="horizontal">橫式 (右下角)</option>
+                    <option value="horizontal-center">橫式 (正中央)</option>
+                    <option value="diagonal">斜式 45° (正中央)</option>
+                    <option value="tile">網格滿版防盜 (Grid Tile)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>顏色與透明度</label>
+                <div class="input-group">
+                    <input type="color" id="watermarkColor" value="#ffffff" onchange="renderCanvas()">
+                    <input type="range" id="watermarkOpacity" min="10" max="100" value="50" oninput="renderCanvas()">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 滑鼠裁切 Modal 彈出視窗 -->
+    <div id="cropModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">🖱️ 請使用滑鼠拖曳拉出裁切框</h3>
+            <div class="crop-container">
+                <img id="modalImg" src="" alt="裁切圖片">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeCropModal()">取消</button>
+                <button onclick="applyMouseCrop()">套用裁切</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script>
+        let currentImg = new Image();
+        let cropper = null;
+        let rotationAngle = 0;
+        let flipH = 1;
+        let flipV = 1;
+        let isCircleMode = false;
+        let isPickingPivot = false;
+        let legPivotRatio = 0.5;
+
+        // 獨立控制「圖檔放大縮小」與「位移 Offset」
+        let imgScale = 1.0; 
+        let imgOffsetX = 0; // X軸位移像素
+        let imgOffsetY = 0; // Y軸位移像素
+
+        window.addEventListener('paste', e => {
+            const items = e.clipboardData.items;
+            for (let item of items) {
+                if (item.type.indexOf('image') !== -1) {
+                    const blob = item.getAsFile();
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        document.getElementById('baseUrl').value = '[已貼上剪貼簿圖片]';
+                        loadImgWithFallback(event.target.result);
+                    };
+                    reader.readAsDataURL(blob);
+                }
+            }
+        });
+
+        function handleFileUpload(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('baseUrl').value = input.files[0].name;
+                    loadImgWithFallback(e.target.result);
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function handleUrlInput() {
+            let url = document.getElementById('baseUrl').value.trim();
+            if(!url) {
+                document.getElementById('previewCard').style.display = 'none';
+                document.getElementById('outputUrl').value = '';
+                return;
+            }
+            if(!url.startsWith('data:') && url !== '[已貼上剪貼簿圖片]') {
+                loadImgWithFallback(url);
+            }
+        }
+
+        function loadImgWithFallback(url) {
+            currentImg = new Image();
+            if(url.startsWith('data:')) {
+                currentImg.src = url;
+                currentImg.onload = function() { processParams(); };
+                return;
+            }
+
+            let proxyUrl = "https://images.weserv.nl/?url=" + encodeURIComponent(url);
+            currentImg.crossOrigin = "anonymous";
+            currentImg.src = proxyUrl;
+
+            currentImg.onload = function() { processParams(); };
+            currentImg.onerror = function() {
+                let secondaryProxy = "https://api.allorigins.win/raw?url=" + encodeURIComponent(url);
+                currentImg.src = secondaryProxy;
+                currentImg.onload = function() { processParams(); };
+            };
+        }
+
+        function processParams() {
+            let baseUrl = document.getElementById('baseUrl').value.trim();
+            if (!baseUrl) return;
+
+            if(!baseUrl.startsWith('data:') && baseUrl !== '[已貼上剪貼簿圖片]') {
+                let cleanUrl = baseUrl.split('?')[0];
+                let cw = parseFloat(document.getElementById('cropWidth').value || 100) / 100;
+                let ch = parseFloat(document.getElementById('cropHeight').value || 100) / 100;
+                let cx = parseFloat(document.getElementById('cropX').value || 0) / 100;
+                let cy = parseFloat(document.getElementById('cropY').value || 0) / 100;
+
+                let params = [`crop=${cw.toFixed(3)}xw:${ch.toFixed(3)}xh;${cx.toFixed(3)}xw,${cy.toFixed(3)}xh`];
+                document.getElementById('outputUrl').value = cleanUrl + '?' + params.join('&');
+            } else {
+                document.getElementById('outputUrl').value = '本地/貼上圖片不適用外連網址';
+            }
+
+            renderCanvas();
+        }
+
+        function enablePivotPicker() {
+            isPickingPivot = true;
+            let canvas = document.getElementById('canvasPreview');
+            canvas.classList.add('picking-mode');
+            document.getElementById('pickerTip').style.display = 'block';
+        }
+
+        function handleCanvasClick(e) {
+            if (!isPickingPivot) return;
+
+            let canvas = document.getElementById('canvasPreview');
+            let rect = canvas.getBoundingClientRect();
+            let clickY = e.clientY - rect.top;
+            
+            legPivotRatio = Math.max(0.1, Math.min(0.9, clickY / rect.height));
+            document.getElementById('pivotVal').innerText = Math.round(legPivotRatio * 100);
+
+            isPickingPivot = false;
+            canvas.classList.remove('picking-mode');
+            document.getElementById('pickerTip').style.display = 'none';
+
+            renderCanvas();
+        }
+
+        function renderCanvas() {
+            let canvas = document.getElementById('canvasPreview');
+            let ctx = canvas.getContext('2d');
+            
+            let imgW = currentImg.naturalWidth;
+            let imgH = currentImg.naturalHeight;
+            if(!imgW || !imgH) return;
+
+            document.getElementById('previewCard').style.display = 'block';
+
+            let cwPct = parseFloat(document.getElementById('cropWidth').value || 100) / 100;
+            let chPct = parseFloat(document.getElementById('cropHeight').value || 100) / 100;
+            let cxPct = parseFloat(document.getElementById('cropX').value || 0) / 100;
+            let cyPct = parseFloat(document.getElementById('cropY').value || 0) / 100;
+
+            let sx = imgW * cxPct;
+            let sy = imgH * cyPct;
+            let sWidth = imgW * cwPct;
+            let sHeight = imgH * chPct;
+
+            let slenderRatio = parseFloat(document.getElementById('slenderScale').value || 100) / 100;
+            let renderWidth = sWidth * slenderRatio;
+            let legStretchVal = parseFloat(document.getElementById('legStretch').value || 0) / 100;
+            
+            let renderHeight = sHeight * (1 + (1 - legPivotRatio) * legStretchVal);
+
+            document.getElementById('pixelSizeText').innerText = `${Math.round(renderWidth)} x ${Math.round(renderHeight)}`;
+
+            let targetWidth = (rotationAngle % 180 !== 0) ? renderHeight : renderWidth;
+            let targetHeight = (rotationAngle % 180 !== 0) ? renderWidth : renderHeight;
+
+            let frameStyle = document.getElementById('frameStyle').value;
+            let padTop = 0, padBottom = 0, padLeft = 0, padRight = 0;
+            if (frameStyle === 'polaroid') {
+                padTop = targetHeight * 0.08;
+                padLeft = padRight = targetWidth * 0.08;
+                padBottom = targetHeight * 0.28;
+            } else if (frameStyle === 'white-border') {
+                padTop = padBottom = padLeft = padRight = Math.min(targetWidth, targetHeight) * 0.06;
+            }
+
+            let totalCanvasWidth = targetWidth + padLeft + padRight;
+            let totalCanvasHeight = targetHeight + padTop + padBottom;
+
+            let maxW = parseFloat(document.getElementById('maxWidth').value);
+            if (maxW && totalCanvasWidth > maxW) {
+                let scale = maxW / totalCanvasWidth;
+                totalCanvasWidth = maxW;
+                totalCanvasHeight = totalCanvasHeight * scale;
+            }
+
+            canvas.width = totalCanvasWidth;
+            canvas.height = totalCanvasHeight;
+
+            ctx.save();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (frameStyle !== 'none') {
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            if (isCircleMode) {
+                ctx.beginPath();
+                let radius = Math.min(targetWidth, targetHeight) / 2;
+                ctx.arc(padLeft + targetWidth / 2, padTop + targetHeight / 2, radius, 0, Math.PI * 2, true);
+                ctx.closePath();
+                ctx.clip();
+            }
+
+            let bright = document.getElementById('brightness').value;
+            let contrast = document.getElementById('contrast').value;
+            let saturate = document.getElementById('saturate').value;
+            let hue = document.getElementById('hueRotate').value;
+            let sepia = document.getElementById('sepia').value;
+            let blur = document.getElementById('blur').value;
+
+            ctx.filter = `brightness(${bright}%) contrast(${contrast}%) saturate(${saturate}%) hue-rotate(${hue}deg) sepia(${sepia}%) blur(${blur}px)`;
+
+            // 🎯 平移位移量 imgOffsetX, imgOffsetY 套用在畫布中央
+            ctx.translate(padLeft + targetWidth / 2 + imgOffsetX, padTop + targetHeight / 2 + imgOffsetY);
+            ctx.rotate((rotationAngle * Math.PI) / 180);
+            
+            // 套用圖片縮放與翻轉
+            ctx.scale(flipH * imgScale, flipV * imgScale);
+
+            if (legStretchVal > 0) {
+                let topSrcH = sHeight * legPivotRatio;
+                let botSrcH = sHeight * (1 - legPivotRatio);
+
+                let topDestH = targetHeight * legPivotRatio;
+                let botDestH = targetHeight * (1 - legPivotRatio) * (1 + legStretchVal);
+
+                ctx.drawImage(
+                    currentImg, 
+                    sx, sy, sWidth, topSrcH, 
+                    -targetWidth / 2, -targetHeight / 2, targetWidth, topDestH + 0.5
+                );
+                ctx.drawImage(
+                    currentImg, 
+                    sx, sy + topSrcH, sWidth, botSrcH, 
+                    -targetWidth / 2, -targetHeight / 2 + topDestH, targetWidth, botDestH
+                );
+            } else {
+                ctx.drawImage(currentImg, sx, sy, sWidth, sHeight, -targetWidth / 2, -targetHeight / 2, targetWidth, targetHeight);
+            }
+
+            ctx.restore();
+
+            drawQuote(ctx, canvas.width, canvas.height, padBottom);
+            drawWatermark(ctx, canvas.width, canvas.height);
+        }
+
+        function drawQuote(ctx, width, height, padBottom) {
+            let quoteText = document.getElementById('quoteText').value.trim();
+            if (!quoteText) return;
+
+            ctx.save();
+            let color = document.getElementById('quoteColor').value || "#333333";
+            let fontSize = parseInt(document.getElementById('quoteSize').value || 20);
+
+            ctx.fillStyle = color;
+            ctx.font = `500 ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+            ctx.textAlign = 'center';
+
+            if (padBottom > 0) {
+                ctx.fillText(quoteText, width / 2, height - (padBottom / 2) + (fontSize / 3));
+            } else {
+                ctx.fillText(quoteText, width / 2, height - 30);
+            }
+            ctx.restore();
+        }
+
+        function applyPresetFilter() {
+            let filter = document.getElementById('presetFilter').value;
+            let bright = 100, contrast = 100, saturate = 100, hue = 0, sepia = 0;
+
+            if (filter === 'bare-skin') { bright = 108; contrast = 95; saturate = 105; hue = 0; sepia = 0; }
+            else if (filter === 'k-cream') { bright = 112; contrast = 88; saturate = 90; hue = 5; sepia = 15; }
+            else if (filter === 'french-chill') { bright = 98; contrast = 105; saturate = 75; hue = 345; sepia = 10; }
+            else if (filter === 'film-grain') { bright = 102; contrast = 115; saturate = 85; hue = 15; sepia = 25; }
+            else if (filter === 'grayscale') saturate = 0;
+            else if (filter === 'sepia') sepia = 100;
+            else if (filter === 'invert') { bright = 100; contrast = 100; hue = 180; sepia = 100; }
+            else if (filter === 'high-contrast') { contrast = 140; saturate = 130; }
+
+            document.getElementById('brightness').value = bright;
+            document.getElementById('contrast').value = contrast;
+            document.getElementById('saturate').value = saturate;
+            document.getElementById('hueRotate').value = hue;
+            document.getElementById('sepia').value = sepia;
+
+            document.getElementById('brightVal').innerText = bright;
+            document.getElementById('contrastVal').innerText = contrast;
+            document.getElementById('saturateVal').innerText = saturate;
+            document.getElementById('hueVal').innerText = hue;
+            document.getElementById('sepiaVal').innerText = sepia;
+
+            renderCanvas();
+        }
+
+        function drawWatermark(ctx, width, height) {
+            let wmText = document.getElementById('watermarkText').value.trim();
+            if (!wmText) return;
+
+            ctx.save();
+            let opacity = parseFloat(document.getElementById('watermarkOpacity').value || 50) / 100;
+            let color = document.getElementById('watermarkColor').value || "#ffffff";
+            let style = document.getElementById('watermarkStyle').value;
+
+            ctx.fillStyle = color;
+            ctx.globalAlpha = opacity;
+
+            if (style === 'horizontal') {
+                let fontSize = Math.max(16, width * 0.035);
+                ctx.font = `bold ${fontSize}px sans-serif`;
+                ctx.textAlign = 'right';
+                ctx.fillText(wmText, width - 20, height - 20);
+            } 
+            else if (style === 'horizontal-center') {
+                let fontSize = Math.max(20, width * 0.05);
+                ctx.font = `bold ${fontSize}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.fillText(wmText, width / 2, height / 2);
+            } 
+            else if (style === 'diagonal') {
+                let fontSize = Math.max(22, width * 0.055);
+                ctx.font = `bold ${fontSize}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.translate(width / 2, height / 2);
+                ctx.rotate((-45 * Math.PI) / 180);
+                ctx.fillText(wmText, 0, 0);
+            } 
+            else if (style === 'tile') {
+                let fontSize = Math.max(14, width * 0.03);
+                ctx.font = `bold ${fontSize}px sans-serif`;
+                ctx.textAlign = 'center';
+                let stepX = width / 3;
+                let stepY = height / 3;
+
+                ctx.rotate((-30 * Math.PI) / 180);
+                for (let x = -width; x < width * 2; x += stepX) {
+                    for (let y = -height; y < height * 2; y += stepY) {
+                        ctx.fillText(wmText, x, y);
+                    }
+                }
+            }
+            ctx.restore();
+        }
+
+        // 🎯 修正後：九宮格直接平移圖片 offset，完美連動縮放效果
+        function moveImg(dirX, dirY) {
+            let stepPct = parseFloat(document.getElementById('moveStep').value || 1);
+            let canvas = document.getElementById('canvasPreview');
+            
+            // 以畫布基準尺寸的 % 數作為平移步長
+            let stepPx = (canvas.width || 500) * (stepPct / 100);
+
+            imgOffsetX += dirX * stepPx;
+            imgOffsetY += dirY * stepPx;
+
+            renderCanvas();
+        }
+
+        function applyImgScale(val) {
+            document.getElementById('scaleVal').innerText = val;
+            imgScale = parseFloat(val) / 100;
+            renderCanvas();
+        }
+
+        function zoomCrop(type) {
+            let scaleSlider = document.getElementById('scaleSlider');
+            let currentVal = parseInt(scaleSlider.value);
+            let step = 10;
+            
+            let newVal = (type === 'in') ? Math.min(300, currentVal + step) : Math.max(50, currentVal - step);
+            
+            scaleSlider.value = newVal;
+            applyImgScale(newVal);
+        }
+
+        function centerCrop() {
+            // 重置圖檔平移位移量，使其恢復正中央
+            imgOffsetX = 0;
+            imgOffsetY = 0;
+
+            let cw = parseFloat(document.getElementById('cropWidth').value || 100);
+            let ch = parseFloat(document.getElementById('cropHeight').value || 100);
+            document.getElementById('cropX').value = Math.max(0, ((100 - cw) / 2)).toFixed(2);
+            document.getElementById('cropY').value = Math.max(0, ((100 - ch) / 2)).toFixed(2);
+            processParams();
+        }
+
+        function toggleCircleMode() {
+            isCircleMode = !isCircleMode;
+            if(isCircleMode) {
+                document.getElementById('exportFormat').value = 'image/png';
+                applyPresetRatio(1, 1);
+            } else {
+                renderCanvas();
+            }
+        }
+
+        function rotateImage(deg) { rotationAngle = (rotationAngle + deg) % 360; renderCanvas(); }
+        function flipImage(dir) { if (dir === 'h') flipH *= -1; if (dir === 'v') flipV *= -1; renderCanvas(); }
+
+        function applyPresetRatio(targetW, targetH) {
+            let imgW = currentImg.naturalWidth;
+            let imgH = currentImg.naturalHeight;
+            if(!imgW) return;
+
+            let targetRatio = targetW / targetH;
+            let imgRatio = imgW / imgH;
+
+            let newCw = 100;
+            let newCh = 100;
+
+            if (imgRatio > targetRatio) {
+                newCw = (targetRatio / imgRatio) * 100;
+            } else {
+                newCh = (imgRatio / targetRatio) * 100;
+            }
+
+            document.getElementById('cropWidth').value = newCw.toFixed(2);
+            document.getElementById('cropHeight').value = newCh.toFixed(2);
+            centerCrop();
+        }
+
+        function resetAll() {
+            isCircleMode = false;
+            legPivotRatio = 0.5;
+            rotationAngle = 0; flipH = 1; flipV = 1;
+            imgScale = 1.0;
+            imgOffsetX = 0;
+            imgOffsetY = 0;
+            
+            document.getElementById('cropWidth').value = 100;
+            document.getElementById('cropHeight').value = 100;
+            document.getElementById('cropX').value = 0;
+            document.getElementById('cropY').value = 0;
+            document.getElementById('scaleSlider').value = 100;
+            document.getElementById('scaleVal').innerText = 100;
+            
+            document.getElementById('legStretch').value = 0;
+            document.getElementById('slenderScale').value = 100;
+            document.getElementById('legVal').innerText = 0;
+            document.getElementById('slenderVal').innerText = 100;
+            document.getElementById('pivotVal').innerText = 50;
+
+            document.getElementById('brightness').value = 100;
+            document.getElementById('contrast').value = 100;
+            document.getElementById('saturate').value = 100;
+            document.getElementById('hueRotate').value = 0;
+            document.getElementById('sepia').value = 0;
+            document.getElementById('blur').value = 0;
+            document.getElementById('presetFilter').value = 'none';
+            document.getElementById('frameStyle').value = 'none';
+            document.getElementById('quoteText').value = '';
+            document.getElementById('watermarkText').value = '';
+            document.getElementById('maxWidth').value = '';
+            
+            document.getElementById('brightVal').innerText = 100;
+            document.getElementById('contrastVal').innerText = 100;
+            document.getElementById('saturateVal').innerText = 100;
+            document.getElementById('hueVal').innerText = 0;
+            document.getElementById('sepiaVal').innerText = 0;
+            document.getElementById('blurVal').innerText = 0;
+            processParams();
+        }
+
+        function openCropModal() {
+            if (!currentImg.src) { alert('請先載入圖片！'); return; }
+            let modalImg = document.getElementById('modalImg');
+            document.getElementById('cropModal').style.display = 'block';
+            modalImg.src = currentImg.src;
+
+            if (cropper) cropper.destroy();
+            cropper = new Cropper(modalImg, { viewMode: 1, autoCropArea: 0.8 });
+        }
+
+        function closeCropModal() { document.getElementById('cropModal').style.display = 'none'; }
+
+        function applyMouseCrop() {
+            if (!cropper) return;
+            let boxData = cropper.getCropBoxData();
+            let canvasData = cropper.getCanvasData();
+
+            let cxPct = Math.max(0, ((boxData.left - canvasData.left) / canvasData.width) * 100);
+            let cyPct = Math.max(0, ((boxData.top - canvasData.top) / canvasData.height) * 100);
+            let cwPct = Math.min(100 - cxPct, (boxData.width / canvasData.width) * 100);
+            let chPct = Math.min(100 - cyPct, (boxData.height / canvasData.height) * 100);
+
+            document.getElementById('cropWidth').value = cwPct.toFixed(1);
+            document.getElementById('cropHeight').value = chPct.toFixed(1);
+            document.getElementById('cropX').value = cxPct.toFixed(1);
+            document.getElementById('cropY').value = cyPct.toFixed(1);
+
+            closeCropModal();
+            processParams();
+        }
+
+        function downloadImage() {
+            let canvas = document.getElementById('canvasPreview');
+            let link = document.createElement('a');
+            let format = document.getElementById('exportFormat').value;
+            let quality = parseFloat(document.getElementById('exportQuality').value || 90) / 100;
+            
+            let ext = format.split('/')[1];
+            link.download = `processed-image.${ext}`;
+            link.href = canvas.toDataURL(format, quality);
+            link.click();
+        }
+
+        function copyUrl() {
+            let outputInput = document.getElementById('outputUrl');
+            if (!outputInput.value) return;
+            
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(outputInput.value).then(() => {
+                    alert('已複製 URL 參數網址！');
+                }).catch(() => {
+                    outputInput.select();
+                    document.execCommand('copy');
+                    alert('已複製 URL 參數網址！');
+                });
+            } else {
+                outputInput.select();
+                document.execCommand('copy');
+                alert('已複製 URL 參數網址！');
+            }
+        }
+    </script>
+</body>
+</html>
