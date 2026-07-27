@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="utf-8">
-  <title>極簡線上 HTML/JS 編輯器 (純淨無廣告版)</title>
+  <title>j極簡線上 HTML/JS 編輯器</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <!-- CodeMirror 編輯器、樣式檔與主題庫 -->
@@ -413,25 +413,7 @@
 
 <script>
   // 1. 預設 HTML 程式碼
-  const initCode = `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8"> 
-<title>我的線上測試頁面</title> 
-<script>
-function myFunction(){
-	document.getElementById("demo").innerHTML = "我的第一個 JavaScript 函式！";
-}
-<\/script>
-</head>
-<body>
-
-<h1>我的 Web 頁面</h1>
-<p id="demo">一個段落。</p>
-<button type="button" onclick="myFunction()">點擊這裡</button>
-
-</body>
-</html>`;
+  const initCode = ``;
 
   // 2. 初始化 CodeMirror 編輯器
   const editor = CodeMirror.fromTextArea(document.getElementById("textareaCode"), {
