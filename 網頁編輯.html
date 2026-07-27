@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <title>極簡線上 HTML/JS 編輯器 (純淨無廣告版)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- CodeMirror 編輯器、樣式檔與主題庫 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.css">
+  <!-- 工程師模式主題 (Dracula / Material Darker) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/material-darker.min.css">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/closetag.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/closebrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.5/split.min.js"></script>
+
+  <style>
+    /* ── 預設淺色主題變數 ── */
+    :root {
+      --bg-color: #eff2f6;
+      --pane-bg: #ffffff;
+      --header-bg: #f8f9fa;
+      --border-color: #e5e5ea;
+      --text-main: #1d1d1f;
+      --text-secondary: #86868b;
+      --btn-bg: #f4f5f7;
+      --btn-text: #1d1d1f;
+      --btn-border: rgba(0,0,0,0.08);
+      --green: #5f7f4f;
+      --green-dark: #64854c;
+      --radius: 8px;
+    }
+
+    /* ── 深色主題變數 ── */
+    body.theme-dark {
+      --bg-color: #1a1a1e;
+      --pane-bg: #242429;
+      --header-bg: #2c2c32;
+      --border-color: #383842;
+      --text-main: #f0f0f5;
+      --text-secondary: #a0a0b0;
+      --btn-bg: #32323a;
+      --btn-text: #f0f0f5;
+      --btn-border: rgba(255,255,255,0.1);
+      --green: #488259;
+      --green-dark: #3b6c49;
+    }
+
+    /* ── 工程師模式 (Dev Mode) 主題變數 ── */
+    body.theme-dev {
+      --bg-color: #121214;
+      --pane-bg: #1e1e1e;
+      --header-bg: #252526;
+      --border-color: #333333;
+      --text-main: #d4d4d4;
+      --text-secondary: #858585;
+      --btn-bg: #2d2d2d;
+      --btn-text: #cccccc;
+      --btn-border: #3c3c3c;
+      --green: #0e639c;
+      --green-dark: #1177bb;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      transition: background-color 0.25s, color 0.25s;
+    }
+
+    /* ── 主容器 ── */
+    .main-container {
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
+      padding: 12px;
+      gap: 0;
+    }
+
+    .pane {
+      background: var(--pane-bg);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      min-height: 240px;
+      transition: background 0.25s, border-color 0.25s;
+    }
+
+    .pane-header {
+      height: 48px;
+      padding: 0 12px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--header-bg);
+      flex-shrink: 0;
+      gap: 8px;
+      transition: background 0.25s, border-color 0.25s;
+    }
+
+    .pane-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    /* ── 按鈕區塊 ── */
+    .actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .actions button {
+      border: 1px solid var(--btn-border);
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      font-weight: 500;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .actions button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    .actions .btn-primary {
+      background: var(--green);
+      color: #fff;
+      border: none;
+    }
+
+    .actions .btn-primary:hover {
+      background: var(--green-dark);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+    }
+
+    .auto-run-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .auto-run-label input[type="checkbox"] {
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+      accent-color: var(--green);
+    }
+
+    /* ── CodeMirror 與 Iframe ── */
+    .pane-content {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .CodeMirror {
+      position: absolute !important;
+      top: 0; left: 0; right: 0; bottom: 0;
+      height: 100% !important;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Fira Code", monospace;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+      background: #fff;
+    }
+
+    /* ── Split.js 分割線 ── */
+    .gutter {
+      background-color: transparent;
+      background-repeat: no-repeat;
+      background-position: 50%;
+      flex-shrink: 0;
+    }
+
+    .gutter.gutter-horizontal {
+      cursor: col-resize;
+      width: 10px !important;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="20" viewBox="0 0 4 20"><circle cx="2" cy="4" r="1.5" fill="%23888888"/><circle cx="2" cy="10" r="1.5" fill="%23888888"/><circle cx="2" cy="16" r="1.5" fill="%23888888"/></svg>');
+    }
+
+    /* ── 專利修正：深色模式文字框選（選取）顏色改為柔和亮藍紫 ── */
+    .cm-s-material-darker .CodeMirror-selected {
+      background: rgba(90, 130, 230, 0.45) !important;
+    }
+    .cm-s-material-darker.CodeMirror-focused .CodeMirror-selected {
+      background: rgba(90, 130, 230, 0.45) !important;
+    }
+
+    /* ── 外部函式庫 CDN Modal 彈窗 ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal-box {
+      background: var(--pane-bg);
+      color: var(--text-main);
+      width: 90%;
+      max-width: 500px;
+      border-radius: var(--radius);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      max-height: 80vh;
+      border: 1px solid var(--border-color);
+    }
+
+    .modal-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .modal-header input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+      background: var(--header-bg);
+      color: var(--text-main);
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .modal-header input:focus { border-color: var(--green); }
+
+    .modal-body {
+      padding: 0;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .lib-item {
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .lib-item:hover { background: var(--header-bg); }
+
+    .lib-name {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-main);
+      margin-bottom: 3px;
+    }
+
+    .lib-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .close-btn {
+      background: transparent;
+      border: none;
+      font-size: 22px;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    /* ── 全螢幕模式 ── */
+    .pane.fullscreen {
+      position: fixed !important;
+      inset: 0;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 9999;
+      border-radius: 0;
+      border: none;
+    }
+
+    .kbd {
+      padding: 1px 5px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
+    #framesize {
+      font-size: 11px;
+      color: #a43673;
+      margin-left: 6px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="main-container" id="split-container">
+  <!-- 左側：原始碼 -->
+  <div id="split-0" class="pane">
+    <div class="pane-header">
+      <div class="pane-title">原始碼</div>
+      <div class="actions">
+        <!-- 主題切換按鈕 -->
+        <button id="themeToggleBtn" onclick="cycleTheme()" title="切換 淺色 / 深色 / 工程師模式">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <span id="themeLabel" class="btn-text">主題: 淺色</span>
+        </button>
+
+        <label class="auto-run-label" title="修改後自動運行">
+          <input type="checkbox" id="autoRunCheck">
+          <span>自動運行</span>
+        </label>
+        
+        <!-- 外部函式庫按鈕 -->
+        <button onclick="openCDNModal()" title="引入外部依賴庫">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span class="btn-text">外部函式庫</span>
+        </button>
+        <button onclick="downloadCode()" title="下載程式碼">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span class="btn-text">下載</span>
+        </button>
+        <button onclick="resetCode()" title="重置程式碼">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-9.22l-5.36 5.36"/></svg>
+          <span class="btn-text">重置</span>
+        </button>
+        <button class="btn-primary" onclick="submitTryit()" title="運行 (Ctrl+Enter)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span class="btn-text">運行</span>
+          <span class="kbd">Ctrl+↵</span>
+        </button>
+      </div>
+    </div>
+    <div class="pane-content">
+      <textarea id="textareaCode"></textarea>
+    </div>
+  </div>
+
+  <!-- 右側：運行結果 -->
+  <div id="split-1" class="pane">
+    <div class="pane-header">
+      <div class="pane-title">
+        運行結果<span id="framesize"></span>
+      </div>
+      <div class="actions">
+        <button id="fullscreenBtn" onclick="toggleFullscreen()" title="全螢幕預覽">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          <span class="btn-text">全螢幕</span>
+        </button>
+      </div>
+    </div>
+    <div class="pane-content" id="iframewrapper"></div>
+  </div>
+</div>
+
+<!-- 外部函式庫 CDN 搜尋彈窗 -->
+<div class="modal-overlay" id="cdnModal" onclick="closeCDNModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <input type="text" id="cdnSearchInput" placeholder="搜尋 CDNJS (例如: jquery, vue, bootstrap)" autocomplete="off">
+      <button class="close-btn" onclick="closeCDNModal(event)">&times;</button>
+    </div>
+    <div class="modal-body" id="cdnResults">
+      <div style="padding:24px; text-align:center; color:var(--text-secondary); font-size:14px;">輸入庫名進行檢索</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 1. 預設 HTML 程式碼
+  const initCode = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"> 
+<title>我的線上測試頁面</title> 
+<script>
+function myFunction(){
+	document.getElementById("demo").innerHTML = "我的第一個 JavaScript 函式！";
+}
+<\/script>
+</head>
+<body>
+
+<h1>我的 Web 頁面</h1>
+<p id="demo">一個段落。</p>
+<button type="button" onclick="myFunction()">點擊這裡</button>
+
+</body>
+</html>`;
+
+  // 2. 初始化 CodeMirror 編輯器
+  const editor = CodeMirror.fromTextArea(document.getElementById("textareaCode"), {
+    mode: "htmlmixed",
+    lineNumbers: true,
+    matchBrackets: true,
+    indentUnit: 4,
+    indentWithTabs: true,
+    autoCloseTags: true,
+    autoCloseBrackets: true,
+    extraKeys: {
+      "Ctrl-Enter": submitTryit,
+      "Cmd-Enter": submitTryit
+    }
+  });
+
+  editor.setValue(initCode);
+
+  // 3. 主題切換邏輯 ( 淺色 -> 深色 -> 工程師模式 )
+  const themes = [
+    { name: 'light', label: '主題: 淺色', cmTheme: 'default' },
+    { name: 'dark', label: '主題: 深色', cmTheme: 'material-darker' },
+    { name: 'dev', label: '主題: 工程師', cmTheme: 'dracula' }
+  ];
+  let currentThemeIdx = 0;
+
+  function cycleTheme() {
+    currentThemeIdx = (currentThemeIdx + 1) % themes.length;
+    applyTheme(themes[currentThemeIdx]);
+  }
+
+  function applyTheme(themeObj) {
+    document.body.className = '';
+    if (themeObj.name !== 'light') {
+      document.body.classList.add(`theme-${themeObj.name}`);
+    }
+    document.getElementById('themeLabel').textContent = themeObj.label;
+    editor.setOption('theme', themeObj.cmTheme);
+    localStorage.setItem('preferred_theme_idx', currentThemeIdx);
+  }
+
+  // 讀取歷史儲存主題
+  const savedIdx = localStorage.getItem('preferred_theme_idx');
+  if (savedIdx !== null) {
+    currentThemeIdx = parseInt(savedIdx, 10) || 0;
+    applyTheme(themes[currentThemeIdx]);
+  }
+
+  // 4. Split.js 拖曳
+  const splitInstance = Split(['#split-0', '#split-1'], {
+    sizes: [50, 50],
+    minSize: 200,
+    gutterSize: 10,
+    onDrag: () => editor.refresh(),
+    onDragEnd: () => { editor.refresh(); showFrameSize(); }
+  });
+
+  // 5. 運行代碼函式
+  function submitTryit() {
+    const text = editor.getValue();
+    const wrapper = document.getElementById("iframewrapper");
+    wrapper.innerHTML = "";
+
+    const ifr = document.createElement("iframe");
+    ifr.setAttribute("frameborder", "0");
+    ifr.setAttribute("id", "iframeResult");
+    wrapper.appendChild(ifr);
+
+    ifr.addEventListener('load', showFrameSize, { once: true });
+
+    const ifrw = ifr.contentWindow || ifr.contentDocument;
+    ifrw.document.open();
+    ifrw.document.write(text);
+    ifrw.document.close();
+  }
+
+  function resetCode() {
+    editor.setValue(initCode);
+    submitTryit();
+  }
+
+  function showFrameSize() {
+    const iframe = document.getElementById("iframeResult");
+    if (!iframe) return;
+    const w = iframe.offsetWidth;
+    const h = iframe.offsetHeight;
+    if (w && h) {
+      document.getElementById("framesize").textContent = ` (${w} × ${h})`;
+    }
+  }
+
+  function downloadCode() {
+    const blob = new Blob([editor.getValue()], { type: "text/html;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "index.html";
+    a.click();
+  }
+
+  // 自動運行
+  let autoTimer;
+  editor.on("change", () => {
+    if (document.getElementById("autoRunCheck").checked) {
+      clearTimeout(autoTimer);
+      autoTimer = setTimeout(submitTryit, 500);
+    }
+  });
+
+  // 全螢幕切換
+  let isFullscreen = false;
+  function toggleFullscreen() {
+    const pane = document.getElementById('split-1');
+    isFullscreen = !isFullscreen;
+    if (isFullscreen) {
+      pane.classList.add('fullscreen');
+    } else {
+      pane.classList.remove('fullscreen');
+    }
+    setTimeout(() => { editor.refresh(); showFrameSize(); }, 50);
+  }
+
+  // ── 外部函式庫搜尋 ──
+  let searchTimeout;
+  const cdnSearchInput = document.getElementById('cdnSearchInput');
+  const cdnResults = document.getElementById('cdnResults');
+
+  function openCDNModal() {
+    document.getElementById('cdnModal').classList.add('active');
+    setTimeout(() => cdnSearchInput.focus(), 80);
+  }
+
+  function closeCDNModal(e) {
+    if (e) e.preventDefault();
+    document.getElementById('cdnModal').classList.remove('active');
+  }
+
+  cdnSearchInput.addEventListener('input', (e) => {
+    clearTimeout(searchTimeout);
+    const query = e.target.value.trim();
+    if (!query) {
+      cdnResults.innerHTML = '<div style="padding:24px; text-align:center; color:var(--text-secondary); font-size:14px;">輸入庫名進行檢索</div>';
+      return;
+    }
+    cdnResults.innerHTML = '<div style="padding:24px; text-align:center; font-size:14px; color:var(--text-secondary);">搜尋中…</div>';
+
+    searchTimeout = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://api.cdnjs.com/libraries?search=${encodeURIComponent(query)}&fields=version,description&limit=10`);
+        const data = await res.json();
+        renderCDNResults(data.results || []);
+      } catch {
+        cdnResults.innerHTML = '<div style="padding:24px; text-align:center; color:#e74c3c; font-size:13px;">搜尋失敗，請檢查網路連線</div>';
+      }
+    }, 400);
+  });
+
+  function renderCDNResults(results) {
+    if (!results.length) {
+      cdnResults.innerHTML = '<div style="padding:24px; text-align:center; color:var(--text-secondary); font-size:13px;">未找到相關庫</div>';
+      return;
+    }
+    cdnResults.innerHTML = results.map(lib => `
+      <div class="lib-item" onclick="insertCDN('${lib.name}', '${lib.version}')">
+        <div class="lib-name">${lib.name} <span style="font-size:12px;color:#aaa;font-weight:400;">v${lib.version}</span></div>
+        <div class="lib-desc">${lib.description || '暫無描述'}</div>
+      </div>
+    `).join('');
+  }
+
+  function insertCDN(name, version) {
+    fetch(`https://api.cdnjs.com/libraries/${name}/${version}?fields=files`)
+      .then(r => r.json())
+      .then(data => {
+        const mainFile =
+          data.files.find(f => f.endsWith('.min.js')) ||
+          data.files.find(f => f.endsWith('.min.css')) ||
+          data.files[0];
+        const url = `https://cdnjs.cloudflare.com/ajax/libs/${name}/${version}/${mainFile}`;
+        const tag = url.endsWith('.css')
+          ? `<link rel="stylesheet" href="${url}">`
+          : `<script src="${url}"><\/script>`;
+
+        let content = editor.getValue();
+        if (content.includes('</head>')) {
+          content = content.replace('</head>', `  ${tag}\n</head>`);
+        } else {
+          content = `${tag}\n${content}`;
+        }
+        editor.setValue(content);
+        submitTryit();
+        closeCDNModal();
+      });
+  }
+
+  // Esc 關閉
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (isFullscreen) toggleFullscreen();
+      if (document.getElementById('cdnModal').classList.contains('active')) closeCDNModal();
+    }
+  });
+
+  // 初始執行
+  submitTryit();
+</script>
+
+</body>
+</html>
