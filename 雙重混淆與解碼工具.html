@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>雙重混淆與解碼工具 Pro</title>
+  <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator@4.1.0/dist/index.browser.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 20px; background: #f0f2f5; color: #333; }
+    .container { max-width: 960px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); position: relative; }
+    h2 { margin-top: 0; color: #1a73e8; display: flex; align-items: center; gap: 8px; font-size: 22px; }
+    
+    .label-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-weight: bold; font-size: 14px; color: #555; }
+    textarea { width: 100%; height: 210px; font-family: "Fira Code", Consolas, Monaco, monospace; font-size: 13px; padding: 12px; border: 1px solid #ccc; border-radius: 6px; resize: vertical; transition: border 0.2s; }
+    textarea:focus { outline: none; border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }
+    
+    .btn-group { display: flex; gap: 10px; margin: 15px 0; align-items: center; flex-wrap: wrap; }
+    button { color: white; border: none; padding: 10px 18px; font-size: 14px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.2s; display: inline-flex; align-items: center; gap: 5px; }
+    button:hover { opacity: 0.9; transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    
+    .btn-encode { background: #1a73e8; }
+    .btn-decode { background: #34a853; }
+    .btn-paste { background: #6c757d; }
+    .btn-clear { background: #ea4335; }
+    .btn-copy { background: #ff9800; }
+    
+    /* 進階選項面板 */
+    .options-panel { background: #f8f9fa; border: 1px solid #e9ecef; padding: 12px 16px; border-radius: 8px; margin-bottom: 15px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+    .options-title { font-size: 13px; font-weight: bold; color: #666; width: 100%; margin-bottom: -4px; }
+    .option { font-weight: bold; font-size: 13px; cursor: pointer; user-select: none; color: #444; display: flex; align-items: center; gap: 6px; }
+    .option input { cursor: pointer; width: 16px; height: 16px; }
+
+    #toast { visibility: hidden; min-width: 200px; background-color: #323232; color: #fff; text-align: center; border-radius: 6px; padding: 10px 16px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 14px; opacity: 0; transition: opacity 0.3s, bottom 0.3s; }
+    #toast.show { visibility: visible; opacity: 1; bottom: 40px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>🔒 雙重混淆與解碼工具</h2>
+  
+  <div class="label-bar">
+    <span>輸入原始程式碼：</span>
+    <span id="inputStats" style="font-weight: normal; color: #888;">字數: 0</span>
+  </div>
+  <textarea id="inputCode" placeholder="貼上 JavaScript 程式碼... (按 Ctrl+Enter 可快速觸發混淆)" oninput="handleInputChange()"></textarea>
+  
+  <!-- 進階功能控制面板（預設全數取消勾選） -->
+  <div class="options-panel">
+    <div class="options-title">⚙️ 進階功能選項（按需勾選，即時生效）：</div>
+    <label class="option">
+      <input type="checkbox" id="protectHeader" onchange="autoReObfuscate()"> 保護油猴標頭
+    </label>
+    <label class="option">
+      <input type="checkbox" id="doublePack" onchange="autoReObfuscate()"> 雙重混淆 (Packer)
+    </label>
+    <label class="option">
+      <input type="checkbox" id="base64Pack" onchange="autoReObfuscate()"> 開啟雙重安全包裝 (Base64)
+    </label>
+    <label class="option">
+      <input type="checkbox" id="removeWarning" onchange="autoReObfuscate()"> 消除油猴黃色警告 (eslint-disable)
+    </label>
+  </div>
+
+  <div class="btn-group">
+    <button class="btn-encode" onclick="obfuscate()">✨ 產生混淆碼</button>
+    <button class="btn-decode" onclick="deobfuscate()">🔓 反解碼</button>
+    <button class="btn-paste" onclick="pasteInput()">📋 一鍵貼上</button>
+    <button class="btn-clear" onclick="clearAll()">🗑️ 清空全部</button>
+    <button class="btn-copy" onclick="copyResult()">💾 複製結果</button>
+  </div>
+  
+  <div class="label-bar">
+    <span>處理結果：</span>
+    <span id="outputStats" style="font-weight: normal; color: #888;">字數: 0</span>
+  </div>
+  <textarea id="outputCode" readonly placeholder="處理後的程式碼會顯示在這裡..."></textarea>
+</div>
+
+<div id="toast">已複製到剪貼簿！</div>
+
+<script>
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.innerText = message;
+  toast.className = "show";
+  setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2000);
+}
+
+function handleInputChange() {
+  const input = document.getElementById('inputCode').value;
+  document.getElementById('inputStats').innerText = `字數: ${input.length}`;
+  
+  if (!input.trim()) {
+    document.getElementById('outputCode').value = '';
+    document.getElementById('outputStats').innerText = `字數: 0`;
+  }
+}
+
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    obfuscate();
+  }
+});
+
+async function pasteInput() {
+  try {
+    const text = await navigator.clipboard.readText();
+    document.getElementById('inputCode').value = text;
+    handleInputChange();
+    showToast('已貼上剪貼簿內容！');
+  } catch (err) {
+    showToast('無法存取剪貼簿，請手動貼上');
+  }
+}
+
+function clearAll() {
+  document.getElementById('inputCode').value = '';
+  document.getElementById('outputCode').value = '';
+  handleInputChange();
+  document.getElementById('inputCode').focus();
+  showToast('已清空所有內容');
+}
+
+function autoReObfuscate() {
+  const input = document.getElementById('inputCode').value.trim();
+  if (input) {
+    obfuscate(true);
+  }
+}
+
+// 經典 Packer 壓縮
+function packCode(code) {
+  const words = Array.from(new Set(code.match(/\w+/g) || []));
+  const dict = {};
+  words.forEach((word, index) => dict[word] = index.toString(36));
+  const packedTemplate = code.replace(/\b\w+\b/g, (match) => dict[match]);
+  const wordsArrayString = words.join('|');
+
+  const escapedTemplate = packedTemplate
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/\r?\n/g, '\\n');
+
+  return `eval(function(p,a,c,k,e,d){e=function(c){return c.toString(36)};if(!''.replace(/^/,String)){while(c--)d[c.toString(a)]=k[c]||c.toString(a);k=[function(e){return d[e]}];e=function(){return'\\\\w+'};c=1};while(c--)if(k[c])p=p.replace(new RegExp('\\\\b'+e(c)+'\\\\b','g'),k[c]);return p}('${escapedTemplate}',36,${words.length},'${wordsArrayString}'.split('|'),0,{}));`;
+}
+
+// Base64 安全包裝
+function safeEvalPack(code) {
+  const bytes = new TextEncoder().encode(code);
+  const binString = String.fromCodePoint(...bytes);
+  const base64 = btoa(binString);
+  return `eval(new TextDecoder().decode(Uint8Array.from(atob('${base64}'), c => c.charCodeAt(0))));`;
+}
+
+function obfuscate(isAuto = false) {
+  let fullCode = document.getElementById('inputCode').value.trim();
+  if (!fullCode) {
+    if (!isAuto) showToast('請先輸入程式碼！');
+    return;
+  }
+
+  try {
+    let header = '';
+    let codeToObfuscate = fullCode;
+
+    if (document.getElementById('protectHeader').checked) {
+      const headerMatch = fullCode.match(/\/\/\s*==UserScript==[\s\S]*?\/\/\s*==\/UserScript==/);
+      if (headerMatch) {
+        header = headerMatch[0] + '\n\n';
+        codeToObfuscate = fullCode.replace(headerMatch[0], '').trim();
+      }
+    }
+
+    // 1. 經典 Packer 混淆
+    if (document.getElementById('doublePack').checked) {
+      codeToObfuscate = packCode(codeToObfuscate);
+    }
+
+    // 2. JavaScript Obfuscator 混淆
+    const obfuscationResult = JavaScriptObfuscator.obfuscate(codeToObfuscate, {
+      compact: true,
+      identifierNamesGenerator: 'hexadecimal',
+      stringArray: true,
+      stringArrayRotate: true,
+      stringArrayShuffle: true,
+      stringArrayThreshold: 0.75
+    });
+
+    let result = obfuscationResult.getObfuscatedCode();
+
+    // 3. Base64 雙重安全包裝 (如果勾選)
+    if (document.getElementById('base64Pack').checked) {
+      result = safeEvalPack(result);
+    }
+
+    // 4. 強效消除油猴黃色警告 (如果勾選)
+    if (document.getElementById('removeWarning').checked) {
+      result = `/* eslint-disable */\n` + result.replace(/\beval\(/g, '/* eslint-disable-next-line no-eval */\neval(');
+    }
+
+    const finalResult = header + result;
+
+    document.getElementById('outputCode').value = finalResult;
+    document.getElementById('outputStats').innerText = `字數: ${finalResult.length}`;
+    
+    showToast(isAuto ? '已依勾選自動更新！✨' : '混淆成功！✨');
+  } catch (err) {
+    showToast('混淆失敗：' + err.message);
+  }
+}
+
+function deobfuscate() {
+  const input = document.getElementById('inputCode').value.trim();
+  if (!input) return showToast('請先輸入要解碼的文字！');
+
+  try {
+    let capturedOutputs = [];
+    const sandbox = new Function('interceptEval', `
+      var window = {}, document = {}, location = {};
+      var eval = function(code) { interceptEval(code); };
+      ${input}
+    `);
+
+    sandbox(function(decompiledText) {
+      capturedOutputs.push(decompiledText);
+    });
+
+    if (capturedOutputs.length > 0) {
+      const result = capturedOutputs.join('\n\n');
+      document.getElementById('outputCode').value = result;
+      document.getElementById('outputStats').innerText = `字數: ${result.length}`;
+      showToast('反解碼成功！🔓');
+    } else {
+      showToast('未偵測到可解碼的 eval 區塊');
+    }
+  } catch (err) {
+    showToast('反解碼失敗：' + err.message);
+  }
+}
+
+function copyResult() {
+  const outputText = document.getElementById('outputCode').value;
+  if (!outputText) return showToast('目前沒有結果可複製！');
+
+  navigator.clipboard.writeText(outputText).then(() => {
+    showToast('已成功複製到剪貼簿！📋');
+  }).catch(() => {
+    showToast('複製失敗，請手動複製');
+  });
+}
+</script>
+
+</body>
+</html>
