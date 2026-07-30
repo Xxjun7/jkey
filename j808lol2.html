@@ -109,17 +109,6 @@
             border-color: rgba(120, 90, 40, 0.2);
             color: #7a7060;
         }
-
-        /* 欄位寬度控制 */
-        .cell-auto {
-            width: auto;
-            max-width: 120px;
-            min-width: 45px;
-        }
-        .cell-fixed-8 {
-            width: 105px; /* 約合 8 個中文字寬度 + 邊距 */
-            min-width: 105px;
-        }
         
         .user-status { 
             font-weight: bold; 
@@ -131,7 +120,7 @@
             width: 100%;
         }
         
-        /* 按鈕風格 (LoL 金屬邊框按鈕) */
+        /* 按鈕風格 */
         .btn-container { 
             margin-bottom: 20px; 
             display: flex; 
@@ -211,7 +200,7 @@
             padding: 8px 16px; 
         }
         
-        /* 表格風格 (海克斯/符文網格) */
+        /* 表格風格與欄位長度客製化設定 */
         .table-responsive {
             width: 100%;
             overflow-x: auto;
@@ -244,7 +233,19 @@
             background: rgba(147, 51, 234, 0.08);
         }
         
-        .cell-coin { color: #ffeb7b; font-weight: bold; }
+        /* 需求客製化輸入框寬度 */
+        /* 1. 自動伸縮欄位 (編號、等級、幣量、電話) */
+        .cell-no { width: 60px; min-width: 50px; }
+        .cell-level { width: 60px; min-width: 50px; }
+        .cell-coin { width: 90px; min-width: 75px; color: #ffeb7b; font-weight: bold; }
+        .cell-phone { width: 130px; min-width: 110px; }
+
+        /* 2. 固定 8 個文字長度的欄位 (名稱、好友 1~5) */
+        .cell-name, 
+        .cell-f1, .cell-f2, .cell-f3, .cell-f4, .cell-f5 { 
+            width: 8ch; 
+            min-width: 8ch; 
+        }
         
         /* 複選框與魔法倒數計時 */
         .chk-container { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 50px; }
@@ -333,8 +334,8 @@
         <table id="dataTable">
             <thead>
                 <tr>
-                    <th>編號</th>
-                    <th>等級</th>
+                    <th style="width: 55px;">編號</th>
+                    <th style="width: 55px;">等級</th>
                     <th>名稱</th>
                     <th>幣量</th>
                     <th>領1</th>
@@ -473,17 +474,17 @@
             const deleteBtnHtml = isAdmin ? `<td><button onclick="deleteRow(${rowCount})" style="color:var(--lol-red); border-color:var(--lol-red); padding: 4px 10px;">刪除</button></td>` : `<td class="admin-only"></td>`;
 
             tr.innerHTML = `
-                <td><input type="text" class="cell-auto" style="width: 50px;" value="${data.no || rowCount}" ${isDisabled}></td>
-                <td><input type="text" class="cell-auto" style="width: 50px;" value="${data.level || ''}" ${isDisabled}></td>
-                <td><input type="text" class="cell-fixed-8" value="${data.name || ''}" ${isDisabled}></td>
-                <td><input type="text" class="cell-auto" style="width: 70px;" value="${data.coin || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-no" value="${data.no || rowCount}" ${isDisabled}></td>
+                <td><input type="text" class="cell-level" value="${data.level || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-name" value="${data.name || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-coin" value="${data.coin || ''}" ${isDisabled}></td>
                 ${receiveColsHtml}
-                <td><input type="text" class="cell-fixed-8" value="${data.f1 || ''}" ${isDisabled}></td>
-                <td><input type="text" class="cell-fixed-8" value="${data.f2 || ''}" ${isDisabled}></td>
-                <td><input type="text" class="cell-fixed-8" value="${data.f3 || ''}" ${isDisabled}></td>
-                <td><input type="text" class="cell-fixed-8" value="${data.f4 || ''}" ${isDisabled}></td>
-                <td><input type="text" class="cell-fixed-8" value="${data.f5 || ''}" ${isDisabled}></td>
-                <td><input type="text" class="cell-auto" style="width: 100px;" value="${data.phone || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-f1" value="${data.f1 || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-f2" value="${data.f2 || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-f3" value="${data.f3 || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-f4" value="${data.f4 || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-f5" value="${data.f5 || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-phone" value="${data.phone || ''}" ${isDisabled}></td>
                 ${deleteBtnHtml}
             `;
             tbody.appendChild(tr);
@@ -618,21 +619,17 @@
                 const rowNum = rowIndex + 1;
                 const chks = row.querySelectorAll('.chk-receive');
                 data.push({
-                    no: row.querySelector('.cell-auto').value,
-                    level: row.querySelectorAll('.cell-auto')[1].value,
-                    name: row.querySelector('.cell-fixed-8').value,
-                    coin: row.querySelectorAll('.cell-auto')[2].value,
+                    no: row.querySelector('.cell-no').value,
+                    level: row.querySelector('.cell-level').value,
+                    name: row.querySelector('.cell-name').value,
+                    coin: row.querySelector('.cell-coin').value,
                     r1: chks[0].checked, r1_time: chks[0].checked ? (endTimes[`${rowNum}-1`] || 0) : 0,
                     r2: chks[1].checked, r2_time: chks[1].checked ? (endTimes[`${rowNum}-2`] || 0) : 0,
                     r3: chks[2].checked, r3_time: chks[2].checked ? (endTimes[`${rowNum}-3`] || 0) : 0,
                     r4: chks[3].checked, r4_time: chks[3].checked ? (endTimes[`${rowNum}-4`] || 0) : 0,
                     r5: chks[4].checked, r5_time: chks[4].checked ? (endTimes[`${rowNum}-5`] || 0) : 0,
-                    f1: row.querySelectorAll('.cell-fixed-8')[1].value, 
-                    f2: row.querySelectorAll('.cell-fixed-8')[2].value, 
-                    f3: row.querySelectorAll('.cell-fixed-8')[3].value, 
-                    f4: row.querySelectorAll('.cell-fixed-8')[4].value, 
-                    f5: row.querySelectorAll('.cell-fixed-8')[5].value,
-                    phone: row.querySelectorAll('.cell-auto')[3].value,
+                    f1: row.querySelector('.cell-f1').value, f2: row.querySelector('.cell-f2').value, f3: row.querySelector('.cell-f3').value, f4: row.querySelector('.cell-f4').value, f5: row.querySelector('.cell-f5').value,
+                    phone: row.querySelector('.cell-phone').value,
                 });
             });
             return data;
