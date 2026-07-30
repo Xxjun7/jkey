@@ -559,11 +559,13 @@
         }
 
         function saveTableToLocal() {
-            const tableData = getTableData();
-            if (tableData.length > 0) {
-                localStorage.setItem(LOCAL_DATA_KEY, JSON.stringify(tableData));
-            }
-        }
+    const tableData = getTableData();
+    if (tableData.length === 0) {
+        localStorage.removeItem(LOCAL_DATA_KEY);
+    } else {
+        localStorage.setItem(LOCAL_DATA_KEY, JSON.stringify(tableData));
+    }
+}
 
         function autoResizeInput(input) {
             const span = document.createElement('span');
@@ -598,24 +600,24 @@
         }
 
         window.onload = function() {
-            if (localStorage.getItem('j808_is_admin') === 'true') {
-                setAdminMode(true);
-            }
+    if (localStorage.getItem('j808_is_admin') === 'true') {
+        setAdminMode(true);
+    }
 
-            try {
-                const localSavedData = localStorage.getItem(LOCAL_DATA_KEY);
-                if (localSavedData) {
-                    const data = JSON.parse(localSavedData);
-                    if (data && data.length > 0) {
-                        document.getElementById('tableBody').innerHTML = '';
-                        rowCount = 0;
-                        data.forEach(item => addRow(item, true));
-                    }
-                }
-            } catch (e) {
-                console.error("載入本地暫存失敗", e);
+    try {
+        const localSavedData = localStorage.getItem(LOCAL_DATA_KEY);
+        if (localSavedData !== null) {
+            const data = JSON.parse(localSavedData);
+            document.getElementById('tableBody').innerHTML = '';
+            rowCount = 0;
+            if (data && data.length > 0) {
+                data.forEach(item => addRow(item, true));
             }
-        };
+        }
+    } catch (e) {
+        console.error("載入本地暫存失敗", e);
+    }
+};
 
         function handleLogin() {
             const userIn = document.getElementById('customUser').value;
