@@ -99,14 +99,6 @@
             transition: all 0.3s ease;
             outline: none;
         }
-        
-        /* 表格內的輸入框改為自動伸縮 */
-        .table-responsive input[type="text"] {
-            width: auto;
-            min-width: 50px;
-            max-width: 300px;
-        }
-
         input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus {
             border-color: var(--lol-hextech-blue);
             box-shadow: 0 0 8px var(--lol-hextech-glow);
@@ -116,6 +108,17 @@
             background: rgba(15, 12, 25, 0.3);
             border-color: rgba(120, 90, 40, 0.2);
             color: #7a7060;
+        }
+
+        /* 欄位寬度控制 */
+        .cell-auto {
+            width: auto;
+            max-width: 120px;
+            min-width: 45px;
+        }
+        .cell-fixed-8 {
+            width: 105px; /* 約合 8 個中文字寬度 + 邊距 */
+            min-width: 105px;
         }
         
         .user-status { 
@@ -330,8 +333,8 @@
         <table id="dataTable">
             <thead>
                 <tr>
-                    <th style="width: 55px;">編號</th>
-                    <th style="width: 55px;">等級</th>
+                    <th>編號</th>
+                    <th>等級</th>
                     <th>名稱</th>
                     <th>幣量</th>
                     <th>領1</th>
@@ -389,13 +392,6 @@
 
         function clearAllLocalTimers() {
             localStorage.removeItem(LOCAL_STATE_KEY);
-        }
-
-        // 自動調整輸入框寬度的函式
-        function autoResizeInput(input) {
-            const length = input.value.length;
-            // 基礎寬度 50px，每多一個字增加約 10px，並保留最大與最小限制
-            input.style.width = Math.max(50, (length + 2) * 11) + 'px';
         }
 
         window.onload = function() {
@@ -477,28 +473,20 @@
             const deleteBtnHtml = isAdmin ? `<td><button onclick="deleteRow(${rowCount})" style="color:var(--lol-red); border-color:var(--lol-red); padding: 4px 10px;">刪除</button></td>` : `<td class="admin-only"></td>`;
 
             tr.innerHTML = `
-                <td><input type="text" class="cell-no" value="${data.no || rowCount}" ${isDisabled}></td>
-                <td><input type="text" class="cell-level" value="${data.level || ''}" ${isDisabled}></td>
-                <td><input type="text" class="cell-name" value="${data.name || ''}" ${isDisabled}></td>
-                <td><input type="text" class="cell-coin" value="${data.coin || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-auto" style="width: 50px;" value="${data.no || rowCount}" ${isDisabled}></td>
+                <td><input type="text" class="cell-auto" style="width: 50px;" value="${data.level || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-fixed-8" value="${data.name || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-auto" style="width: 70px;" value="${data.coin || ''}" ${isDisabled}></td>
                 ${receiveColsHtml}
-                <td><input type="text" class="cell-f1" value="${data.f1 || ''}" ${isDisabled}></td>
-                <td><input type="text" class="cell-f2" value="${data.f2 || ''}" ${isDisabled}></td>
-                <td><input type="text" class="cell-f3" value="${data.f3 || ''}" ${isDisabled}></td>
-                <td><input type="text" class="cell-f4" value="${data.f4 || ''}" ${isDisabled}></td>
-                <td><input type="text" class="cell-f5" value="${data.f5 || ''}" ${isDisabled}></td>
-                <td><input type="text" class="cell-phone" value="${data.phone || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-fixed-8" value="${data.f1 || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-fixed-8" value="${data.f2 || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-fixed-8" value="${data.f3 || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-fixed-8" value="${data.f4 || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-fixed-8" value="${data.f5 || ''}" ${isDisabled}></td>
+                <td><input type="text" class="cell-auto" style="width: 100px;" value="${data.phone || ''}" ${isDisabled}></td>
                 ${deleteBtnHtml}
             `;
             tbody.appendChild(tr);
-
-            // 為該行的所有文字輸入框綁定自動伸縮事件
-            tr.querySelectorAll('input[type="text"]').forEach(input => {
-                autoResizeInput(input);
-                input.addEventListener('input', function() {
-                    autoResizeInput(this);
-                });
-            });
 
             for(let i = 1; i <= 5; i++) {
                 const timerId = `${rowCount}-${i}`;
@@ -630,17 +618,21 @@
                 const rowNum = rowIndex + 1;
                 const chks = row.querySelectorAll('.chk-receive');
                 data.push({
-                    no: row.querySelector('.cell-no').value,
-                    level: row.querySelector('.cell-level').value,
-                    name: row.querySelector('.cell-name').value,
-                    coin: row.querySelector('.cell-coin').value,
+                    no: row.querySelector('.cell-auto').value,
+                    level: row.querySelectorAll('.cell-auto')[1].value,
+                    name: row.querySelector('.cell-fixed-8').value,
+                    coin: row.querySelectorAll('.cell-auto')[2].value,
                     r1: chks[0].checked, r1_time: chks[0].checked ? (endTimes[`${rowNum}-1`] || 0) : 0,
                     r2: chks[1].checked, r2_time: chks[1].checked ? (endTimes[`${rowNum}-2`] || 0) : 0,
                     r3: chks[2].checked, r3_time: chks[2].checked ? (endTimes[`${rowNum}-3`] || 0) : 0,
                     r4: chks[3].checked, r4_time: chks[3].checked ? (endTimes[`${rowNum}-4`] || 0) : 0,
                     r5: chks[4].checked, r5_time: chks[4].checked ? (endTimes[`${rowNum}-5`] || 0) : 0,
-                    f1: row.querySelector('.cell-f1').value, f2: row.querySelector('.cell-f2').value, f3: row.querySelector('.cell-f3').value, f4: row.querySelector('.cell-f4').value, f5: row.querySelector('.cell-f5').value,
-                    phone: row.querySelector('.cell-phone').value,
+                    f1: row.querySelectorAll('.cell-fixed-8')[1].value, 
+                    f2: row.querySelectorAll('.cell-fixed-8')[2].value, 
+                    f3: row.querySelectorAll('.cell-fixed-8')[3].value, 
+                    f4: row.querySelectorAll('.cell-fixed-8')[4].value, 
+                    f5: row.querySelectorAll('.cell-fixed-8')[5].value,
+                    phone: row.querySelectorAll('.cell-auto')[3].value,
                 });
             });
             return data;
