@@ -805,7 +805,7 @@
       });
       let rightSplit = null;
 
-      // 4. Console 攔截機制
+      // 4. Console 攔截機制 (已升級：支援自動捕捉程式錯誤)
       const consoleScript = `
     <script>
       (function(){
@@ -826,6 +826,12 @@
             original.apply(console, args);
           };
         });
+
+        // 新增：自動捕捉未攔截的程式崩潰與語法錯誤
+        window.onerror = function(msg, url, line, col, error) {
+          const errorMsg = \`\${msg} (行數: \${line}, 列數: \${col})\`;
+          sendLog('error', [errorMsg]);
+        };
       })();
     <\/script>
   `;
