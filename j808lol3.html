@@ -305,7 +305,7 @@
       table {
         width: 100%;
         border-collapse: collapse;
-        min-width: 1000px;
+        min-width: 1050px;
       }
 
       th,
@@ -330,6 +330,37 @@
 
       tbody tr:hover {
         background: rgba(147, 51, 234, 0.08);
+      }
+
+      /* 拖曳狀態與控制按鈕樣式 */
+      tbody tr.dragging {
+        opacity: 0.4;
+        background: rgba(10, 200, 185, 0.15) !important;
+      }
+
+      .action-buttons-group {
+        display: flex;
+        gap: 4px;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .drag-handle {
+        cursor: grab;
+        padding: 4px 8px;
+        color: var(--lol-gold-2);
+        border: 1px solid var(--lol-gold-3);
+        background: linear-gradient(180deg, #1e2328 0%, #111318 100%);
+        border-radius: 2px;
+        font-weight: bold;
+        user-select: none;
+        touch-action: none;
+      }
+
+      .drag-handle:active {
+        cursor: grabbing;
+        border-color: var(--lol-hextech-blue);
+        color: var(--lol-hextech-blue);
       }
 
       .cell-coin {
@@ -558,7 +589,7 @@
       <button class="btn-add admin-only" onclick="addRow()">+ 新增紀錄</button>
       <button class="btn-unlock admin-only" id="unlockBtn" onclick="toggleUnlock()">解除鎖定</button>
       <button class="btn-reset admin-only" onclick="resetCheckboxes()">重置 領取的狀態</button>
-      <button class="btn-save admin-only" onclick="saveToGitHub()">保存雲端 (GitHub)</button>
+      <button class="btn-save admin-only" onclick="confirmSaveToGitHub()">保存雲端 (GitHub)</button>
       <button class="btn-load admin-only" onclick="loadFromGitHub()">讀取雲端 (GitHub)</button>
     </div>
 
@@ -581,17 +612,17 @@
             <th>好友4</th>
             <th>好友5</th>
             <th>電話</th>
-            <th class="admin-only" style="width: 75px;">操作</th>
+            <th class="admin-only" style="width: 120px;">操作</th>
           </tr>
         </thead>
         <tbody id="tableBody"></tbody>
       </table>
     </div>
 
-    <!-- 自定義確認刪除 UI 彈窗 (微模糊與輕量化背景) -->
+    <!-- 自定義確認 UI 彈窗 (共用) -->
     <div class="modal-overlay" id="confirmModal">
       <div class="modal-box">
-        <div class="modal-title">確認刪除</div>
+        <div class="modal-title" id="modalTitle">確認刪除</div>
         <div class="modal-content" id="modalText">確定要刪除「」嗎？</div>
         <div class="modal-buttons">
           <button class="modal-btn-cancel" onclick="closeConfirmModal()">取消</button>
@@ -610,7 +641,7 @@
       const G_ID = "a3f8fa6f452b98b777440a5c0558c190";
       const _0x112a = "ajgwOA=="; // "808"
       const _0x889f = "ajEwMg=="; // "102"
-      let rowCount = 0;
+      let rowCounter = 0;
       const timers = {};
       const endTimes = {};
       let isAdmin = false;
@@ -627,12 +658,12 @@
         try { return JSON.parse(localStorage.getItem(LOCAL_STATE_KEY)) || {}; } catch (e) { return {}; }
       }
 
-      function saveLocalState(timerId, checked, endTime) {
+      function saveLocalState(uniqueKey, checked, endTime) {
         const data = getLocalStates();
         if (checked) {
-          data[timerId] = { checked: true, endTime: endTime };
+          data[uniqueKey] = { checked: true, endTime: endTime };
         } else {
-          delete data[timerId];
+          delete data[uniqueKey];
         }
         localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify(data));
       }
@@ -662,7 +693,7 @@
         document.body.removeChild(span);
         input.style.width = Math.max(newWidth, 60) + 'px';
       }
-      // 修改：建立統一的通用 Toast 提示函式 (取代原本的 showCopyToast 並擴充支援所有訊息)
+
       let toastTimer = null;
 
       function showToast(message) {
@@ -676,6 +707,7 @@
           toast.classList.remove('show');
         }, 1800);
       }
+
       window.onload = function() {
         if (localStorage.getItem('j808_is_admin') === 'true') {
           setAdminMode(true);
@@ -685,7 +717,7 @@
           if (localSavedData !== null) {
             const data = JSON.parse(localSavedData);
             document.getElementById('tableBody').innerHTML = '';
-            rowCount = 0;
+            rowCounter = 0;
             if (data && data.length > 0) {
               data.forEach(item => addRow(item, true));
             }
@@ -702,9 +734,9 @@
           localStorage.setItem('j808_is_admin', 'true');
           setAdminMode(true);
           reloadTableFromLocal();
-          showToast('管理員登入成功'); // 修改：改用 Toast
+          showToast('管理員登入成功');
         } else {
-          showToast('帳號或密碼錯誤！'); // 修改：改用 Toast
+          showToast('帳號或密碼錯誤！');
         }
       }
 
@@ -712,14 +744,14 @@
         localStorage.removeItem('j808_is_admin');
         setAdminMode(false);
         reloadTableFromLocal();
-        showToast('已登出管理員'); // 修改：新增登出提示
+        showToast('已登出管理員');
       }
 
       function reloadTableFromLocal() {
         try {
           const localSavedData = localStorage.getItem(LOCAL_DATA_KEY);
           document.getElementById('tableBody').innerHTML = '';
-          rowCount = 0;
+          rowCounter = 0;
           if (localSavedData) {
             const data = JSON.parse(localSavedData);
             if (data && data.length > 0) {
@@ -749,7 +781,6 @@
           document.getElementById('customPass').value = '';
           adminElements.forEach(el => el.style.setProperty('display', 'none', 'important'));
         }
-        // 更新表格輸入框的可編輯狀態
         updateInputsState();
       }
 
@@ -780,15 +811,21 @@
       }
 
       function addRow(data = {}, isInitializing = false) {
-        rowCount++;
+        rowCounter++;
+        // 確保每一列擁有固定且唯一的穩定 ID，不隨移動或刪除改變
+        const uid = data.uid || ('row_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5));
+        const currentId = rowCounter;
         const tbody = document.getElementById('tableBody');
         const tr = document.createElement('tr');
-        tr.id = `row-${rowCount}`;
+        tr.id = `row-${currentId}`;
+        tr.dataset.uid = uid;
+        tr.setAttribute('draggable', 'false');
+        
         const localStates = getLocalStates();
         let receiveColsHtml = '';
         for (let i = 1; i <= 5; i++) {
-          const timerId = `${rowCount}-${i}`;
-          const local = localStates[timerId];
+          const uniqueKey = `${uid}_${i}`;
+          const local = localStates[uniqueKey];
           let isChecked = false;
           if (local !== undefined) {
             isChecked = local.checked;
@@ -797,31 +834,46 @@
           }
           const chkAttribute = isChecked ? 'checked' : '';
           receiveColsHtml += `
-                    <td>
-                        <div class="chk-container">
-                            <input type="checkbox" class="chk-receive" data-row="${rowCount}" data-idx="${i}" ${chkAttribute} onchange="toggleTimer(this, true)">
-                            <div class="timer-label" id="timer-${timerId}">00:00</div>
-                        </div>
-                    </td>
-                `;
+                <td>
+                    <div class="chk-container">
+                        <input type="checkbox" class="chk-receive" data-uid="${uid}" data-idx="${i}" ${chkAttribute} onchange="toggleTimer(this, true)">
+                        <div class="timer-label" id="timer-${uid}-${i}">00:00</div>
+                    </div>
+                </td>
+            `;
         }
         const isReadOnly = (isAdmin && isUnlocked) ? '' : 'readonly';
-        const deleteBtnHtml = isAdmin ? `<td><button onclick="confirmDelete(${rowCount})" style="color:var(--lol-red); border-color:var(--lol-red); padding: 4px 10px;">刪除</button></td>` : `<td class="admin-only"></td>`;
+        const actionHtml = isAdmin ? `
+            <td>
+                <div class="action-buttons-group">
+                    <button onclick="confirmDelete('${uid}')" style="color:var(--lol-red); border-color:var(--lol-red); padding: 4px 10px;">刪除</button>
+                    <span class="drag-handle" title="按住拖曳排序">≡</span>
+                </div>
+            </td>
+        ` : `<td class="admin-only"></td>`;
+
         tr.innerHTML = `
-                <td><input type="text" class="cell-no" value="${data.no || rowCount}" ${isReadOnly}></td>
-                <td><input type="text" class="cell-level" value="${data.level || ''}" ${isReadOnly}></td>
-                <td><input type="text" class="cell-name" value="${data.name || ''}" ${isReadOnly}></td>
-                <td><input type="text" class="cell-coin" value="${data.coin || ''}" ${isReadOnly}></td>
-                ${receiveColsHtml}
-                <td><input type="text" class="cell-f1" value="${data.f1 || ''}" ${isReadOnly}></td>
-                <td><input type="text" class="cell-f2" value="${data.f2 || ''}" ${isReadOnly}></td>
-                <td><input type="text" class="cell-f3" value="${data.f3 || ''}" ${isReadOnly}></td>
-                <td><input type="text" class="cell-f4" value="${data.f4 || ''}" ${isReadOnly}></td>
-                <td><input type="text" class="cell-f5" value="${data.f5 || ''}" ${isReadOnly}></td>
-                <td><input type="text" class="cell-phone" value="${data.phone || ''}" ${isReadOnly}></td>
-                ${deleteBtnHtml}
-            `;
+            <td><input type="text" class="cell-no" value="${data.no || currentId}" ${isReadOnly}></td>
+            <td><input type="text" class="cell-level" value="${data.level || ''}" ${isReadOnly}></td>
+            <td><input type="text" class="cell-name" value="${data.name || ''}" ${isReadOnly}></td>
+            <td><input type="text" class="cell-coin" value="${data.coin || ''}" ${isReadOnly}></td>
+            ${receiveColsHtml}
+            <td><input type="text" class="cell-f1" value="${data.f1 || ''}" ${isReadOnly}></td>
+            <td><input type="text" class="cell-f2" value="${data.f2 || ''}" ${isReadOnly}></td>
+            <td><input type="text" class="cell-f3" value="${data.f3 || ''}" ${isReadOnly}></td>
+            <td><input type="text" class="cell-f4" value="${data.f4 || ''}" ${isReadOnly}></td>
+            <td><input type="text" class="cell-f5" value="${data.f5 || ''}" ${isReadOnly}></td>
+            <td><input type="text" class="cell-phone" value="${data.phone || ''}" ${isReadOnly}></td>
+            ${actionHtml}
+        `;
         tbody.appendChild(tr);
+
+        // 綁定拖曳把手事件
+        const handle = tr.querySelector('.drag-handle');
+        if (handle) {
+          bindDragAndDropEvents(tr, handle);
+        }
+
         const inputs = tr.querySelectorAll('input[type="text"]');
         inputs.forEach(input => {
           autoResizeInput(input);
@@ -829,15 +881,13 @@
             autoResizeInput(this);
             saveTableToLocal();
           });
-          // 點擊 readonly 的輸入框時自動全選並複製內容
           input.addEventListener('click', function() {
             if (this.readOnly && this.value) {
               const textToCopy = this.value;
               if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(textToCopy).then(() => {
-                  showToast(`已複製：${textToCopy}`); // 修改：改用通用 Toast
+                  showToast(`已複製：${textToCopy}`);
                 }).catch(err => {
-                  console.error('Clipboard API 失敗，嘗試備援方案', err);
                   fallbackCopyText(textToCopy);
                 });
               } else {
@@ -846,19 +896,20 @@
             }
           });
         });
+
         for (let i = 1; i <= 5; i++) {
-          const timerId = `${rowCount}-${i}`;
+          const uniqueKey = `${uid}_${i}`;
           const chk = tr.querySelector(`.chk-receive[data-idx="${i}"]`);
-          const local = localStates[timerId];
+          const local = localStates[uniqueKey];
           let targetEndTime = (local && local.endTime) ? local.endTime : data[`r${i}_time`];
           if (chk.checked) {
             if (targetEndTime) {
-              endTimes[timerId] = targetEndTime;
+              endTimes[uniqueKey] = targetEndTime;
               initTimerWithEndTime(chk, targetEndTime);
             } else {
               const defaultEndTime = Date.now() + 600 * 1000;
-              endTimes[timerId] = defaultEndTime;
-              saveLocalState(timerId, true, defaultEndTime);
+              endTimes[uniqueKey] = defaultEndTime;
+              saveLocalState(uniqueKey, true, defaultEndTime);
               initTimerWithEndTime(chk, defaultEndTime);
             }
           }
@@ -866,6 +917,99 @@
         if (!isInitializing) {
           saveTableToLocal();
         }
+      }
+
+      function bindDragAndDropEvents(tr, handle) {
+        let isDragging = false;
+        let currentTargetRow = null;
+
+        handle.addEventListener('mousedown', (e) => {
+          if (!isAdmin) return;
+          isDragging = true;
+          currentTargetRow = tr;
+          tr.classList.add('dragging');
+          e.preventDefault();
+
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+        });
+
+        function onMouseMove(e) {
+          if (!isDragging) return;
+          const tbody = document.getElementById('tableBody');
+          const rows = Array.from(tbody.querySelectorAll('tr'));
+          const mouseY = e.clientY;
+
+          let targetRow = null;
+          for (let r of rows) {
+            const rect = r.getBoundingClientRect();
+            if (mouseY >= rect.top && mouseY <= rect.bottom) {
+              targetRow = r;
+              break;
+            }
+          }
+
+          if (targetRow && targetRow !== currentTargetRow) {
+            const rect = targetRow.getBoundingClientRect();
+            const midpoint = rect.top + rect.height / 2;
+            if (mouseY < midpoint) {
+              tbody.insertBefore(currentTargetRow, targetRow);
+            } else {
+              tbody.insertBefore(currentTargetRow, targetRow.nextSibling);
+            }
+          }
+        }
+
+        function onMouseUp(e) {
+          if (!isDragging) return;
+          isDragging = false;
+          tr.classList.remove('dragging');
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+          saveTableToLocal();
+          showToast('排序已更新');
+        }
+
+        handle.addEventListener('touchstart', (e) => {
+          if (!isAdmin) return;
+          isDragging = true;
+          currentTargetRow = tr;
+          tr.classList.add('dragging');
+        }, { passive: true });
+
+        handle.addEventListener('touchmove', (e) => {
+          if (!isDragging) return;
+          const tbody = document.getElementById('tableBody');
+          const rows = Array.from(tbody.querySelectorAll('tr'));
+          const touchY = e.touches[0].clientY;
+
+          let targetRow = null;
+          for (let r of rows) {
+            const rect = r.getBoundingClientRect();
+            if (touchY >= rect.top && touchY <= rect.bottom) {
+              targetRow = r;
+              break;
+            }
+          }
+
+          if (targetRow && targetRow !== currentTargetRow) {
+            const rect = targetRow.getBoundingClientRect();
+            const midpoint = rect.top + rect.height / 2;
+            if (touchY < midpoint) {
+              tbody.insertBefore(currentTargetRow, targetRow);
+            } else {
+              tbody.insertBefore(currentTargetRow, targetRow.nextSibling);
+            }
+          }
+        }, { passive: true });
+
+        handle.addEventListener('touchend', (e) => {
+          if (!isDragging) return;
+          isDragging = false;
+          tr.classList.remove('dragging');
+          saveTableToLocal();
+          showToast('排序已更新');
+        });
       }
 
       function fallbackCopyText(text) {
@@ -880,9 +1024,7 @@
           const successful = document.execCommand('copy');
           document.body.removeChild(textarea);
           if (successful) {
-            showToast(`已複製：${text}`); // 修改：改用通用 Toast
-          } else {
-            console.error('execCommand 複製失敗');
+            showToast(`已複製：${text}`);
           }
         } catch (err) {
           console.error('備援複製發生錯誤', err);
@@ -890,14 +1032,14 @@
       }
 
       function initTimerWithEndTime(checkbox, endTime) {
-        const rowId = checkbox.getAttribute('data-row');
+        const uid = checkbox.getAttribute('data-uid');
         const idx = checkbox.getAttribute('data-idx');
-        const timerId = `${rowId}-${idx}`;
-        const label = document.getElementById(`timer-${timerId}`);
+        const uniqueKey = `${uid}_${idx}`;
+        const label = document.getElementById(`timer-${uid}-${idx}`);
         if (!label) return;
-        if (timers[timerId]) {
-          clearInterval(timers[timerId].interval);
-          delete timers[timerId];
+        if (timers[uniqueKey]) {
+          clearInterval(timers[uniqueKey].interval);
+          delete timers[uniqueKey];
         }
         label.classList.remove('countdown-running', 'countdown-done');
         const now = Date.now();
@@ -921,41 +1063,41 @@
             label.innerText = "00:00";
             label.classList.remove('countdown-running');
             label.classList.add('countdown-done');
-            delete timers[timerId];
+            delete timers[uniqueKey];
           } else {
             updateDisplay(currentRemaining);
           }
         }, 1000);
-        timers[timerId] = { interval: interval };
+        timers[uniqueKey] = { interval: interval };
       }
 
       function toggleTimer(checkbox, isUserClick = true) {
-        const rowId = checkbox.getAttribute('data-row');
+        const uid = checkbox.getAttribute('data-uid');
         const idx = checkbox.getAttribute('data-idx');
-        const timerId = `${rowId}-${idx}`;
-        const label = document.getElementById(`timer-${timerId}`);
-        if (timers[timerId]) {
-          clearInterval(timers[timerId].interval);
-          delete timers[timerId];
+        const uniqueKey = `${uid}_${idx}`;
+        const label = document.getElementById(`timer-${uid}-${idx}`);
+        if (timers[uniqueKey]) {
+          clearInterval(timers[uniqueKey].interval);
+          delete timers[uniqueKey];
         }
         label.classList.remove('countdown-running', 'countdown-done');
         if (checkbox.checked) {
           const endTime = Date.now() + 600 * 1000;
-          endTimes[timerId] = endTime;
-          saveLocalState(timerId, true, endTime);
+          endTimes[uniqueKey] = endTime;
+          saveLocalState(uniqueKey, true, endTime);
           initTimerWithEndTime(checkbox, endTime);
         } else {
           label.innerText = "00:00";
-          delete endTimes[timerId];
-          saveLocalState(timerId, false, 0);
+          delete endTimes[uniqueKey];
+          saveLocalState(uniqueKey, false, 0);
         }
         saveTableToLocal();
       }
 
-      function confirmDelete(id) {
+      function confirmDelete(uid) {
         if (!isAdmin) return;
-        pendingDeleteId = id;
-        const row = document.getElementById(`row-${id}`);
+        pendingDeleteId = uid;
+        const row = document.querySelector(`tr[data-uid="${uid}"]`);
         let nameVal = '';
         if (row) {
           const nameInput = row.querySelector('.cell-name');
@@ -964,8 +1106,15 @@
           }
         }
         const displayName = nameVal ? `「${nameVal}」` : `此筆紀錄`;
+        
+        document.getElementById('modalTitle').innerText = '確認刪除';
         document.getElementById('modalText').innerText = `確定要刪除 ${displayName} 嗎？`;
+        
         const confirmBtn = document.getElementById('modalConfirmBtn');
+        confirmBtn.innerText = '刪除';
+        confirmBtn.className = 'modal-btn-confirm';
+        confirmBtn.removeAttribute('style');
+        
         confirmBtn.onclick = function() {
           executeDelete(pendingDeleteId);
           closeConfirmModal();
@@ -978,21 +1127,21 @@
         pendingDeleteId = null;
       }
 
-      function executeDelete(id) {
-        const row = document.getElementById(`row-${id}`);
+      function executeDelete(uid) {
+        const row = document.querySelector(`tr[data-uid="${uid}"]`);
         if (row) {
           for (let i = 1; i <= 5; i++) {
-            const timerId = `${id}-${i}`;
-            if (timers[timerId]) {
-              clearInterval(timers[timerId].interval);
-              delete timers[timerId];
+            const uniqueKey = `${uid}_${i}`;
+            if (timers[uniqueKey]) {
+              clearInterval(timers[uniqueKey].interval);
+              delete timers[uniqueKey];
             }
-            delete endTimes[timerId];
-            saveLocalState(timerId, false, 0);
+            delete endTimes[uniqueKey];
+            saveLocalState(uniqueKey, false, 0);
           }
           row.remove();
           saveTableToLocal();
-          showToast('已刪除紀錄'); // 修改：新增刪除成功 Toast 提示
+          showToast('已刪除紀錄');
         }
       }
 
@@ -1003,30 +1152,31 @@
           chk.checked = false;
           toggleTimer(chk, false);
         });
-        showToast('已重置所有領取狀態與倒數計時！'); // 修改：改用 Toast
+        showToast('已重置所有領取狀態與倒數計時！');
       }
 
       function getTableData() {
         const rows = document.querySelectorAll('#tableBody tr');
         const data = [];
         rows.forEach((row, rowIndex) => {
-          const rowNum = rowIndex + 1;
+          const uid = row.dataset.uid;
           const chks = row.querySelectorAll('.chk-receive');
           data.push({
+            uid: uid,
             no: row.querySelector('.cell-no').value,
             level: row.querySelector('.cell-level').value,
             name: row.querySelector('.cell-name').value,
             coin: row.querySelector('.cell-coin').value,
             r1: chks[0].checked,
-            r1_time: chks[0].checked ? (endTimes[`${rowNum}-1`] || 0) : 0,
+            r1_time: chks[0].checked ? (endTimes[`${uid}_1`] || 0) : 0,
             r2: chks[1].checked,
-            r2_time: chks[1].checked ? (endTimes[`${rowNum}-2`] || 0) : 0,
+            r2_time: chks[1].checked ? (endTimes[`${uid}_2`] || 0) : 0,
             r3: chks[2].checked,
-            r3_time: chks[2].checked ? (endTimes[`${rowNum}-3`] || 0) : 0,
+            r3_time: chks[2].checked ? (endTimes[`${uid}_3`] || 0) : 0,
             r4: chks[3].checked,
-            r4_time: chks[3].checked ? (endTimes[`${rowNum}-4`] || 0) : 0,
+            r4_time: chks[3].checked ? (endTimes[`${uid}_4`] || 0) : 0,
             r5: chks[4].checked,
-            r5_time: chks[4].checked ? (endTimes[`${rowNum}-5`] || 0) : 0,
+            r5_time: chks[4].checked ? (endTimes[`${uid}_5`] || 0) : 0,
             f1: row.querySelector('.cell-f1').value,
             f2: row.querySelector('.cell-f2').value,
             f3: row.querySelector('.cell-f3').value,
@@ -1037,8 +1187,29 @@
         });
         return data;
       }
-      async function saveToGitHub() {
-        if (!isAdmin) { showToast('請先登入管理員權限！'); return; } // 修改：改用 Toast
+
+      function confirmSaveToGitHub() {
+        if (!isAdmin) { showToast('請先登入管理員權限！'); return; }
+        
+        document.getElementById('modalTitle').innerText = '確認保存';
+        document.getElementById('modalText').innerText = '確定要將目前資料保存至雲端 (GitHub) 嗎？';
+        
+        const confirmBtn = document.getElementById('modalConfirmBtn');
+        confirmBtn.innerText = '保存';
+        confirmBtn.className = 'modal-btn-confirm';
+        confirmBtn.style.borderColor = 'var(--lol-hextech-blue)';
+        confirmBtn.style.color = 'var(--lol-hextech-blue)';
+        confirmBtn.style.background = 'linear-gradient(180deg, rgba(9, 40, 48, 0.9) 0%, rgba(3, 16, 21, 0.9) 100%)';
+        
+        confirmBtn.onclick = function() {
+          executeSaveToGitHub();
+          closeConfirmModal();
+        };
+        
+        document.getElementById('confirmModal').style.display = 'flex';
+      }
+
+      async function executeSaveToGitHub() {
         const tableData = getTableData();
         const payload = {
           description: "Grid Data Storage with Timers",
@@ -1055,17 +1226,18 @@
             body: JSON.stringify(payload)
           });
           if (response.ok) {
-            showToast('管理員修改成功，已成功保存至雲端！'); // 修改：改用 Toast
+            showToast('管理員修改成功，已成功保存至雲端！');
           } else {
             const errRes = await response.json();
-            showToast('保存失敗：' + (errRes.message || '請確認密鑰是否有權限。')); // 修改：改用 Toast
+            showToast('保存失敗：' + (errRes.message || '請確認密鑰是否有權限。'));
           }
         } catch (error) {
-          showToast('網路連線失敗，請稍後再試。'); // 修改：改用 Toast
+          showToast('網路連線失敗，請稍後再試。');
         }
       }
+
       async function loadFromGitHub() {
-        if (!isAdmin) { showToast('請先登入管理員權限！'); return; } // 修改：改用 Toast
+        if (!isAdmin) { showToast('請先登入管理員權限！'); return; }
         try {
           const response = await fetch(`https://api.github.com/gists/${G_ID}`, {
             method: 'GET',
@@ -1079,16 +1251,16 @@
             if (resData.files && resData.files["grid_data.json"]) {
               const data = JSON.parse(resData.files["grid_data.json"].content);
               document.getElementById('tableBody').innerHTML = '';
-              rowCount = 0;
+              rowCounter = 0;
               data.forEach(item => addRow(item));
               saveTableToLocal();
-              showToast('成功從雲端讀取資料！'); // 修改：改用 Toast
+              showToast('成功從雲端讀取資料！');
             }
           } else {
-            showToast('讀取雲端失敗，請稍後再試。'); // 修改：改用 Toast
+            showToast('讀取雲端失敗，請稍後再試。');
           }
         } catch (error) {
-          showToast('網路連線失敗，請稍後再試。'); // 修改：改用 Toast
+          showToast('網路連線失敗，請稍後再試。');
         }
       }
     </script>
