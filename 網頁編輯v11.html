@@ -599,9 +599,6 @@
             <!-- 快速搜尋輸入框 -->
             <input type="text" id="quickSearchInput" placeholder="🔍 快速搜尋" title="輸入關鍵字即自動跳轉到找到的地方" oninput="handleQuickSearch(this.value)" onkeydown="handleQuickSearchKey(event)">
 
-            <!-- 標籤/括號選取 -->
-            <button onclick="selectCurrentTagOrBracket()" title="選取目前游標所在的對應標籤或括號範圍">🏷️ 標籤/括號選取</button>
-
             <!-- 字型調整 -->
             <button onclick="changeFontSize(-1)" title="縮小字體">A-</button>
             <button onclick="changeFontSize(1)" title="放大字體">A+</button>
@@ -769,32 +766,6 @@
       }
       editor.on("change", updateWordCount);
       editor.on("cursorActivity", updateWordCount);
-
-      // 1.2 快速選取目前游標所在的對應標籤或括號範圍
-      function selectCurrentTagOrBracket() {
-        if (typeof editor.findTagAt === "function") {
-          try {
-            const tag = editor.findTagAt(editor.getCursor());
-            if (tag && tag.open && tag.close) {
-              editor.setSelection(tag.open.from, tag.close.to);
-              showToast("已選取對應標籤範圍！");
-              return;
-            }
-          } catch(e) {}
-        }
-        // 若不是 HTML 標籤，嘗試選取括號範圍
-        try {
-          let cur = editor.getCursor();
-          let pos = CodeMirror.scanForBracket(editor, cur, 1, {bracket: "()[]{}"});
-          if (!pos) pos = CodeMirror.scanForBracket(editor, cur, -1, {bracket: "()[]{}"});
-          if (pos) {
-            editor.setSelection(pos.from, {line: pos.to.line, ch: pos.to.ch + 1});
-            showToast("已選取對應括號範圍！");
-            return;
-          }
-        } catch(e) {}
-        showToast("目前游標附近沒有偵測到配對的標籤或括號");
-      }
 
       // 1.5 裝置模擬與尺寸切換邏輯
       function changeDeviceMode(val) {
