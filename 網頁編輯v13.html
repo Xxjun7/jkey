@@ -2,7 +2,7 @@
 <html lang="zh-TW">
   <head>
     <meta charset="utf-8">
-    <title>極簡線上 HTML/JS 編輯器 (v1.1-fixed)</title>
+    <title>極簡線上 HTML/JS 編輯器 (v1.2)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- CodeMirror 核心與主題 -->
@@ -969,7 +969,17 @@
       }
 
       function clearInspector() {
-        document.getElementById('inspector-content').innerHTML = '<div style="color: #888;">檢查結果已清空。</div>';
+        const container = document.getElementById('inspector-content');
+        container.innerHTML = '<div id="clear-msg" style="color: #888; transition: opacity 0.5s ease;">檢查結果已清空。</div>';
+        setTimeout(() => {
+          const msg = document.getElementById('clear-msg');
+          if (msg) {
+            msg.style.opacity = '0';
+            setTimeout(() => {
+              if (msg.parentNode) msg.parentNode.removeChild(msg);
+            }, 500);
+          }
+        }, 3000);
       }
 
       function toggleInspector() {
