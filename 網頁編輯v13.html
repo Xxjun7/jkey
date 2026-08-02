@@ -2,7 +2,7 @@
 <html lang="zh-TW">
   <head>
     <meta charset="utf-8">
-    <title>極簡線上 HTML/JS 編輯器 (v1.2)</title>
+    <title>極簡線上 HTML/JS 編輯器 (v1.3)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- CodeMirror 核心與主題 -->
@@ -389,9 +389,13 @@
       }
 
       .inspector-item {
-        margin-bottom: 6px;
+        margin-bottom: 8px;
         word-break: break-all;
         white-space: pre-wrap;
+        background: #222226;
+        padding: 8px;
+        border-radius: 4px;
+        border-left: 3px solid #75beff;
       }
 
       .inspector-item span.label {
@@ -893,13 +897,32 @@
           e.stopPropagation();
           
           const el = e.target;
+          const computed = window.getComputedStyle(el);
+          const rect = el.getBoundingClientRect();
+
           const info = {
             tagName: el.tagName.toLowerCase(),
             id: el.id ? '#' + el.id : '',
             className: el.className ? '.' + String(el.className).trim().split(/\\s+/).join('.') : '',
             outerHTML: el.outerHTML,
-            textContent: el.textContent ? el.textContent.trim().substring(0, 100) : '',
-            rect: el.getBoundingClientRect()
+            innerHTML: el.innerHTML,
+            textContent: el.textContent ? el.textContent.trim() : '',
+            value: el.value !== undefined ? el.value : null,
+            rect: {
+              top: Math.round(rect.top),
+              left: Math.round(rect.left),
+              width: Math.round(rect.width),
+              height: Math.round(rect.height)
+            },
+            styles: {
+              color: computed.color,
+              backgroundColor: computed.backgroundColor,
+              fontSize: computed.fontSize,
+              fontFamily: computed.fontFamily,
+              display: computed.display,
+              padding: computed.padding,
+              margin: computed.margin
+            }
           };
 
           window.parent.postMessage({
@@ -942,25 +965,33 @@
           const info = e.data.elementInfo;
           const container = document.getElementById('inspector-content');
           
-          // 如果容器內還包含提示文字或清空訊息，先清空它再加入新選取項目
           if (container.querySelector('div') && (container.textContent.includes('請點擊') || container.textContent.includes('檢查結果已清空'))) {
             container.innerHTML = '';
           }
           
           const item = document.createElement('div');
           item.className = 'inspector-item';
+          
+          let extraDetails = '';
+          if (info.value !== null && info.value !== '') {
+            extraDetails += `<div><span class="label">表單 Value：</span>${escapeHtml(String(info.value))}</div>`;
+          }
+          extraDetails += `<div><span class="label">尺寸/位置：</span>W: ${info.rect.width}px, H: ${info.rect.height}px (Top: ${info.rect.top}, Left: ${info.rect.left})</div>`;
+          extraDetails += `<div><span class="label">計算樣式：</span>color: ${info.styles.color}, bg: ${info.styles.backgroundColor}, font: ${info.styles.fontSize} ${info.styles.fontFamily}</div>`;
+
           item.innerHTML = `
-            <div><span class="label">元素：</span>&lt;${info.tagName}${info.id}${info.className}&gt;</div>
+            <div><span class="label">元素標籤：</span>&lt;${info.tagName}${info.id}${info.className}&gt;</div>
             <div><span class="label">文字內容：</span>${escapeHtml(info.textContent || '(無)')}</div>
+            ${extraDetails}
             <div><span class="label">完整 HTML：</span><code>${escapeHtml(info.outerHTML)}</code></div>
-            <div style="color: #666; margin-top: 4px; border-bottom: 1px dashed #333; padding-bottom: 4px;">────────</div>
+            <div style="color: #666; margin-top: 6px; border-bottom: 1px dashed #444; padding-bottom: 2px;">────────</div>
           `;
           container.appendChild(item);
           container.scrollTop = container.scrollHeight;
 
           isPickingElement = false;
           updatePickerBtnState();
-          showToast("已成功選取並檢查元素！");
+          showToast("已取得完整元素資訊！");
         }
       });
 
@@ -971,15 +1002,6 @@
       function clearInspector() {
         const container = document.getElementById('inspector-content');
         container.innerHTML = '<div id="clear-msg" style="color: #888; transition: opacity 0.5s ease;">檢查結果已清空。</div>';
-        setTimeout(() => {
-          const msg = document.getElementById('clear-msg');
-          if (msg) {
-            msg.style.opacity = '0';
-            setTimeout(() => {
-              if (msg.parentNode) msg.parentNode.removeChild(msg);
-            }, 500);
-          }
-        }, 3000);
       }
 
       function toggleInspector() {
