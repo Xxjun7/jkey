@@ -986,20 +986,40 @@
           
           // 精準找出這個元素在編輯器中的起始行號
           let startLineNum = 0;
-          const firstLineSnippet = `<${info.tagName}`;
-          let searchCursor = editor.getSearchCursor(firstLineSnippet, { line: 0, ch: 0 });
-          while (searchCursor.findNext()) {
-            const pos = searchCursor.from();
-            const lineContent = editor.getLine(pos.line);
-            if ((info.id && lineContent.includes(info.id)) || (info.className && lineContent.includes(info.className.split('.')[1])) || (!info.id && !info.className)) {
-              startLineNum = pos.line;
-              break;
-            }
-          }
-          if (startLineNum === 0) {
-            let fallbackCursor = editor.getSearchCursor(firstLineSnippet, { line: 0, ch: 0 });
-            if (fallbackCursor.findNext()) startLineNum = fallbackCursor.from().line;
-          }
+const firstLineSnippet = `<${info.tagName}`;
+
+// 1. 優先策略：如果該元素有文字內容，嘗試在編輯器中尋找包含該文字的行
+if (info.textContent && info.textContent.length > 0) {
+  let textCursor = editor.getSearchCursor(info.textContent, { line: 0, ch: 0 });
+  while (textCursor.findNext()) {
+    const pos = textCursor.from();
+    const lineContent = editor.getLine(pos.line);
+    // 確保這行同時也包含該標籤或相關屬性，避免抓錯地方
+    if (lineContent.includes(firstLineSnippet) || (info.className && lineContent.includes(info.className.split('.')[1]))) {
+      startLineNum = pos.line;
+      break;
+    }
+  }
+}
+
+// 2. 第二策略：如果剛好沒文字或沒找到，改用原本的 ID / Class 尋找
+if (startLineNum === 0) {
+  let searchCursor = editor.getSearchCursor(firstLineSnippet, { line: 0, ch: 0 });
+  while (searchCursor.findNext()) {
+    const pos = searchCursor.from();
+    const lineContent = editor.getLine(pos.line);
+    if ((info.id && lineContent.includes(info.id)) || (info.className && lineContent.includes(info.className.split('.')[1])) || (!info.id && !info.className)) {
+      startLineNum = pos.line;
+      break;
+    }
+  }
+}
+
+// 3. 最後防線
+if (startLineNum === 0) {
+  let fallbackCursor = editor.getSearchCursor(firstLineSnippet, { line: 0, ch: 0 });
+  if (fallbackCursor.findNext()) startLineNum = fallbackCursor.from().line;
+}
 
           const item = document.createElement('div');
           item.className = 'inspector-item';
