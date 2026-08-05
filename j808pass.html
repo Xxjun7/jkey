@@ -598,8 +598,11 @@
         const diffStars = totalRequiredForTarget - totalAvailableStars;
         
         const targetElement = document.getElementById('neededForTarget');
-        if (diffStars > 0) {
-          targetElement.textContent = diffStars.toLocaleString() + ' ⭐️ (還差)';
+        
+        // 嚴格比對預測等級是否小於理想等級或尚有差額
+        if (level < targetLevel || diffStars > 0) {
+          const actualDiff = Math.max(diffStars, getTotalStarsNeededForTarget(level, remainingStars, targetLevel));
+          targetElement.textContent = actualDiff.toLocaleString() + ' ⭐️ (還差)';
           targetElement.style.color = 'var(--accent-yellow)';
         } else {
           targetElement.textContent = '已達成目標 🎉';
