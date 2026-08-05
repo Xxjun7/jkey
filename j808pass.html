@@ -8,7 +8,7 @@
       :root {
         --holo-blue: #00f0ff;
         --holo-blue-glow: rgba(0, 240, 255, 0.35);
-        --holo-card: rgba(6, 22, 44, 0.9);
+        --holo-card: rgba(4, 14, 28, 0.95);
         --holo-border: rgba(0, 240, 255, 0.3);
         --text-bright: #ffffff;
         --text-dim: #88cfff;
@@ -25,25 +25,23 @@
       body,
       html {
         width: 100%;
-        height: 100%;
+        min-height: 100%;
         background-color: #030812;
         color: var(--text-bright);
         overflow-x: hidden;
-        position: relative;
       }
 
-      /* AR 視野背景與網格特效 */
+      /* AR 視野背景與網格特效 (放最底層) */
       .ar-viewport {
-        position: absolute;
-        inset: 0;
+        position: relative;
+        width: 100%;
+        min-height: 100vh;
         background: radial-gradient(circle at center, #0a192f 0%, #020611 100%);
         display: flex;
         justify-content: center;
-        align-items: flex-start;
-        padding: 20px;
-        overflow-y: auto;
-        overflow-x: hidden;
-        -webkit-overflow-scrolling: touch;
+        align-items: center;
+        padding: 30px 20px;
+        z-index: 1;
       }
 
       .camera-grid {
@@ -56,12 +54,29 @@
         pointer-events: none;
       }
 
-      /* 背景斜向光條容器 */
+      /* 中央 AR 懸浮面板：提升 z-index，完全壓在背景光條之上 */
+      .holo-panel {
+        position: relative;
+        width: 100%;
+        max-width: 650px;
+        background: var(--holo-card);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 12px;
+        padding: 28px;
+        box-shadow:
+          0 0 30px var(--holo-blue-glow),
+          inset 0 0 15px rgba(0, 240, 255, 0.1);
+        z-index: 10;
+        border: 1px solid var(--holo-border);
+      }
+
+      /* 背景斜向光條容器：改為絕對定位在 ar-viewport 內部，且 z-index 設在面板下方 (z-index: 2) */
       .cyber-matrix-container {
-        position: fixed;
+        position: absolute;
         inset: 0;
         pointer-events: none;
-        z-index: 1;
+        z-index: 2;
         overflow: hidden;
       }
 
@@ -108,49 +123,30 @@
 
       @keyframes moveTlBr {
         0% { transform: translate(-20vw, -20vh) rotate(45deg); opacity: 0; }
-        15% { opacity: 1; }
-        85% { opacity: 1; }
+        15% { opacity: 0.6; }
+        85% { opacity: 0.6; }
         100% { transform: translate(120vw, 120vh) rotate(45deg); opacity: 0; }
       }
 
       @keyframes moveTrBl {
         0% { transform: translate(20vw, -20vh) rotate(135deg); opacity: 0; }
-        15% { opacity: 1; }
-        85% { opacity: 1; }
+        15% { opacity: 0.6; }
+        85% { opacity: 0.6; }
         100% { transform: translate(-120vw, 120vh) rotate(135deg); opacity: 0; }
       }
 
       @keyframes moveBrTl {
         0% { transform: translate(20vw, 20vh) rotate(225deg); opacity: 0; }
-        15% { opacity: 1; }
-        85% { opacity: 1; }
+        15% { opacity: 0.6; }
+        85% { opacity: 0.6; }
         100% { transform: translate(-120vw, -120vh) rotate(225deg); opacity: 0; }
       }
 
       @keyframes moveBlTr {
         0% { transform: translate(-20vw, 20vh) rotate(315deg); opacity: 0; }
-        15% { opacity: 1; }
-        85% { opacity: 1; }
+        15% { opacity: 0.6; }
+        85% { opacity: 0.6; }
         100% { transform: translate(120vw, -120vh) rotate(315deg); opacity: 0; }
-      }
-
-      /* ====================================================
-         中央 AR 懸浮面板：ROG 風格邊框跑光線特效
-         ==================================================== */
-      .holo-panel {
-        position: relative;
-        width: 100%;
-        max-width: 650px;
-        background: var(--holo-card);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-radius: 12px;
-        padding: 28px;
-        box-shadow:
-          0 0 30px var(--holo-blue-glow),
-          inset 0 0 15px rgba(0, 240, 255, 0.1);
-        z-index: 10;
-        border: 1px solid var(--holo-border);
       }
 
       /* ROG 邊框跑光線 SVG 層 */
@@ -173,7 +169,7 @@
         fill: none;
         stroke: url(#rog-gradient);
         stroke-width: 2.5;
-        stroke-dasharray: 120 1800; /* 光條長度與間距 */
+        stroke-dasharray: 120 1800;
         stroke-dashoffset: 1920;
         animation: rogRun 4s linear infinite;
         filter: drop-shadow(0 0 6px var(--holo-blue));
@@ -184,7 +180,6 @@
         100% { stroke-dashoffset: 0; }
       }
 
-      /* AR 四角修飾邊框與內容層級 */
       .holo-panel .panel-header,
       .holo-panel .ar-rules,
       .holo-panel .form-grid,
@@ -192,7 +187,7 @@
       .holo-panel .corner-deco-tl,
       .holo-panel .corner-deco-br {
         position: relative;
-        z-index: 2;
+        z-index: 6;
       }
 
       .holo-panel .corner-deco-tl,
@@ -247,7 +242,6 @@
         letter-spacing: 1px;
       }
 
-      /* 規則說明方塊 */
       .ar-rules {
         font-size: 0.825rem;
         color: var(--text-dim);
@@ -271,7 +265,6 @@
         color: var(--holo-blue);
       }
 
-      /* 表單輸入區域 */
       .form-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -299,7 +292,7 @@
 
       .input-wrapper input {
         width: 100%;
-        background: rgba(4, 18, 38, 0.8);
+        background: rgba(4, 18, 38, 0.9);
         border: 1px solid var(--holo-border);
         border-radius: 6px;
         padding: 10px 12px;
@@ -323,9 +316,8 @@
         pointer-events: none;
       }
 
-      /* 結果顯示區域 */
       .ar-result-display {
-        background: rgba(2, 12, 28, 0.85);
+        background: rgba(2, 12, 28, 0.95);
         border: 1px solid var(--holo-border);
         border-radius: 8px;
         padding: 20px;
@@ -406,16 +398,16 @@
   </head>
   <body>
 
-    <!-- 背景斜向光條 -->
-    <div class="cyber-matrix-container">
-      <div class="diagonal-beam beam-tl-br"></div>
-      <div class="diagonal-beam beam-tr-bl"></div>
-      <div class="diagonal-beam beam-br-tl"></div>
-      <div class="diagonal-beam beam-bl-tr"></div>
-    </div>
-
     <div class="ar-viewport">
       <div class="camera-grid"></div>
+
+      <!-- 背景斜向光條 (移到視窗內並降低層級，不干擾上層文字) -->
+      <div class="cyber-matrix-container">
+        <div class="diagonal-beam beam-tl-br"></div>
+        <div class="diagonal-beam beam-tr-bl"></div>
+        <div class="diagonal-beam beam-br-tl"></div>
+        <div class="diagonal-beam beam-bl-tr"></div>
+      </div>
 
       <!-- 中央容器 (內嵌 ROG 邊框跑光線特效) -->
       <div class="holo-panel">
