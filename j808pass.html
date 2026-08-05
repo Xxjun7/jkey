@@ -383,6 +383,15 @@
               <span class="input-unit">⭐️</span>
             </div>
           </div>
+
+          <!-- 新增：理想等級 -->
+          <div class="input-group">
+            <label for="targetLevel">理想等級</label>
+            <div class="input-wrapper">
+              <input type="text" id="targetLevel" value="40" oninput="calculate()">
+              <span class="input-unit">級</span>
+            </div>
+          </div>
         </div>
 
         <div class="ar-result-display">
@@ -412,6 +421,11 @@
               <span class="lbl">距離下一級還差</span>
               <span class="val" id="neededForNext">200 ⭐️</span>
             </div>
+            <!-- 新增：與理想等級還要多少 ⭐️ -->
+            <div class="stat-card">
+              <span class="lbl">與理想等級還要多少</span>
+              <span class="val" id="neededForTarget">0 ⭐️</span>
+            </div>
           </div>
         </div>
       </div>
@@ -426,6 +440,21 @@
         return 1500;
       }
 
+      // 計算從當前等級/星星數到達指定目標等級總共需要的星星數
+      function getTotalStarsNeededForTarget(currentLvl, currentStrs, targetLvl) {
+        if (targetLvl <= currentLvl) return 0;
+        let totalNeeded = 0;
+        for (let l = currentLvl; l < targetLvl; l++) {
+          let cost = getReqStarsForLevel(l);
+          if (l === currentLvl) {
+            totalNeeded += Math.max(0, cost - currentStrs);
+          } else {
+            totalNeeded += cost;
+          }
+        }
+        return totalNeeded;
+      }
+
       function calculate() {
         const currentLevel = Math.max(0, parseInt(document.getElementById('currentLevel').value) || 0);
         const currentStars = Math.max(0, parseInt(document.getElementById('currentStars').value) || 0);
@@ -433,9 +462,12 @@
         const dailyStars = Math.max(0, parseInt(document.getElementById('dailyStars').value) || 0);
         const dailyBonusStars = Math.max(0, parseInt(document.getElementById('dailyBonusStars').value) || 0);
         const extraSupplyStars = Math.max(0, parseInt(document.getElementById('extraSupplyStars').value) || 0);
+        const targetLevel = Math.max(0, parseInt(document.getElementById('targetLevel').value) || 0);
+
         const dailyPerDay = dailyStars + dailyBonusStars;
         const totalNewStars = (dailyPerDay * days) + extraSupplyStars;
         const totalAvailableStars = currentStars + totalNewStars;
+
         let level = currentLevel;
         let remainingStars = totalAvailableStars;
         while (true) {
@@ -447,14 +479,29 @@
             break;
           }
         }
+
         const nextCost = getReqStarsForLevel(level);
         document.getElementById('totalStars').textContent = totalAvailableStars.toLocaleString() + ' ⭐️';
         document.getElementById('dailyTotal').textContent = dailyPerDay.toLocaleString() + ' ⭐️/天';
         document.getElementById('predictedLevel').textContent = 'Lv. ' + level;
+        
         const progressPercent = ((remainingStars / nextCost) * 100).toFixed(1);
         document.getElementById('progressBar').style.width = Math.min(100, progressPercent) + '%';
         document.getElementById('nextLevelProgress').textContent = `${remainingStars.toLocaleString()} / ${nextCost.toLocaleString()} ⭐️ (${progressPercent}%)`;
         document.getElementById('neededForNext').textContent = (nextCost - remainingStars).toLocaleString() + ' ⭐️';
+
+        // 計算與理想等級的差距 (總共需要星數 - 預測總獲得星星)
+        const totalRequiredForTarget = getTotalStarsNeededForTarget(currentLevel, currentStars, targetLevel);
+        const diffStars = totalRequiredForTarget - totalAvailableStars;
+        
+        const targetElement = document.getElementById('neededForTarget');
+        if (diffStars > 0) {
+          targetElement.textContent = diffStars.toLocaleString() + ' ⭐️ (還差)';
+          targetElement.style.color = 'var(--accent-yellow)';
+        } else {
+          targetElement.textContent = '已達成目標 🎉';
+          targetElement.style.color = 'var(--holo-blue)';
+        }
       }
       calculate();
     </script>
