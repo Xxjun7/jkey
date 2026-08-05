@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>j 808 Level Calculator</title>
+    <style>
+      :root {
+        --holo-blue: #00f0ff;
+        --holo-blue-glow: rgba(0, 240, 255, 0.35);
+        --holo-card: rgba(6, 22, 44, 0.75);
+        --holo-border: rgba(0, 240, 255, 0.3);
+        --text-bright: #ffffff;
+        --text-dim: #88cfff;
+        --accent-yellow: #ffe600;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+
+      body,
+      html {
+        width: 100%;
+        min-height: 100%;
+        background-color: #030812;
+        color: var(--text-bright);
+        overflow-x: hidden;
+      }
+
+      /* AR 視野背景與網格特效 */
+      .ar-viewport {
+        position: relative;
+        width: 100vw;
+        min-height: 100vh;
+        background: radial-gradient(circle at center, #0a192f 0%, #020611 100%);
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 20px;
+        overflow-y: auto;
+      }
+
+      .camera-grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(0, 240, 255, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
+        background-size: 40px 40px;
+        pointer-events: none;
+      }
+
+      .scanline {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(180deg, rgba(0, 240, 255, 0), rgba(0, 240, 255, 0.4) 50%, rgba(0, 240, 255, 0));
+        box-shadow: 0 0 15px var(--holo-blue);
+        animation: scan 7s linear infinite;
+        pointer-events: none;
+        will-change: transform;
+      }
+
+      @keyframes scan {
+        0% {
+          transform: translateY(0vh);
+        }
+
+        100% {
+          transform: translateY(165vh);
+        }
+      }
+
+      /* 中央 AR 懸浮面板 */
+      .holo-panel {
+        position: relative;
+        width: 100%;
+        max-width: 650px;
+        background: var(--holo-card);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--holo-border);
+        border-radius: 12px;
+        padding: 28px;
+        box-shadow:
+          0 0 30px var(--holo-blue-glow),
+          inset 0 0 15px rgba(0, 240, 255, 0.1);
+        z-index: 5;
+      }
+
+      /* AR 四角修飾邊框 */
+      .holo-panel::before,
+      .holo-panel::after {
+        content: '';
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        border-color: var(--holo-blue);
+        border-style: solid;
+        pointer-events: none;
+      }
+
+      .holo-panel::before {
+        top: -2px;
+        left: -2px;
+        border-width: 3px 0 0 3px;
+      }
+
+      .holo-panel::after {
+        bottom: -2px;
+        right: -2px;
+        border-width: 0 3px 3px 0;
+      }
+
+      .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--holo-border);
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+      }
+
+      .panel-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        color: var(--text-bright);
+        text-shadow: 0 0 10px var(--holo-blue);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .status-tag {
+        font-size: 0.75rem;
+        padding: 3px 8px;
+        background: rgba(0, 240, 255, 0.15);
+        border: 1px solid var(--holo-blue);
+        border-radius: 4px;
+        color: var(--holo-blue);
+        letter-spacing: 1px;
+      }
+
+      /* 規則說明方塊 */
+      .ar-rules {
+        font-size: 0.825rem;
+        color: var(--text-dim);
+        background: rgba(0, 240, 255, 0.04);
+        border-left: 3px solid var(--holo-blue);
+        padding: 12px 16px;
+        margin-bottom: 24px;
+        line-height: 1.6;
+      }
+
+      .ar-rules ul {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 4px 12px;
+        margin-top: 6px;
+        list-style: none;
+      }
+
+      .ar-rules li::before {
+        content: "➢ ";
+        color: var(--holo-blue);
+      }
+
+      /* 表單輸入區域 */
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .input-group label {
+        font-size: 0.8rem;
+        color: var(--text-dim);
+        letter-spacing: 0.5px;
+      }
+
+      .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+
+      .input-wrapper input {
+        width: 100%;
+        background: rgba(4, 18, 38, 0.8);
+        border: 1px solid var(--holo-border);
+        border-radius: 6px;
+        padding: 10px 12px;
+        color: var(--text-bright);
+        font-size: 1rem;
+        font-weight: 600;
+        outline: none;
+        transition: all 0.2s;
+      }
+
+      .input-wrapper input:focus {
+        border-color: var(--holo-blue);
+        box-shadow: 0 0 10px var(--holo-blue-glow);
+      }
+
+      .input-unit {
+        position: absolute;
+        right: 12px;
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        pointer-events: none;
+      }
+
+      /* 結果顯示區域 */
+      .ar-result-display {
+        background: rgba(2, 12, 28, 0.85);
+        border: 1px solid var(--holo-border);
+        border-radius: 8px;
+        padding: 20px;
+      }
+
+      .result-main {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+
+      .result-label {
+        font-size: 0.85rem;
+        color: var(--text-dim);
+        letter-spacing: 1px;
+      }
+
+      .level-text {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: var(--text-bright);
+        text-shadow: 0 0 12px var(--holo-blue);
+      }
+
+      .ar-progress-outer {
+        height: 10px;
+        background: rgba(0, 240, 255, 0.15);
+        border: 1px solid var(--holo-border);
+        border-radius: 5px;
+        padding: 2px;
+        margin-bottom: 16px;
+      }
+
+      .ar-progress-inner {
+        height: 100%;
+        background: linear-gradient(90deg, #00f0ff, #ffe600);
+        border-radius: 3px;
+        width: 0%;
+        box-shadow: 0 0 8px var(--holo-blue);
+        transition: width 0.3s ease-out;
+      }
+
+      .stats-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        border-top: 1px dashed var(--holo-border);
+        padding-top: 14px;
+      }
+
+      .stat-card {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .stat-card .lbl {
+        font-size: 0.75rem;
+        color: var(--text-dim);
+      }
+
+      .stat-card .val {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-bright);
+      }
+
+      @media (max-width: 480px) {
+
+        .form-grid,
+        .stats-row,
+        .ar-rules ul {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="ar-viewport">
+      <div class="camera-grid"></div>
+      <div class="scanline"></div>
+
+      <div class="holo-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span>⭐</span> j 808 通行證預測器
+          </div>
+          <div class="status-tag">jimi102</div>
+        </div>
+
+        <div class="ar-rules">
+          <strong>[等級需求星數規則]</strong>
+          <ul>
+            <li>0 ~ 9 級：200 ⭐️ / 級</li>
+            <li>9 ~ 19 級：400 ⭐️ / 級</li>
+            <li>19 ~ 29 級：600 ⭐️ / 級</li>
+            <li>29 ~ 39 級：900 ⭐️ / 級</li>
+            <li>40 級以上：1,500 ⭐️ / 級</li>
+          </ul>
+        </div>
+
+        <div class="form-grid">
+          <div class="input-group">
+            <label for="currentLevel">當前等級</label>
+            <div class="input-wrapper">
+              <input type="text" id="currentLevel" value="" oninput="calculate()">
+              <span class="input-unit">級</span>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="currentStars">當前已積累 ⭐️</label>
+            <div class="input-wrapper">
+              <input type="text" id="currentStars" value="" oninput="calculate()">
+              <span class="input-unit">⭐️</span>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="days">預測剩餘天數</label>
+            <div class="input-wrapper">
+              <input type="text" id="days" value="" oninput="calculate()">
+              <span class="input-unit">天</span>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="dailyStars">每天基本拿到 ⭐️</label>
+            <div class="input-wrapper">
+              <input type="text" id="dailyStars" value="300" oninput="calculate()">
+              <span class="input-unit">⭐️/天</span>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="dailyBonusStars">每天額外加成 ⭐️</label>
+            <div class="input-wrapper">
+              <input type="text" id="dailyBonusStars" value="225" oninput="calculate()">
+              <span class="input-unit">⭐️/天</span>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="extraSupplyStars">額外一次性補給 ⭐️</label>
+            <div class="input-wrapper">
+              <input type="text" id="extraSupplyStars" value="" oninput="calculate()">
+              <span class="input-unit">⭐️</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ar-result-display">
+          <div class="result-main">
+            <span class="result-label">預測可達到等級</span>
+            <span class="level-text" id="predictedLevel">Lv. 0</span>
+          </div>
+
+          <div class="ar-progress-outer">
+            <div class="ar-progress-inner" id="progressBar"></div>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat-card">
+              <span class="lbl">預測總獲得星星</span>
+              <span class="val" id="totalStars">0 ⭐️</span>
+            </div>
+            <div class="stat-card">
+              <span class="lbl">每日合計可用</span>
+              <span class="val" id="dailyTotal">0 ⭐️/天</span>
+            </div>
+            <div class="stat-card">
+              <span class="lbl">下一級當前進度</span>
+              <span class="val" id="nextLevelProgress">0 / 200 ⭐️</span>
+            </div>
+            <div class="stat-card">
+              <span class="lbl">距離下一級還差</span>
+              <span class="val" id="neededForNext">200 ⭐️</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function getReqStarsForLevel(level) {
+        if (level < 9) return 200;
+        if (level < 19) return 400;
+        if (level < 29) return 600;
+        if (level < 39) return 900;
+        return 1500;
+      }
+
+      function calculate() {
+        const currentLevel = Math.max(0, parseInt(document.getElementById('currentLevel').value) || 0);
+        const currentStars = Math.max(0, parseInt(document.getElementById('currentStars').value) || 0);
+        const days = Math.max(0, parseInt(document.getElementById('days').value) || 0);
+        const dailyStars = Math.max(0, parseInt(document.getElementById('dailyStars').value) || 0);
+        const dailyBonusStars = Math.max(0, parseInt(document.getElementById('dailyBonusStars').value) || 0);
+        const extraSupplyStars = Math.max(0, parseInt(document.getElementById('extraSupplyStars').value) || 0);
+        const dailyPerDay = dailyStars + dailyBonusStars;
+        const totalNewStars = (dailyPerDay * days) + extraSupplyStars;
+        const totalAvailableStars = currentStars + totalNewStars;
+        let level = currentLevel;
+        let remainingStars = totalAvailableStars;
+        while (true) {
+          const cost = getReqStarsForLevel(level);
+          if (remainingStars >= cost) {
+            remainingStars -= cost;
+            level++;
+          } else {
+            break;
+          }
+        }
+        const nextCost = getReqStarsForLevel(level);
+        document.getElementById('totalStars').textContent = totalAvailableStars.toLocaleString() + ' ⭐️';
+        document.getElementById('dailyTotal').textContent = dailyPerDay.toLocaleString() + ' ⭐️/天';
+        document.getElementById('predictedLevel').textContent = 'Lv. ' + level;
+        const progressPercent = ((remainingStars / nextCost) * 100).toFixed(1);
+        document.getElementById('progressBar').style.width = Math.min(100, progressPercent) + '%';
+        document.getElementById('nextLevelProgress').textContent = `${remainingStars.toLocaleString()} / ${nextCost.toLocaleString()} ⭐️ (${progressPercent}%)`;
+        document.getElementById('neededForNext').textContent = (nextCost - remainingStars).toLocaleString() + ' ⭐️';
+      }
+      calculate();
+    </script>
+
+  </body>
+</html>
