@@ -42,6 +42,7 @@
         align-items: flex-start;
         padding: 20px;
         overflow-y: auto;
+        overflow-x: hidden;
       }
 
       .camera-grid {
@@ -54,30 +55,31 @@
         pointer-events: none;
       }
 
+      /* 掃描線：加入 mix-blend-mode 讓它在經過容器文字時不刺眼、底層穿透 */
       .scanline {
-        position: absolute;
+        position: fixed;
         top: 0;
         left: 0;
-        width: 100%;
+        width: 100vw;
         height: 4px;
-        background: linear-gradient(180deg, rgba(0, 240, 255, 0), rgba(0, 240, 255, 0.4) 50%, rgba(0, 240, 255, 0));
+        background: linear-gradient(180deg, rgba(0, 240, 255, 0), rgba(0, 240, 255, 0.8) 50%, rgba(0, 240, 255, 0));
         box-shadow: 0 0 15px var(--holo-blue);
         animation: scan 7s linear infinite;
         pointer-events: none;
         will-change: transform;
+        z-index: 1; /* 設定在容器底層，僅在背景與網格上掃過，不會蓋在容器上方 */
       }
 
       @keyframes scan {
         0% {
-          transform: translateY(0vh);
+          transform: translateY(-5vh);
         }
-
         100% {
-          transform: translateY(165vh);
+          transform: translateY(105vh);
         }
       }
 
-      /* 中央 AR 懸浮面板 */
+      /* 中央 AR 懸浮面板（Z軸高於掃描線，確保螢光線絕對不會蓋在容器上） */
       .holo-panel {
         position: relative;
         width: 100%;
@@ -91,7 +93,7 @@
         box-shadow:
           0 0 30px var(--holo-blue-glow),
           inset 0 0 15px rgba(0, 240, 255, 0.1);
-        z-index: 5;
+        z-index: 10; 
       }
 
       /* AR 四角修飾邊框 */
@@ -293,10 +295,10 @@
         font-size: 1rem;
         font-weight: 700;
         color: var(--text-bright);
+        font-variant-numeric: tabular-nums;
       }
 
       @media (max-width: 480px) {
-
         .form-grid,
         .stats-row,
         .ar-rules ul {
@@ -307,10 +309,13 @@
   </head>
   <body>
 
+    <!-- 掃描線 (z-index: 1，在底層) -->
+    <div class="scanline"></div>
+
     <div class="ar-viewport">
       <div class="camera-grid"></div>
-      <div class="scanline"></div>
 
+      <!-- 中央容器 (z-index: 10，層級高於掃描線，光條穿過時會被容器遮擋，絕對不會蓋到容器內容) -->
       <div class="holo-panel">
         <div class="panel-header">
           <div class="panel-title">
