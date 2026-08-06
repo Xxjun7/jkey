@@ -401,7 +401,7 @@
     <div class="ar-viewport">
       <div class="camera-grid"></div>
 
-      <!-- 背景斜向光條 (移到視窗內並降低層級，不干擾上層文字) -->
+      <!-- 背景斜向光條 -->
       <div class="cyber-matrix-container">
         <div class="diagonal-beam beam-tl-br"></div>
         <div class="diagonal-beam beam-tr-bl"></div>
@@ -409,7 +409,7 @@
         <div class="diagonal-beam beam-bl-tr"></div>
       </div>
 
-      <!-- 中央容器 (內嵌 ROG 邊框跑光線特效) -->
+      <!-- 中央容器 -->
       <div class="holo-panel">
         <svg class="rog-border-glow">
           <defs>
@@ -434,11 +434,12 @@
         <div class="ar-rules">
           <strong>[等級需求星數規則]</strong>
           <ul>
-            <li>0 ~ 9 級：200 ⭐️ / 級</li>
-            <li>9 ~ 19 級：400 ⭐️ / 級</li>
-            <li>19 ~ 29 級：600 ⭐️ / 級</li>
-            <li>29 ~ 39 級：900 ⭐️ / 級</li>
-            <li>40 級以上：1,500 ⭐️ / 級</li>
+            <li>0升1 ~ 9 級：200 ⭐️ / 級</li>
+            <li>9升10 ~ 19 級：400 ⭐️ / 級</li>
+            <li>19升20 ~ 29 級：600 ⭐️ / 級</li>
+            <li>29升30 ~ 39 級：900 ⭐️ / 級</li>
+            <li>39升40 級：1,500 ⭐️ / 級</li>
+            <li>40升41級以上：4,000 ⭐️ / 級</li>
           </ul>
         </div>
 
@@ -542,7 +543,8 @@
         if (level < 19) return 400;
         if (level < 29) return 600;
         if (level < 39) return 900;
-        return 1500;
+        if (level === 39) return 1500;
+        return 4000; // 40等以上 (40升41、41升42...)
       }
 
       function getTotalStarsNeededForTarget(currentLvl, currentStrs, targetLvl) {
@@ -599,7 +601,6 @@
         
         const targetElement = document.getElementById('neededForTarget');
         
-        // 嚴格比對預測等級是否小於理想等級或尚有差額
         if (level < targetLevel || diffStars > 0) {
           const actualDiff = Math.max(diffStars, getTotalStarsNeededForTarget(level, remainingStars, targetLevel));
           targetElement.textContent = actualDiff.toLocaleString() + ' ⭐️ (還差)';
