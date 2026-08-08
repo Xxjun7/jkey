@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>CSS 行號與變數檢索器（全功能升級版）</title>
+  <style>
+    :root {
+      --bg: #f4f5f6;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text: #475569;
+      --text-sec: #94a3b8;
+      --accent: #64748b;
+      --accent-hover: #475569;
+      --success: #0d9488;
+      --editor-bg: #f8fafc;
+      --line-bg: #f1f5f9;
+      --line-num: #cbd5e1;
+      --highlight: rgba(13, 148, 136, 0.15);
+    }
+
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #e2e8f0;
+      --text-sec: #94a3b8;
+      --accent: #94a3b8;
+      --accent-hover: #cbd5e1;
+      --success: #14b8a6;
+      --editor-bg: #0f172a;
+      --line-bg: #1e293b;
+      --line-num: #64748b;
+      --highlight: rgba(20, 184, 166, 0.25);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+      height: 100vh;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    h2 { 
+      margin: 0 0 10px 0; 
+      font-size: 18px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      flex-shrink: 0; 
+      color: var(--text);
+    }
+
+    .header-btns {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 16px;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .pane {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      box-sizing: border-box;
+      min-height: 0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      transition: background 0.3s, border-color 0.3s;
+    }
+
+    .pane-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      flex-shrink: 0;
+    }
+
+    .search-bar {
+      margin-bottom: 8px;
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .search-input {
+      flex: 1;
+      background: var(--editor-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 12px;
+      box-sizing: border-box;
+    }
+
+    .search-input:focus { outline: none; border-color: var(--accent); }
+
+    .editor-container {
+      display: flex;
+      flex: 1;
+      background: var(--editor-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      min-height: 0;
+    }
+    
+    .editor-container:focus-within { 
+      border-color: var(--accent); 
+      box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.1); 
+    }
+    
+    .line-numbers-wrapper {
+      width: 45px;
+      background: var(--line-bg);
+      color: var(--line-num);
+      font-family: monospace;
+      font-size: 13px;
+      line-height: 20px;
+      overflow: hidden;
+      user-select: none;
+      border-right: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .line-numbers-content {
+      position: relative;
+      padding-top: 12px;
+      text-align: right;
+      padding-right: 6px;
+      white-space: pre;
+    }
+
+    textarea {
+      flex: 1;
+      background: transparent;
+      color: var(--text);
+      border: none;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 13px;
+      resize: none;
+      line-height: 20px;
+      box-sizing: border-box;
+      white-space: pre;
+      overflow-wrap: normal;
+      overflow-x: auto;
+      overflow-y: scroll;
+      height: 100%;
+    }
+
+    textarea:focus { outline: none; }
+
+    .results-box {
+      flex: 1;
+      background: var(--editor-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 13px;
+      min-height: 0;
+    }
+
+    .btn {
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      font-weight: 500;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      box-sizing: border-box;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      vertical-align: middle;
+    }
+
+    .btn:hover { 
+      background: var(--line-bg); 
+      border-color: var(--text-sec);
+      transform: translateY(-1px);
+    }
+
+    .btn:active { transform: translateY(0); box-shadow: none; }
+
+    .btn-sm { padding: 3px 10px; font-size: 11px; border-radius: 6px; }
+
+    .btn-success {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+    }
+
+    [data-theme="dark"] .btn-success {
+      background: #064e3b;
+      border-color: #047857;
+      color: #6ee7b7;
+    }
+
+    .btn-success:hover {
+      background: #dcfce7;
+      border-color: #86efac;
+    }
+
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .item-row:hover { background: var(--line-bg); }
+
+    .tag-line {
+      background: var(--border);
+      color: var(--text);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      border: 1px solid var(--text-sec);
+    }
+
+    .tag-line:hover {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      margin: 10px 0 6px 0;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 4px;
+    }
+
+    .highlight-line {
+      animation: flashHighlight 1.5s ease;
+    }
+
+    @keyframes flashHighlight {
+      0% { background-color: var(--highlight); }
+      100% { background-color: transparent; }
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 600px;
+      max-width: 90%;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-textarea {
+      background: var(--editor-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 13px;
+      height: 250px;
+      resize: vertical;
+      box-sizing: border-box;
+      margin-bottom: 15px;
+    }
+
+    .modal-textarea:focus { outline: none; border-color: var(--accent); }
+
+    .modal-footer { 
+      display: flex; 
+      justify-content: flex-end; 
+      gap: 10px; 
+    }
+  </style>
+</head>
+<body data-theme="light">
+
+  <h2>
+    <span>📑 CSS 行號與變數檢索器（全功能升級版）</span>
+    <div class="header-btns">
+      <button class="btn btn-sm" onclick="toggleTheme()" id="themeBtn">🌙 深色模式</button>
+      <button class="btn" onclick="openAiModal()">📥 貼入 AI 修改結果</button>
+      <button class="btn btn-success" onclick="copyResults()">📋 一鍵複製整理結果</button>
+    </div>
+  </h2>
+
+  <div class="main-layout">
+    <div class="pane">
+      <div class="pane-header">
+        <span style="font-size: 13px; color: var(--text-sec); font-weight: 500;">✨ 請在下方貼上你的完整原始碼：</span>
+        <div style="display: flex; gap: 6px;">
+          <button class="btn btn-sm" onclick="pasteToEditor()">📥 貼上</button>
+          <button class="btn btn-sm btn-success" onclick="copyFromEditor()">📋 複製</button>
+        </div>
+      </div>
+      <div class="editor-container">
+        <div class="line-numbers-wrapper" id="lineWrapper">
+          <div id="lineNumbers" class="line-numbers-content">1</div>
+        </div>
+        <textarea id="sourceInput" placeholder="貼上程式碼..." oninput="handleInput()" onpaste="handleCustomPaste(event)" onscroll="syncScroll()"></textarea>
+      </div>
+    </div>
+
+    <div class="pane">
+      <div style="margin-bottom: 8px; font-size: 13px; color: var(--text-sec); font-weight: 500; flex-shrink: 0;">✨ 分析結果（點擊行號將精準轉跳）：</div>
+      <div class="search-bar">
+        <input type="text" id="searchInput" class="search-input" placeholder="🔍 輸入關鍵字快速過濾結果..." oninput="filterResults()">
+      </div>
+      <div id="resultsContainer" class="results-box">
+        <span style="color: var(--text-sec);">等待輸入程式碼中...</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="aiModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span>🤖 自動比對並替換 AI 修改結果</span>
+        <button class="btn btn-sm" onclick="closeAiModal()">✕</button>
+      </div>
+      <div style="font-size: 12px; color: var(--text-sec); font-weight: 500; margin-bottom: 8px;">
+        可直接貼入 AI 給的 `[第 X 行] ...` 摘要清單，系統會自動定位並替換該行的程式碼！
+      </div>
+      <textarea id="aiInputResponse" class="modal-textarea" placeholder="在此貼上 AI 修改好的 [第 X 行] 清單或完整程式碼..."></textarea>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeAiModal()">取消</button>
+        <button class="btn btn-success" onclick="applyAiChanges()">確認比對並修改</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+let lastExtractedText = "";
+let lastContentLength = 0;
+let allAnalyzedItems = [];
+
+function toggleTheme() {
+  const body = document.body;
+  const themeBtn = document.getElementById('themeBtn');
+  if (body.getAttribute('data-theme') === 'light') {
+    body.setAttribute('data-theme', 'dark');
+    themeBtn.textContent = '☀️ 白天模式';
+  } else {
+    body.setAttribute('data-theme', 'light');
+    themeBtn.textContent = '🌙 深色模式';
+  }
+}
+
+function handleInput() {
+  const textarea = document.getElementById('sourceInput');
+  if (textarea.value.length !== lastContentLength) {
+    lastContentLength = textarea.value.length;
+    updateLineNumbers();
+    analyzeCode();
+  }
+}
+
+function handleCustomPaste(e) {
+  e.preventDefault();
+  const textarea = document.getElementById('sourceInput');
+  const scrollTop = textarea.scrollTop;
+  const scrollLeft = textarea.scrollLeft;
+  
+  const pasteText = (e.clipboardData || window.clipboardData).getData('text');
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const content = textarea.value;
+
+  textarea.value = content.substring(0, start) + pasteText + content.substring(end);
+  const newCursorPos = start + pasteText.length;
+  textarea.setSelectionRange(newCursorPos, newCursorPos);
+
+  textarea.scrollTop = scrollTop;
+  textarea.scrollLeft = scrollLeft;
+  
+  lastContentLength = textarea.value.length;
+  updateLineNumbers();
+  analyzeCode();
+
+  setTimeout(() => {
+    textarea.scrollTop = scrollTop;
+    textarea.scrollLeft = scrollLeft;
+    syncScroll();
+  }, 0);
+}
+
+async function pasteToEditor() {
+  try {
+    const text = await navigator.clipboard.readText();
+    const textarea = document.getElementById('sourceInput');
+    textarea.value = text;
+    lastContentLength = textarea.value.length;
+    updateLineNumbers();
+    analyzeCode();
+    alert("已成功從剪貼簿貼入原始碼！");
+  } catch (err) {
+    alert("無法直接讀取剪貼簿，請直接在輸入框內使用 Ctrl+V 貼上！");
+  }
+}
+
+function copyFromEditor() {
+  const textarea = document.getElementById('sourceInput');
+  if (!textarea.value.trim()) {
+    alert("目前輸入框內沒有程式碼可供複製！");
+    return;
+  }
+  navigator.clipboard.writeText(textarea.value).then(() => {
+    alert("已成功複製輸入框內的原始碼！");
+  });
+}
+
+function updateLineNumbers() {
+  const textarea = document.getElementById('sourceInput');
+  const lineNumbers = document.getElementById('lineNumbers');
+  const lines = textarea.value.split('\n').length;
+  let lineStr = '';
+  for (let i = 1; i <= lines; i++) {
+    lineStr += i + '\n';
+  }
+  lineNumbers.textContent = lineStr;
+}
+
+function syncScroll() {
+  const textarea = document.getElementById('sourceInput');
+  const lineNumbers = document.getElementById('lineNumbers');
+  lineNumbers.style.transform = `translateY(-${textarea.scrollTop}px)`;
+}
+
+function jumpToLine(targetLine) {
+  const textarea = document.getElementById('sourceInput');
+  const lines = textarea.value.split('\n');
+  if (targetLine < 1 || targetLine > lines.length) return;
+
+  let startPos = 0;
+  for (let i = 0; i < targetLine - 1; i++) {
+    startPos += lines[i].length + 1;
+  }
+  let endPos = startPos + lines[targetLine - 1].length;
+
+  const lineHeight = 20;
+  const targetScrollTop = Math.max(0, (targetLine - 3) * lineHeight);
+
+  textarea.scrollTop = targetScrollTop;
+  syncScroll();
+
+  textarea.focus({ preventScroll: true });
+  textarea.setSelectionRange(startPos, endPos);
+}
+
+function analyzeCode() {
+  const textarea = document.getElementById('sourceInput');
+  const code = textarea.value;
+  const container = document.getElementById('resultsContainer');
+  const currentScrollTop = container.scrollTop;
+
+  if (!code.trim()) {
+    container.innerHTML = '<span style="color: var(--text-sec);">請輸入或貼入程式碼以進行分析</span>';
+    lastExtractedText = "";
+    allAnalyzedItems = [];
+    return;
+  }
+
+  const lines = code.split('\n');
+  allAnalyzedItems = [];
+  let isInsideStyle = false;
+  let hasStyleTags = code.includes('<style>');
+
+  lines.forEach((line, index) => {
+    const lineNum = index + 1; 
+    const trimmed = line.trim();
+
+    if (trimmed.includes('<style>')) {
+      isInsideStyle = true;
+      if (trimmed.includes('</style>')) isInsideStyle = false;
+      return;
+    }
+    if (trimmed.includes('</style>')) {
+      isInsideStyle = false;
+      return;
+    }
+
+    if (!hasStyleTags || isInsideStyle) {
+      if (trimmed !== '') {
+        allAnalyzedItems.push({ line: lineNum, content: line });
+      }
+    }
+  });
+
+  renderResults(allAnalyzedItems);
+  container.scrollTop = currentScrollTop;
+}
+
+function renderResults(items) {
+  const container = document.getElementById('resultsContainer');
+  let htmlContent = `<div class="section-title">🎨 可修改的樣式與外觀程式碼 (${items.length} 行)</div>`;
+  let outputText = "=== 全風格樣式與 CSS 結構清單 ===\n";
+
+  if (items.length === 0) {
+    htmlContent += '<div style="color: var(--text-sec); padding: 6px; font-size: 12px;">未找到符合條件的樣式程式碼</div>';
+  } else {
+    items.forEach(s => {
+      const displayContent = s.content.length > 60 ? s.content.substring(0, 60) + '...' : s.content;
+      htmlContent += `<div class="item-row"><span style="font-family: monospace;">${escapeHtml(displayContent)}</span><span class="tag-line" onclick="jumpToLine(${s.line})">第 ${s.line} 行</span></div>`;
+      outputText += `[第 ${s.line} 行] ${s.content}\n`;
+    });
+  }
+
+  container.innerHTML = htmlContent;
+  lastExtractedText = outputText;
+}
+
+function filterResults() {
+  const keyword = document.getElementById('searchInput').value.toLowerCase();
+  if (!keyword) {
+    renderResults(allAnalyzedItems);
+    return;
+  }
+  const filtered = allAnalyzedItems.filter(item => item.content.toLowerCase().includes(keyword));
+  renderResults(filtered);
+}
+
+function escapeHtml(text) {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function copyResults() {
+  if (!lastExtractedText) {
+    alert("目前沒有可複製的分析結果！");
+    return;
+  }
+  navigator.clipboard.writeText(lastExtractedText).then(() => {
+    alert("已成功複製完整樣式對應表，可以貼給 AI 進行整體風格改造！");
+  });
+}
+
+function openAiModal() {
+  document.getElementById('aiModal').style.display = 'flex';
+  document.getElementById('aiInputResponse').value = '';
+}
+
+function closeAiModal() {
+  document.getElementById('aiModal').style.display = 'none';
+}
+
+function applyAiChanges() {
+  const aiText = document.getElementById('aiInputResponse').value.trim();
+  if (!aiText) {
+    alert("請先貼入 AI 修改後的內容！");
+    return;
+  }
+
+  const textarea = document.getElementById('sourceInput');
+  let sourceLines = textarea.value.split('\n');
+
+  let cleanAiText = aiText.replace(/```[a-z]*\n?/gi, '').replace(/```$/g, '').trim();
+  const linePattern = /(?:^|\n)\s*\[第\s*(\d+)\s*行\]\s*(.*)/g;
+  let matches = [...cleanAiText.matchAll(linePattern)];
+
+  if (matches.length > 0) {
+    let updatedCount = 0;
+
+    matches.forEach(match => {
+      const lineNum = parseInt(match[1], 10);
+      let newContent = match[2];
+
+      newContent = newContent.replace(/\r$/, '');
+
+      if (lineNum >= 1 && lineNum <= sourceLines.length) {
+        const originalLine = sourceLines[lineNum - 1];
+        const indentMatch = originalLine.match(/^(\s*)/);
+        const indent = indentMatch ? indentMatch[1] : '';
+        
+        if (!newContent.startsWith(indent) && originalLine.trim() !== '') {
+          const contentTrimmed = newContent.trim();
+          if (contentTrimmed.length > 0 && !newContent.startsWith(' ')) {
+            newContent = indent + contentTrimmed;
+          }
+        }
+
+        sourceLines[lineNum - 1] = newContent;
+        updatedCount++;
+      }
+    });
+
+    textarea.value = sourceLines.join('\n');
+    alert(`成功自動比對並更新了 ${updatedCount} 行樣式！`);
+  } else {
+    if (cleanAiText.includes('{') && cleanAiText.includes('}')) {
+      if (confirm("未偵測到 [第 X 行] 標記，是否要將貼入的內容視為「完整程式碼」直接進行全面覆蓋？")) {
+        textarea.value = cleanAiText;
+        alert("已套用整段新程式碼！");
+      } else {
+        return;
+      }
+    } else {
+      alert("無法解析您貼入的內容！請確保內容包含 [第 X 行] 格式或完整的 CSS 程式碼。");
+      return;
+    }
+  }
+
+  lastContentLength = textarea.value.length;
+  updateLineNumbers();
+  analyzeCode();
+  closeAiModal();
+}
+</script>
+
+</body>
+</html>
