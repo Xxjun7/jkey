@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>CSS 行號與變數檢索器（復古暖木質感版）</title>
+  <style>
+    :root {
+      --bg: #fdf6e2;
+      --card-bg: #faedcd;
+      --border: #e9edc9;
+      --text: #606c38;
+      --text-sec: #283618;
+      --accent: #dda15e;
+      --accent-hover: #bc6c25;
+      --success: #2a9d8f;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+      height: 100vh;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    h2 { 
+      margin: 0 0 10px 0; 
+      font-size: 18px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      flex-shrink: 0; 
+    }
+    .header-btns {
+      display: flex;
+      gap: 10px;
+    }
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 16px;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .pane {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      box-sizing: border-box;
+      min-height: 0;
+      box-shadow: 0 4px 0 rgba(233, 237, 201, 0.5);
+    }
+    .editor-container {
+      display: flex;
+      flex: 1;
+      background: #ffffff;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      min-height: 0;
+    }
+    
+    .line-numbers-wrapper {
+      width: 45px;
+      background: #fefae0;
+      color: #b5c99a;
+      font-family: monospace;
+      font-size: 13px;
+      line-height: 20px;
+      overflow: hidden;
+      user-select: none;
+      border-right: 2px solid var(--border);
+      flex-shrink: 0;
+    }
+    .line-numbers-content {
+      position: relative;
+      padding-top: 12px;
+      text-align: right;
+      padding-right: 6px;
+      white-space: pre;
+    }
+
+    textarea {
+      flex: 1;
+      background: transparent;
+      color: #283618;
+      border: none;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 13px;
+      resize: none;
+      line-height: 20px;
+      box-sizing: border-box;
+      white-space: pre;
+      overflow-wrap: normal;
+      overflow-x: auto;
+      overflow-y: scroll;
+      height: 100%;
+    }
+    textarea:focus { outline: none; }
+    .editor-container:focus-within { border-color: var(--accent); }
+    
+    .results-box {
+      flex: 1;
+      background: #ffffff;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 13px;
+      min-height: 0;
+    }
+
+    /* 🎨 卡通立體風格按鈕 */
+    .btn {
+      background: #dda15e;
+      color: #ffffff;
+      border: 3px dashed #bc6c25;
+      padding: 6px 14px;
+      font-weight: 700;
+      border-radius: 16px;
+      cursor: pointer;
+      font-size: 12px;
+      box-sizing: border-box;
+      box-shadow: 0 4px 0 #9b581e;
+      transition: all 0.1s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      vertical-align: middle;
+    }
+    .btn:hover { 
+      background: #e0aa6b; 
+      transform: translateY(-1px);
+      box-shadow: 0 5px 0 #9b581e;
+    }
+    .btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #9b581e;
+    }
+
+    .btn-success {
+      background: #2a9d8f;
+      border: 3px dashed #218377;
+      box-shadow: 0 4px 0 #18655c;
+      color: #ffffff;
+    }
+    .btn-success:hover {
+      background: #32b5a5;
+      box-shadow: 0 5px 0 #18655c;
+    }
+    .btn-success:active {
+      box-shadow: 0 1px 0 #18655c;
+    }
+
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 8px;
+      border-bottom: 1px dashed var(--border);
+    }
+    .item-row:hover { background: rgba(221, 161, 94, 0.1); }
+    .tag-line {
+      background: #e9edc9;
+      color: #606c38;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      border: 1px solid #ccd5ae;
+    }
+    .tag-line:hover {
+      background: var(--accent);
+      color: #ffffff;
+      transform: scale(1.05);
+    }
+    .section-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: var(--accent-hover);
+      margin: 10px 0 6px 0;
+      border-bottom: 2px dashed var(--border);
+      padding-bottom: 4px;
+    }
+
+    /* Modal 彈出視窗樣式 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(40, 54, 24, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: var(--card-bg);
+      border: 3px solid var(--accent);
+      border-radius: 16px;
+      width: 600px;
+      max-width: 90%;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 25px -5px rgba(40, 54, 24, 0.3);
+    }
+    .modal-header {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--accent-hover);
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-textarea {
+      background: #ffffff;
+      color: #283618;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 13px;
+      height: 250px;
+      resize: vertical;
+      box-sizing: border-box;
+      margin-bottom: 15px;
+    }
+    .modal-textarea:focus { outline: none; border-color: var(--accent); }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>
+    <span>🔍 CSS 行號與變數檢索器（復古暖木版）</span>
+    <div class="header-btns">
+      <button class="btn" onclick="openAiModal()">📥 貼入 AI 修改結果</button>
+      <button class="btn btn-success" onclick="copyResults()">📋 一鍵複製整理結果</button>
+    </div>
+  </h2>
+
+  <div class="main-layout">
+    <div class="pane">
+      <div style="margin-bottom: 8px; font-size: 13px; color: var(--text-sec); font-weight: bold; flex-shrink: 0;">✨ 請在下方貼上你的完整原始碼：</div>
+      <div class="editor-container">
+        <!-- 行號欄 -->
+        <div class="line-numbers-wrapper" id="lineWrapper">
+          <div id="lineNumbers" class="line-numbers-content">1</div>
+        </div>
+        <!-- 程式碼輸入框 -->
+        <textarea id="sourceInput" placeholder="貼上程式碼..." oninput="handleInput()" onpaste="handleCustomPaste(event)" onscroll="syncScroll()"></textarea>
+      </div>
+    </div>
+
+    <div class="pane">
+      <div style="margin-bottom: 8px; font-size: 13px; color: var(--text-sec); font-weight: bold; flex-shrink: 0;">✨ 分析結果（點擊行號將精準轉跳）：</div>
+      <div id="resultsContainer" class="results-box">
+        <span style="color: #b5c99a;">等待輸入程式碼中...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI 修改結果輸入 Modal 視窗 -->
+  <div class="modal-overlay" id="aiModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span>🤖 自動比對並替換 AI 修改結果</span>
+        <button class="btn" style="padding: 4px 10px; font-size: 10px;" onclick="closeAiModal()">✕</button>
+      </div>
+      <div style="font-size: 12px; color: var(--text-sec); font-weight: bold; margin-bottom: 8px;">
+        可直接貼入 AI 給的 `[第 X 行] ...` 摘要清單，系統會自動定位並替換該行的程式碼！
+      </div>
+      <textarea id="aiInputResponse" class="modal-textarea" placeholder="在此貼上 AI 修改好的 [第 X 行] 清單或完整程式碼..."></textarea>
+      <div class="modal-footer">
+        <button class="btn" style="background: #e9edc9; border-color: #ccd5ae; color: #606c38; box-shadow: 0 4px 0 #ccd5ae;" onclick="closeAiModal()">取消</button>
+        <button class="btn btn-success" onclick="applyAiChanges()">確認比對並修改</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+let lastExtractedText = "";
+let lastContentLength = 0;
+
+function handleInput() {
+  const textarea = document.getElementById('sourceInput');
+  if (textarea.value.length !== lastContentLength) {
+    lastContentLength = textarea.value.length;
+    updateLineNumbers();
+    analyzeCode();
+  }
+}
+
+function handleCustomPaste(e) {
+  e.preventDefault();
+
+  const textarea = document.getElementById('sourceInput');
+  const scrollTop = textarea.scrollTop;
+  const scrollLeft = textarea.scrollLeft;
+  
+  const pasteText = (e.clipboardData || window.clipboardData).getData('text');
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const content = textarea.value;
+
+  textarea.value = content.substring(0, start) + pasteText + content.substring(end);
+  
+  const newCursorPos = start + pasteText.length;
+  textarea.setSelectionRange(newCursorPos, newCursorPos);
+
+  textarea.scrollTop = scrollTop;
+  textarea.scrollLeft = scrollLeft;
+  
+  lastContentLength = textarea.value.length;
+  updateLineNumbers();
+  analyzeCode();
+
+  setTimeout(() => {
+    textarea.scrollTop = scrollTop;
+    textarea.scrollLeft = scrollLeft;
+    syncScroll();
+  }, 0);
+}
+
+function updateLineNumbers() {
+  const textarea = document.getElementById('sourceInput');
+  const lineNumbers = document.getElementById('lineNumbers');
+  const lines = textarea.value.split('\n').length;
+  let lineStr = '';
+  for (let i = 1; i <= lines; i++) {
+    lineStr += i + '\n';
+  }
+  lineNumbers.textContent = lineStr;
+}
+
+function syncScroll() {
+  const textarea = document.getElementById('sourceInput');
+  const lineNumbers = document.getElementById('lineNumbers');
+  lineNumbers.style.transform = `translateY(-${textarea.scrollTop}px)`;
+}
+
+function jumpToLine(targetLine) {
+  const textarea = document.getElementById('sourceInput');
+  const lines = textarea.value.split('\n');
+  
+  if (targetLine < 1 || targetLine > lines.length) return;
+
+  let startPos = 0;
+  for (let i = 0; i < targetLine - 1; i++) {
+    startPos += lines[i].length + 1;
+  }
+  let endPos = startPos + lines[targetLine - 1].length;
+
+  const lineHeight = 20;
+  const targetScrollTop = Math.max(0, (targetLine - 3) * lineHeight);
+
+  textarea.scrollTop = targetScrollTop;
+  syncScroll();
+
+  textarea.focus({ preventScroll: true });
+  textarea.setSelectionRange(startPos, endPos);
+
+  setTimeout(() => {
+    textarea.scrollTop = targetScrollTop;
+    syncScroll();
+  }, 0);
+}
+
+function analyzeCode() {
+  const textarea = document.getElementById('sourceInput');
+  const code = textarea.value;
+  const container = document.getElementById('resultsContainer');
+  const currentScrollTop = container.scrollTop;
+
+  if (!code.trim()) {
+    container.innerHTML = '<span style="color: #b5c99a;">請輸入或貼入程式碼以進行分析</span>';
+    lastExtractedText = "";
+    return;
+  }
+
+  const lines = code.split('\n');
+  let variables = [];
+  let selectors = [];
+
+  lines.forEach((line, index) => {
+    const lineNum = index + 1; 
+    const trimmed = line.trim();
+
+    if (!trimmed) return;
+
+    const varMatch = trimmed.match(/(--[\w-]+)\s*:/);
+    if (varMatch) {
+      variables.push({ line: lineNum, content: trimmed });
+      return;
+    }
+
+    if (trimmed.endsWith('{') && 
+        !trimmed.startsWith('if') && 
+        !trimmed.startsWith('for') && 
+        !trimmed.startsWith('while') && 
+        !trimmed.startsWith('function') &&
+        !trimmed.startsWith('switch') &&
+        !trimmed.includes('=>')) {
+      selectors.push({ line: lineNum, content: trimmed });
+    }
+  });
+
+  let htmlContent = '';
+  let outputText = "=== CSS 變數清單與行號 ===\n";
+  
+  htmlContent += `<div class="section-title">🎨 找到的 CSS 變數 (${variables.length} 個)</div>`;
+  if (variables.length === 0) {
+    htmlContent += '<div style="color: #b5c99a; padding: 6px; font-size: 12px;">未偵測到 CSS 變數</div>';
+  } else {
+    variables.forEach(v => {
+      htmlContent += `<div class="item-row"><span style="font-family: monospace;">${escapeHtml(v.content)}</span><span class="tag-line" onclick="jumpToLine(${v.line})">第 ${v.line} 行</span></div>`;
+      outputText += `[第 ${v.line} 行] ${v.content}\n`;
+    });
+  }
+
+  outputText += "\n=== CSS 選擇器清單與行號 ===\n";
+  htmlContent += `<div class="section-title" style="margin-top: 16px;">📂 找到的 CSS 選擇器 (${selectors.length} 個)</div>`;
+  if (selectors.length === 0) {
+    htmlContent += '<div style="color: #b5c99a; padding: 6px; font-size: 12px;">未偵測到 CSS 選擇器</div>';
+  } else {
+    selectors.forEach(s => {
+      htmlContent += `<div class="item-row"><span style="font-family: monospace;">${escapeHtml(s.content)}</span><span class="tag-line" onclick="jumpToLine(${s.line})">第 ${s.line} 行</span></div>`;
+      outputText += `[第 ${s.line} 行] ${s.content}\n`;
+    });
+  }
+
+  container.innerHTML = htmlContent;
+  container.scrollTop = currentScrollTop;
+  lastExtractedText = outputText;
+}
+
+function escapeHtml(text) {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function copyResults() {
+  if (!lastExtractedText) {
+    alert("目前沒有可複製的分析結果！");
+    return;
+  }
+  navigator.clipboard.writeText(lastExtractedText).then(() => {
+    alert("已成功複製行號與樣式對應表，可以直接貼給 AI 修改！");
+  });
+}
+
+function openAiModal() {
+  document.getElementById('aiModal').style.display = 'flex';
+  document.getElementById('aiInputResponse').value = '';
+}
+
+function closeAiModal() {
+  document.getElementById('aiModal').style.display = 'none';
+}
+
+function applyAiChanges() {
+  const aiText = document.getElementById('aiInputResponse').value.trim();
+  if (!aiText) {
+    alert("請先貼入 AI 修改後的內容！");
+    return;
+  }
+
+  const textarea = document.getElementById('sourceInput');
+  let sourceLines = textarea.value.split('\n');
+
+  const linePattern = /\[第\s*(\d+)\s*行\]\s*(.*)/g;
+  let matches = [...aiText.matchAll(linePattern)];
+
+  if (matches.length > 0) {
+    let updatedCount = 0;
+
+    matches.forEach(match => {
+      const lineNum = parseInt(match[1], 10);
+      const newContent = match[2].trim();
+
+      if (lineNum >= 1 && lineNum <= sourceLines.length) {
+        const originalLine = sourceLines[lineNum - 1];
+        const indentMatch = originalLine.match(/^(\s*)/);
+        const indent = indentMatch ? indentMatch[1] : '';
+
+        sourceLines[lineNum - 1] = indent + newContent;
+        updatedCount++;
+      }
+    });
+
+    textarea.value = sourceLines.join('\n');
+    alert(`成功自動比對並更新了 ${updatedCount} 行程式碼！`);
+  } else {
+    let cleanCode = aiText
+      .replace(/^```[a-z]*\n?/i, '')
+      .replace(/```$/, '')
+      .trim();
+
+    textarea.value = cleanCode;
+    alert("已套用整段新程式碼！");
+  }
+
+  lastContentLength = textarea.value.length;
+  updateLineNumbers();
+  analyzeCode();
+  closeAiModal();
+}
+</script>
+
+</body>
+</html>
