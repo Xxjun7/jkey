@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>CSS 行號與變數檢索器（全風格修改版）</title>
+  <style>
+    :root {
+      --bg: #f4f5f6;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text: #475569;
+      --text-sec: #94a3b8;
+      --accent: #64748b;
+      --accent-hover: #475569;
+      --success: #0d9488;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+      height: 100vh;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    h2 { 
+      margin: 0 0 10px 0; 
+      font-size: 18px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      flex-shrink: 0; 
+      color: #334155;
+    }
+    .header-btns {
+      display: flex;
+      gap: 10px;
+    }
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 16px;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .pane {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      box-sizing: border-box;
+      min-height: 0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+    .pane-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      flex-shrink: 0;
+    }
+    .editor-container {
+      display: flex;
+      flex: 1;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      min-height: 0;
+    }
+    
+    .line-numbers-wrapper {
+      width: 45px;
+      background: #f1f5f9;
+      color: #cbd5e1;
+      font-family: monospace;
+      font-size: 13px;
+      line-height: 20px;
+      overflow: hidden;
+      user-select: none;
+      border-right: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .line-numbers-content {
+      position: relative;
+      padding-top: 12px;
+      text-align: right;
+      padding-right: 6px;
+      white-space: pre;
+    }
+
+    textarea {
+      flex: 1;
+      background: transparent;
+      color: #334155;
+      border: none;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 13px;
+      resize: none;
+      line-height: 20px;
+      box-sizing: border-box;
+      white-space: pre;
+      overflow-wrap: normal;
+      overflow-x: auto;
+      overflow-y: scroll;
+      height: 100%;
+    }
+    textarea:focus { outline: none; }
+    .editor-container:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.1); }
+    
+    .results-box {
+      flex: 1;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 13px;
+      min-height: 0;
+    }
+
+    .btn {
+      background: #ffffff;
+      color: #475569;
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      font-weight: 500;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      box-sizing: border-box;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      vertical-align: middle;
+    }
+    .btn:hover { 
+      background: #f1f5f9; 
+      border-color: #cbd5e1;
+      color: #1e293b;
+      transform: translateY(-1px);
+    }
+    .btn:active { transform: translateY(0); box-shadow: none; }
+
+    .btn-sm { padding: 3px 10px; font-size: 11px; border-radius: 6px; }
+
+    .btn-success {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+    }
+    .btn-success:hover {
+      background: #dcfce7;
+      border-color: #86efac;
+      color: #14532d;
+    }
+
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .item-row:hover { background: #f1f5f9; }
+    .tag-line {
+      background: #e2e8f0;
+      color: #334155;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      border: 1px solid #cbd5e1;
+    }
+    .tag-line:hover {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+    }
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      margin: 10px 0 6px 0;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 4px;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 600px;
+      max-width: 90%;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    .modal-header {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-textarea {
+      background: #f8fafc;
+      color: #334155;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 13px;
+      height: 250px;
+      resize: vertical;
+      box-sizing: border-box;
+      margin-bottom: 15px;
+    }
+    .modal-textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.1); }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; }
+  </style>
+</head>
+<body>
+
+  <h2>
+    <span>📑 CSS 行號與變數檢索器（全風格修改版）</span>
+    <div class="header-btns">
+      <button class="btn" onclick="openAiModal()">📥 貼入 AI 修改結果</button>
+      <button class="btn btn-success" onclick="copyResults()">📋 一鍵複製整理結果</button>
+    </div>
+  </h2>
+
+  <div class="main-layout">
+    <div class="pane">
+      <div class="pane-header">
+        <span style="font-size: 13px; color: var(--text-sec); font-weight: 500;">✨ 請在下方貼上你的完整原始碼：</span>
+        <div style="display: flex; gap: 6px;">
+          <button class="btn btn-sm" onclick="pasteToEditor()">📥 貼上</button>
+          <button class="btn btn-sm btn-success" onclick="copyFromEditor()">📋 複製</button>
+        </div>
+      </div>
+      <div class="editor-container">
+        <div class="line-numbers-wrapper" id="lineWrapper">
+          <div id="lineNumbers" class="line-numbers-content">1</div>
+        </div>
+        <textarea id="sourceInput" placeholder="貼上程式碼..." oninput="handleInput()" onpaste="handleCustomPaste(event)" onscroll="syncScroll()"></textarea>
+      </div>
+    </div>
+
+    <div class="pane">
+      <div style="margin-bottom: 8px; font-size: 13px; color: var(--text-sec); font-weight: 500; flex-shrink: 0;">✨ 分析結果（點擊行號將精準轉跳）：</div>
+      <div id="resultsContainer" class="results-box">
+        <span style="color: #94a3b8;">等待輸入程式碼中...</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="aiModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span>🤖 自動比對並替換 AI 修改結果</span>
+        <button class="btn btn-sm" onclick="closeAiModal()">✕</button>
+      </div>
+      <div style="font-size: 12px; color: var(--text-sec); font-weight: 500; margin-bottom: 8px;">
+        可直接貼入 AI 給的 `[第 X 行] ...` 摘要清單，系統會自動定位並替換該行的程式碼！
+      </div>
+      <textarea id="aiInputResponse" class="modal-textarea" placeholder="在此貼上 AI 修改好的 [第 X 行] 清單或完整程式碼..."></textarea>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeAiModal()">取消</button>
+        <button class="btn btn-success" onclick="applyAiChanges()">確認比對並修改</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+let lastExtractedText = "";
+let lastContentLength = 0;
+
+function handleInput() {
+  const textarea = document.getElementById('sourceInput');
+  if (textarea.value.length !== lastContentLength) {
+    lastContentLength = textarea.value.length;
+    updateLineNumbers();
+    analyzeCode();
+  }
+}
+
+function handleCustomPaste(e) {
+  e.preventDefault();
+  const textarea = document.getElementById('sourceInput');
+  const scrollTop = textarea.scrollTop;
+  const scrollLeft = textarea.scrollLeft;
+  
+  const pasteText = (e.clipboardData || window.clipboardData).getData('text');
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const content = textarea.value;
+
+  textarea.value = content.substring(0, start) + pasteText + content.substring(end);
+  const newCursorPos = start + pasteText.length;
+  textarea.setSelectionRange(newCursorPos, newCursorPos);
+
+  textarea.scrollTop = scrollTop;
+  textarea.scrollLeft = scrollLeft;
+  
+  lastContentLength = textarea.value.length;
+  updateLineNumbers();
+  analyzeCode();
+
+  setTimeout(() => {
+    textarea.scrollTop = scrollTop;
+    textarea.scrollLeft = scrollLeft;
+    syncScroll();
+  }, 0);
+}
+
+async function pasteToEditor() {
+  try {
+    const text = await navigator.clipboard.readText();
+    const textarea = document.getElementById('sourceInput');
+    textarea.value = text;
+    lastContentLength = textarea.value.length;
+    updateLineNumbers();
+    analyzeCode();
+    alert("已成功從剪貼簿貼入原始碼！");
+  } catch (err) {
+    alert("無法直接讀取剪貼簿，請直接在輸入框內使用 Ctrl+V 貼上！");
+  }
+}
+
+function copyFromEditor() {
+  const textarea = document.getElementById('sourceInput');
+  if (!textarea.value.trim()) {
+    alert("目前輸入框內沒有程式碼可供複製！");
+    return;
+  }
+  navigator.clipboard.writeText(textarea.value).then(() => {
+    alert("已成功複製輸入框內的原始碼！");
+  });
+}
+
+function updateLineNumbers() {
+  const textarea = document.getElementById('sourceInput');
+  const lineNumbers = document.getElementById('lineNumbers');
+  const lines = textarea.value.split('\n').length;
+  let lineStr = '';
+  for (let i = 1; i <= lines; i++) {
+    lineStr += i + '\n';
+  }
+  lineNumbers.textContent = lineStr;
+}
+
+function syncScroll() {
+  const textarea = document.getElementById('sourceInput');
+  const lineNumbers = document.getElementById('lineNumbers');
+  lineNumbers.style.transform = `translateY(-${textarea.scrollTop}px)`;
+}
+
+function jumpToLine(targetLine) {
+  const textarea = document.getElementById('sourceInput');
+  const lines = textarea.value.split('\n');
+  if (targetLine < 1 || targetLine > lines.length) return;
+
+  let startPos = 0;
+  for (let i = 0; i < targetLine - 1; i++) {
+    startPos += lines[i].length + 1;
+  }
+  let endPos = startPos + lines[targetLine - 1].length;
+
+  const lineHeight = 20;
+  const targetScrollTop = Math.max(0, (targetLine - 3) * lineHeight);
+
+  textarea.scrollTop = targetScrollTop;
+  syncScroll();
+
+  textarea.focus({ preventScroll: true });
+  textarea.setSelectionRange(startPos, endPos);
+
+  setTimeout(() => {
+    textarea.scrollTop = targetScrollTop;
+    syncScroll();
+  }, 0);
+}
+
+function analyzeCode() {
+  const textarea = document.getElementById('sourceInput');
+  const code = textarea.value;
+  const container = document.getElementById('resultsContainer');
+  const currentScrollTop = container.scrollTop;
+
+  if (!code.trim()) {
+    container.innerHTML = '<span style="color: #94a3b8;">請輸入或貼入程式碼以進行分析</span>';
+    lastExtractedText = "";
+    return;
+  }
+
+  const lines = code.split('\n');
+  let styleSheetLines = []; // 用於收集整段 style 區塊內的樣式與架構
+  let isInsideStyle = false;
+
+  lines.forEach((line, index) => {
+    const lineNum = index + 1; 
+    const trimmed = line.trim();
+
+    if (trimmed.includes('<style>')) {
+      isInsideStyle = true;
+      return;
+    }
+    if (trimmed.includes('</style>')) {
+      isInsideStyle = false;
+      return;
+    }
+
+    // 當處於 style 標籤內，或是包含 CSS 屬性、選擇器、大括號的行，全部納入樣式修改清單中
+    if (isInsideStyle && trimmed !== '') {
+      styleSheetLines.push({ line: lineNum, content: line }); // 保留原始縮排
+    }
+  });
+
+  let htmlContent = '';
+  let outputText = "=== 全風格樣式與 CSS 結構清單 ===\n";
+  
+  htmlContent += `<div class="section-title">🎨 可修改的樣式與外觀程式碼 (${styleSheetLines.length} 行)</div>`;
+  
+  if (styleSheetLines.length === 0) {
+    htmlContent += '<div style="color: #94a3b8; padding: 6px; font-size: 12px;">未偵測到 <style> 內的樣式程式碼</div>';
+  } else {
+    styleSheetLines.forEach(s => {
+      // 畫面上只顯示前 50 字元避免太長，但點擊可跳轉
+      const displayContent = s.content.length > 60 ? s.content.substring(0, 60) + '...' : s.content;
+      htmlContent += `<div class="item-row"><span style="font-family: monospace;">${escapeHtml(displayContent)}</span><span class="tag-line" onclick="jumpToLine(${s.line})">第 ${s.line} 行</span></div>`;
+      outputText += `[第 ${s.line} 行] ${s.content}\n`;
+    });
+  }
+
+  container.innerHTML = htmlContent;
+  container.scrollTop = currentScrollTop;
+  lastExtractedText = outputText;
+}
+
+function escapeHtml(text) {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function copyResults() {
+  if (!lastExtractedText) {
+    alert("目前沒有可複製的分析結果！");
+    return;
+  }
+  navigator.clipboard.writeText(lastExtractedText).then(() => {
+    alert("已成功複製完整樣式對應表，可以貼給 AI 進行整體風格改造！");
+  });
+}
+
+function openAiModal() {
+  document.getElementById('aiModal').style.display = 'flex';
+  document.getElementById('aiInputResponse').value = '';
+}
+
+function closeAiModal() {
+  document.getElementById('aiModal').style.display = 'none';
+}
+
+function applyAiChanges() {
+  const aiText = document.getElementById('aiInputResponse').value.trim();
+  if (!aiText) {
+    alert("請先貼入 AI 修改後的內容！");
+    return;
+  }
+
+  const textarea = document.getElementById('sourceInput');
+  let sourceLines = textarea.value.split('\n');
+
+  const linePattern = /\[第\s*(\d+)\s*行\]\s*(.*)/g;
+  let matches = [...aiText.matchAll(linePattern)];
+
+  if (matches.length > 0) {
+    let updatedCount = 0;
+
+    matches.forEach(match => {
+      const lineNum = parseInt(match[1], 10);
+      const newContent = match[2]; // 保留 AI 給的完整行內容與縮排
+
+      if (lineNum >= 1 && lineNum <= sourceLines.length) {
+        sourceLines[lineNum - 1] = newContent;
+        updatedCount++;
+      }
+    });
+
+    textarea.value = sourceLines.join('\n');
+    alert(`成功自動比對並更新了 ${updatedCount} 行樣式！`);
+  } else {
+    let cleanCode = aiText
+      .replace(/^```[a-z]*\n?/i, '')
+      .replace(/```$/, '')
+      .trim();
+
+    textarea.value = cleanCode;
+    alert("已套用整段新程式碼！");
+  }
+
+  lastContentLength = textarea.value.length;
+  updateLineNumbers();
+  analyzeCode();
+  closeAiModal();
+}
+</script>
+
+</body>
+</html>
