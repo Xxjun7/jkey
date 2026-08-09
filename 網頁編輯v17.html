@@ -868,8 +868,10 @@
         minSize: 200,
         gutterSize: 8,
         onDrag: () => editor.refresh(),
-        onDragEnd: () => { editor.refresh();
-          showFrameSize(); }
+        onDragEnd: () => {
+          editor.refresh();
+          showFrameSize();
+        }
       });
       let rightSplit = null;
       let isInspectorOpen = false;
@@ -1350,8 +1352,10 @@
         isFullscreen = !isFullscreen;
         if (isFullscreen) pane.classList.add('fullscreen');
         else pane.classList.remove('fullscreen');
-        setTimeout(() => { editor.refresh();
-          showFrameSize(); }, 50);
+        setTimeout(() => {
+          editor.refresh();
+          showFrameSize();
+        }, 50);
       }
 
       function openPaletteModal() {
