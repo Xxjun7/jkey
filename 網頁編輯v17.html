@@ -327,7 +327,7 @@
         height: var(--device-h, 667px) !important;
         max-width: 100%;
         max-height: 100%;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
         border: 8px solid #333;
         border-radius: 24px;
         flex-shrink: 0;
@@ -479,7 +479,9 @@
         transition: background 0.15s;
       }
 
-      .lib-item:hover { background: var(--header-bg); }
+      .lib-item:hover {
+        background: var(--header-bg);
+      }
 
       .lib-name {
         font-weight: 600;
@@ -603,7 +605,9 @@
         pointer-events: none;
       }
 
-      #toast.show { opacity: 1; }
+      #toast.show {
+        opacity: 1;
+      }
     </style>
   </head>
   <body>
@@ -700,7 +704,7 @@
       </div>
     </div>
 
-<!-- 智能分段複製 Modal -->
+    <!-- 智能分段複製 Modal -->
     <div class="modal-overlay" id="chunkModal" onclick="closeChunkModal(event)">
       <div class="modal-box palette-box" onclick="event.stopPropagation()">
         <div class="palette-title">
@@ -713,7 +717,7 @@
         <div class="color-picker-wrapper" style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
           <span style="font-size: 13px; font-weight: 500;">分段數量：</span>
           <input type="number" id="chunkCountInput" value="3" min="2" max="10" style="width: 70px; padding: 6px; border: 1px solid var(--border-color); background: var(--header-bg); color: var(--text-main); border-radius: 6px; text-align: center; font-size: 14px;">
-          
+
           <!-- 👇 新增的總字數顯示區塊 -->
           <span style="font-size: 13px; color: var(--text-secondary);">
             (總共 <span id="totalCodeChars" style="color: var(--green); font-weight: bold;">0</span> 字)
@@ -766,7 +770,7 @@
         mode: "htmlmixed",
         lineNumbers: true,
         matchBrackets: true,
-        matchTags: {bothTags: true},
+        matchTags: { bothTags: true },
         indentUnit: 2,
         tabSize: 2,
         indentWithTabs: false,
@@ -779,7 +783,7 @@
           "Esc": "emmetResetAbbreviation"
         }
       });
-      
+
       function updateWordCount() {
         const totalText = editor.getValue();
         const totalLen = totalText.length;
@@ -798,7 +802,6 @@
           showToast("複製失敗，請檢查權限");
         });
       }
-
       async function pasteCodeFromClipboard() {
         try {
           const text = await navigator.clipboard.readText();
@@ -834,7 +837,6 @@
           showFrameSize();
         }, 50);
       }
-
       const themes = [
         { name: 'light', label: '主題: 淺色', cmTheme: 'default' },
         { name: 'dark', label: '主題: 深色', cmTheme: 'material-darker' },
@@ -851,7 +853,6 @@
         const isEmu = document.body.classList.contains('device-emulation-mode');
         document.body.className = '';
         if (isEmu) document.body.classList.add('device-emulation-mode');
-        
         if (themeObj.name !== 'light') document.body.classList.add(`theme-${themeObj.name}`);
         document.getElementById('themeLabel').textContent = themeObj.label;
         editor.setOption('theme', themeObj.cmTheme);
@@ -862,19 +863,17 @@
         currentThemeIdx = parseInt(savedIdx, 10) || 0;
         applyTheme(themes[currentThemeIdx]);
       }
-
       Split(['#split-0', '#split-1'], {
         sizes: [50, 50],
         minSize: 200,
         gutterSize: 8,
         onDrag: () => editor.refresh(),
-        onDragEnd: () => { editor.refresh(); showFrameSize(); }
+        onDragEnd: () => { editor.refresh();
+          showFrameSize(); }
       });
       let rightSplit = null;
-
       let isInspectorOpen = false;
       let isPickingElement = false;
-
       const inspectorScript = `
     <script>
       (function(){
@@ -979,67 +978,57 @@
       })();
     <\/script>
   `;
-
       window.addEventListener('message', (e) => {
         if (!e.data) return;
         if (e.data.type === 'ELEMENT_SELECTED') {
           const info = e.data.elementInfo;
           const container = document.getElementById('inspector-content');
-          
           if (container.querySelector('div') && (container.textContent.includes('請點擊') || container.textContent.includes('檢查結果已清空'))) {
             container.innerHTML = '';
           }
-          
           // 精準找出這個元素在編輯器中的起始行號
           let startLineNum = 0;
-const firstLineSnippet = `<${info.tagName}`;
-
-// 1. 優先策略：如果該元素有文字內容，嘗試在編輯器中尋找包含該文字的行
-if (info.textContent && info.textContent.length > 0) {
-  let textCursor = editor.getSearchCursor(info.textContent, { line: 0, ch: 0 });
-  while (textCursor.findNext()) {
-    const pos = textCursor.from();
-    const lineContent = editor.getLine(pos.line);
-    // 確保這行同時也包含該標籤或相關屬性，避免抓錯地方
-    if (lineContent.includes(firstLineSnippet) || (info.className && lineContent.includes(info.className.split('.')[1]))) {
-      startLineNum = pos.line;
-      break;
-    }
-  }
-}
-
-// 2. 第二策略：如果剛好沒文字或沒找到，改用原本的 ID / Class 尋找
-if (startLineNum === 0) {
-  let searchCursor = editor.getSearchCursor(firstLineSnippet, { line: 0, ch: 0 });
-  while (searchCursor.findNext()) {
-    const pos = searchCursor.from();
-    const lineContent = editor.getLine(pos.line);
-    if ((info.id && lineContent.includes(info.id)) || (info.className && lineContent.includes(info.className.split('.')[1])) || (!info.id && !info.className)) {
-      startLineNum = pos.line;
-      break;
-    }
-  }
-}
-
-// 3. 最後防線
-if (startLineNum === 0) {
-  let fallbackCursor = editor.getSearchCursor(firstLineSnippet, { line: 0, ch: 0 });
-  if (fallbackCursor.findNext()) startLineNum = fallbackCursor.from().line;
-}
-
+          const firstLineSnippet = `<${info.tagName}`;
+          // 1. 優先策略：如果該元素有文字內容，嘗試在編輯器中尋找包含該文字的行
+          if (info.textContent && info.textContent.length > 0) {
+            let textCursor = editor.getSearchCursor(info.textContent, { line: 0, ch: 0 });
+            while (textCursor.findNext()) {
+              const pos = textCursor.from();
+              const lineContent = editor.getLine(pos.line);
+              // 確保這行同時也包含該標籤或相關屬性，避免抓錯地方
+              if (lineContent.includes(firstLineSnippet) || (info.className && lineContent.includes(info.className.split('.')[1]))) {
+                startLineNum = pos.line;
+                break;
+              }
+            }
+          }
+          // 2. 第二策略：如果剛好沒文字或沒找到，改用原本的 ID / Class 尋找
+          if (startLineNum === 0) {
+            let searchCursor = editor.getSearchCursor(firstLineSnippet, { line: 0, ch: 0 });
+            while (searchCursor.findNext()) {
+              const pos = searchCursor.from();
+              const lineContent = editor.getLine(pos.line);
+              if ((info.id && lineContent.includes(info.id)) || (info.className && lineContent.includes(info.className.split('.')[1])) || (!info.id && !info.className)) {
+                startLineNum = pos.line;
+                break;
+              }
+            }
+          }
+          // 3. 最後防線
+          if (startLineNum === 0) {
+            let fallbackCursor = editor.getSearchCursor(firstLineSnippet, { line: 0, ch: 0 });
+            if (fallbackCursor.findNext()) startLineNum = fallbackCursor.from().line;
+          }
           const item = document.createElement('div');
           item.className = 'inspector-item';
-          
           let extraDetails = '';
           if (info.value !== null && info.value !== '') {
             extraDetails += `<div><span class="label">表單 Value：</span>${escapeHtml(String(info.value))}</div>`;
           }
           extraDetails += `<div><span class="label">尺寸/位置：</span>W: ${info.rect.width}px, H: ${info.rect.height}px (Top: ${info.rect.top}, Left: ${info.rect.left})</div>`;
           extraDetails += `<div><span class="label">計算樣式：</span>color: ${info.styles.color}, bg: ${info.styles.backgroundColor}, font: ${info.styles.fontSize} ${info.styles.fontFamily}</div>`;
-
           // 帶入起始行號進行排版
           const formattedHtmlSegments = formatOuterHTMLToSegments(info.outerHTML, startLineNum);
-
           item.innerHTML = `
             <div><span class="label">元素標籤：</span>&lt;${info.tagName}${info.id}${info.className}&gt; (約第 ${startLineNum + 1} 行起)</div>
             <div><span class="label">文字內容：</span>${escapeHtml(info.textContent || '(無)')}</div>
@@ -1049,7 +1038,6 @@ if (startLineNum === 0) {
           `;
           container.appendChild(item);
           container.scrollTop = container.scrollHeight;
-
           isPickingElement = false;
           updatePickerBtnState();
           showToast("已取得完整元素資訊！");
@@ -1066,19 +1054,15 @@ if (startLineNum === 0) {
             preserve_newlines: true
           });
         }
-
         const lines = pretty.split('\n');
         return lines.map((line, index) => {
           const trimmed = line.trim();
           // 如果是完全空白的行，直接略過或給予極小的緊湊空隙，避免撐開上下間距
           if (!trimmed) return '';
-          
           const currentLineNum = baseLineNum + index + 1;
           const lineNumText = `第 ${currentLineNum} 行`;
-
           const escaped = escapeHtml(line);
           const encodedSnippet = encodeURIComponent(trimmed);
-          
           // 💡 將 margin 從 2px 改為 0 或 1px，並調整 line-height 讓每一行更緊湊
           return `
             <div style="margin: 1px 0; display: flex; align-items: center; gap: 8px; font-family: monospace; line-height: 1.2;">
@@ -1092,7 +1076,6 @@ if (startLineNum === 0) {
       function jumpToCodeSnippet(encodedSnippet) {
         const snippet = decodeURIComponent(encodedSnippet);
         if (!snippet) return;
-
         let cursor = editor.getSearchCursor(snippet, { line: 0, ch: 0 });
         if (cursor.findNext()) {
           editor.setSelection(cursor.from(), cursor.to());
@@ -1100,7 +1083,6 @@ if (startLineNum === 0) {
           showToast("已跳轉至原始碼位置！");
           return;
         }
-
         // 寬鬆比對：若找不到該行，嘗試提取標籤或核心關鍵字
         const cleanSnippet = snippet.replace(/<[^>]*>/g, "").trim();
         if (cleanSnippet.length > 2) {
@@ -1112,27 +1094,23 @@ if (startLineNum === 0) {
             return;
           }
         }
-
         showToast("在原始碼中找不到對應的片段");
       }
-      
+
       function jumpToCodeSnippetByLine(encodedQuery, targetLine) {
         const query = decodeURIComponent(encodedQuery);
-        
         // 1. 如果指定的行號範圍內剛好包含該文字，直接鎖定該行！
         const lineContent = editor.getLine(targetLine);
         if (lineContent && lineContent.includes(query)) {
           const ch = lineContent.indexOf(query);
           const from = { line: targetLine, ch: ch };
           const to = { line: targetLine, ch: ch + query.length };
-          
           editor.setSelection(from, to);
           editor.scrollIntoView({ from: from, to: to }, 100);
           editor.focus();
           showToast(`已跳轉至第 ${targetLine + 1} 行`);
           return;
         }
-
         // 2. 備用方案：如果該行稍微有排版差異，從該行開始附近上下尋找最接近的
         let found = false;
         for (let offset = 0; offset <= 3; offset++) {
@@ -1154,7 +1132,6 @@ if (startLineNum === 0) {
           }
           if (found) break;
         }
-
         if (!found) {
           // 最後防線：若附近真的找不到，才退回原本的全域搜尋
           jumpToCodeSnippet(encodedQuery);
@@ -1196,7 +1173,6 @@ if (startLineNum === 0) {
         }
         isPickingElement = !isPickingElement;
         updatePickerBtnState();
-
         const iframe = document.getElementById('iframeResult');
         if (iframe && iframe.contentWindow) {
           iframe.contentWindow.postMessage({
@@ -1244,7 +1220,6 @@ if (startLineNum === 0) {
         ifrw.document.write(text);
         ifrw.document.close();
       }
-
       let lastSearchCursor = null;
       let lastSearchQuery = "";
 
@@ -1306,8 +1281,8 @@ if (startLineNum === 0) {
           showToast("美化元件載入失敗");
         }
       }
-
       let currentFontSize = 14;
+
       function changeFontSize(delta) {
         currentFontSize = Math.max(10, Math.min(26, currentFontSize + delta));
         document.querySelector('.CodeMirror').style.fontSize = `${currentFontSize}px`;
@@ -1326,7 +1301,6 @@ if (startLineNum === 0) {
         const h = iframe.offsetHeight;
         if (w && h) document.getElementById("framesize").textContent = ` (${w} × ${h})`;
       }
-
       async function downloadCode() {
         const content = editor.getValue();
         if (window.showSaveFilePicker) {
@@ -1362,7 +1336,6 @@ if (startLineNum === 0) {
         toast.classList.add('show');
         setTimeout(() => toast.classList.remove('show'), 2000);
       }
-
       let autoTimer;
       editor.on("change", () => {
         if (document.getElementById("autoRunCheck").checked) {
@@ -1370,14 +1343,15 @@ if (startLineNum === 0) {
           autoTimer = setTimeout(submitTryit, 500);
         }
       });
-
       let isFullscreen = false;
+
       function toggleFullscreen() {
         const pane = document.getElementById('split-1');
         isFullscreen = !isFullscreen;
         if (isFullscreen) pane.classList.add('fullscreen');
         else pane.classList.remove('fullscreen');
-        setTimeout(() => { editor.refresh(); showFrameSize(); }, 50);
+        setTimeout(() => { editor.refresh();
+          showFrameSize(); }, 50);
       }
 
       function openPaletteModal() {
@@ -1418,115 +1392,114 @@ if (startLineNum === 0) {
       }
 
       function openChunkModal() {
-    document.getElementById('chunkModal').classList.add('active');
-    
-    // 💡 計算並更新總字數
-    const code = editor.getValue();
-    const totalCharsInput = document.getElementById('totalCodeChars');
-    if (totalCharsInput) {
-      totalCharsInput.textContent = code.length.toLocaleString();
-    }
-    
-    generateChunkButtons();
-  }
-
-  function closeChunkModal(e) {
-    if (e) e.preventDefault();
-    document.getElementById('chunkModal').classList.remove('active');
-  }
-
-  function generateChunkButtons() {
-    const code = editor.getValue();
-    const totalChars = code.length;
-    
-    // 同步更新總字數（以防萬一）
-    const totalCharsInput = document.getElementById('totalCodeChars');
-    if (totalCharsInput) {
-      totalCharsInput.textContent = totalChars.toLocaleString();
-    }
-
-    const totalChunks = parseInt(document.getElementById('chunkCountInput').value, 10);
-    const container = document.getElementById('chunkResultContainer');
-    
-    if (!code.trim()) {
-      container.innerHTML = '<div style="text-align: center; color: var(--text-secondary); font-size: 13px; padding: 10px;">目前沒有程式碼可分段！</div>';
-      return;
-    }
-    
-    if (isNaN(totalChunks) || totalChunks < 2) {
-      showToast("請輸入至少 2 段以上的數字");
-      return;
-    }
-
-    const targetChunkSize = Math.ceil(totalChars / totalChunks);
-    container.innerHTML = '';
-
-    let currentIndex = 0;
-
-    for (let i = 0; i < totalChunks; i++) {
-      let startIdx = currentIndex;
-      let endIdx;
-
-      if (i === totalChunks - 1) {
-        endIdx = totalChars;
-      } else {
-        let idealEnd = startIdx + targetChunkSize;
-        if (idealEnd < totalChars) {
-          let nextNewline = code.indexOf('\n', idealEnd);
-          let prevNewline = code.lastIndexOf('\n', idealEnd);
-          
-          if (nextNewline !== -1 && (nextNewline - idealEnd < idealEnd - prevNewline)) {
-            endIdx = nextNewline + 1;
-          } else if (prevNewline !== -1 && prevNewline > startIdx) {
-            endIdx = prevNewline + 1;
-          } else {
-            endIdx = idealEnd;
-          }
-        } else {
-          endIdx = totalChars;
+        document.getElementById('chunkModal').classList.add('active');
+        // 💡 計算並更新總字數
+        const code = editor.getValue();
+        const totalCharsInput = document.getElementById('totalCodeChars');
+        if (totalCharsInput) {
+          totalCharsInput.textContent = code.length.toLocaleString();
         }
+        generateChunkButtons();
       }
 
-      const chunkText = code.substring(startIdx, endIdx);
-      currentIndex = endIdx;
+      function closeChunkModal(e) {
+        if (e) e.preventDefault();
+        document.getElementById('chunkModal').classList.remove('active');
+      }
 
-      const chunkCharCount = chunkText.length;
-      const isFirst = (i === 0);
-      const isLast = (i === totalChunks - 1);
-      
-      const markerHeader = isFirst
-        ? `先不要回覆我，請等待後續分段。\n[CODE_START: ${i + 1}/${totalChunks}]\n`
-        : `[CODE_START: ${i + 1}/${totalChunks}]\n`;
-      const markerFooter = isLast ? `\n[CODE_END]` : `\n[CODE_MORE]`;
-      const finalPayload = markerHeader + chunkText + markerFooter;
-
-      const btnItem = document.createElement('div');
-      btnItem.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: var(--header-bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);";
-      
-      const infoText = document.createElement('span');
-      infoText.style.cssText = "font-size: 13px; font-weight: 500;";
-      // 顯示格式：第 1 段 (共 3 段) (1,250 字)
-      infoText.textContent = `第 ${i + 1} 段 (共 ${totalChunks} 段) (${chunkCharCount.toLocaleString()} 字)`;
-
-      const copyBtn = document.createElement('button');
-      copyBtn.className = "btn-primary";
-      copyBtn.style.cssText = "padding: 5px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; border: none;";
-      copyBtn.textContent = `複製第 ${i + 1} 段`;
-      
-      copyBtn.onclick = () => {
-        navigator.clipboard.writeText(finalPayload).then(() => {
-          showToast(`已複製第 ${i + 1}/${totalChunks} 段 (${chunkCharCount.toLocaleString()} 字)！`);
-          copyBtn.textContent = "✅ 已複製";
-          setTimeout(() => copyBtn.textContent = `複製第 ${i + 1} 段`, 2000);
-        });
-      };
-
-      btnItem.appendChild(infoText);
-      btnItem.appendChild(copyBtn);
-      container.appendChild(btnItem);
-    }
-  }
-
+      function generateChunkButtons() {
+        const code = editor.getValue();
+        const totalChars = code.length;
+        // 同步更新總字數
+        const totalCharsInput = document.getElementById('totalCodeChars');
+        if (totalCharsInput) {
+          totalCharsInput.textContent = totalChars.toLocaleString();
+        }
+        const totalChunks = parseInt(document.getElementById('chunkCountInput').value, 10);
+        const container = document.getElementById('chunkResultContainer');
+        if (!code.trim()) {
+          container.innerHTML = '<div style="text-align: center; color: var(--text-secondary); font-size: 13px; padding: 10px;">目前沒有程式碼可分段！</div>';
+          return;
+        }
+        if (isNaN(totalChunks) || totalChunks < 2) {
+          showToast("請輸入至少 2 段以上的數字");
+          return;
+        }
+        const targetChunkSize = Math.ceil(totalChars / totalChunks);
+        container.innerHTML = '';
+        let currentIndex = 0;
+        for (let i = 0; i < totalChunks; i++) {
+          let startIdx = currentIndex;
+          let endIdx;
+          if (i === totalChunks - 1) {
+            endIdx = totalChars;
+          } else {
+            let idealEnd = startIdx + targetChunkSize;
+            if (idealEnd < totalChars) {
+              // 💡 策略：優先尋找 idealEnd 附近的「空行」(\n\n) 作為完美切點，避免破壞程式碼結構
+              let bestSplitIdx = -1;
+              let searchWindow = 1500; // 容許前後搜尋空行的最大字元範圍
+              let forwardSearch = code.indexOf('\n\n', idealEnd);
+              let backwardSearch = code.lastIndexOf('\n\n', idealEnd);
+              let nextNewline = (forwardSearch !== -1 && forwardSearch - idealEnd <= searchWindow) ? forwardSearch : -1;
+              let prevNewline = (backwardSearch !== -1 && idealEnd - backwardSearch <= searchWindow) ? backwardSearch : -1;
+              if (nextNewline !== -1 && prevNewline !== -1) {
+                // 選擇距離理想切點最近的空行
+                bestSplitIdx = (nextNewline - idealEnd < idealEnd - prevNewline) ? nextNewline : prevNewline;
+              } else if (nextNewline !== -1) {
+                bestSplitIdx = nextNewline;
+              } else if (prevNewline !== -1) {
+                bestSplitIdx = prevNewline;
+              }
+              if (bestSplitIdx !== -1 && bestSplitIdx > startIdx) {
+                endIdx = bestSplitIdx + 2; // 包含空行本身的換行符號
+              } else {
+                // 備用方案：如果附近真的找不到空行，退回普通的單行換行 (\n)
+                let fallbackNext = code.indexOf('\n', idealEnd);
+                let fallbackPrev = code.lastIndexOf('\n', idealEnd);
+                if (fallbackNext !== -1 && (fallbackNext - idealEnd < idealEnd - fallbackPrev)) {
+                  endIdx = fallbackNext + 1;
+                } else if (fallbackPrev !== -1 && fallbackPrev > startIdx) {
+                  endIdx = fallbackPrev + 1;
+                } else {
+                  endIdx = idealEnd;
+                }
+              }
+            } else {
+              endIdx = totalChars;
+            }
+          }
+          const chunkText = code.substring(startIdx, endIdx);
+          currentIndex = endIdx;
+          const chunkCharCount = chunkText.length;
+          const isFirst = (i === 0);
+          const isLast = (i === totalChunks - 1);
+          const markerHeader = isFirst ?
+            `先不要回覆我，請等待後續分段。\n[CODE_START: ${i + 1}/${totalChunks}]\n` :
+            `[CODE_START: ${i + 1}/${totalChunks}]\n`;
+          const markerFooter = isLast ? `\n[CODE_END]` : `\n[CODE_MORE]`;
+          const finalPayload = markerHeader + chunkText + markerFooter;
+          const btnItem = document.createElement('div');
+          btnItem.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: var(--header-bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);";
+          const infoText = document.createElement('span');
+          infoText.style.cssText = "font-size: 13px; font-weight: 500;";
+          infoText.textContent = `第 ${i + 1} 段 (共 ${totalChunks} 段) (${chunkCharCount.toLocaleString()} 字)`;
+          const copyBtn = document.createElement('button');
+          copyBtn.className = "btn-primary";
+          copyBtn.style.cssText = "padding: 5px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; border: none;";
+          copyBtn.textContent = `複製第 ${i + 1} 段`;
+          copyBtn.onclick = () => {
+            navigator.clipboard.writeText(finalPayload).then(() => {
+              showToast(`已複製第 ${i + 1}/${totalChunks} 段 (${chunkCharCount.toLocaleString()} 字)！`);
+              copyBtn.textContent = "✅ 已複製";
+              setTimeout(() => copyBtn.textContent = `複製第 ${i + 1} 段`, 2000);
+            });
+          };
+          btnItem.appendChild(infoText);
+          btnItem.appendChild(copyBtn);
+          container.appendChild(btnItem);
+        }
+      }
       let searchTimeout;
       const cdnSearchInput = document.getElementById('cdnSearchInput');
       const cdnResults = document.getElementById('cdnResults');
@@ -1540,7 +1513,6 @@ if (startLineNum === 0) {
         if (e) e.preventDefault();
         document.getElementById('cdnModal').classList.remove('active');
       }
-
       cdnSearchInput.addEventListener('input', (e) => {
         clearTimeout(searchTimeout);
         const query = e.target.value.trim();
@@ -1592,7 +1564,6 @@ if (startLineNum === 0) {
             showToast(`已成功引入 ${name}`);
           });
       }
-
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
           if (isFullscreen) toggleFullscreen();
@@ -1609,7 +1580,6 @@ if (startLineNum === 0) {
           if (document.getElementById('chunkModal').classList.contains('active')) closeChunkModal();
         }
       });
-
       submitTryit();
       updateWordCount();
     </script>
