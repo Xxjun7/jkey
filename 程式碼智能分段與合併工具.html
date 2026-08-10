@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>程式碼智能分段與合併工具</title>
+  <style>
+    :root {
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-color: #1e293b;
+      --text-secondary: #64748b;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --border: #e2e8f0;
+      --success: #059669;
+      --textarea-bg: #f8fafc;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-color); padding: 24px; display: flex; justify-content: center; min-height: 100vh; }
+    .container { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 20px; }
+    header { text-align: center; margin-bottom: 10px; }
+    header h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; color: #0f172a; }
+    header p { color: var(--text-secondary); font-size: 14px; }
+    
+    .tabs { display: flex; background: #e2e8f0; padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
+    .tab-btn { flex: 1; padding: 10px; background: none; border: none; color: var(--text-secondary); font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; transition: all 0.2s; }
+    .tab-btn.active { background: #ffffff; color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    
+    .panel { display: none; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; flex-direction: column; gap: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    .panel.active { display: flex; }
+    
+    label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+    textarea { width: 100%; height: 250px; background: var(--textarea-bg); color: var(--text-color); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 13px; resize: vertical; outline: none; }
+    textarea:focus { border-color: var(--accent); background: #ffffff; }
+    
+    .controls { display: flex; align-items: center; gap: 12px; justify-content: space-between; flex-wrap: wrap; }
+    .input-group { display: flex; align-items: center; gap: 8px; }
+    input[type="number"] { width: 70px; background: var(--textarea-bg); color: var(--text-color); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 14px; text-align: center; outline: none; }
+    input[type="number"]:focus { border-color: var(--accent); }
+    
+    button.btn { background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s; font-size: 14px; }
+    button.btn:hover { background: var(--accent-hover); }
+    button.btn-success { background: var(--success); }
+    button.btn-success:hover { background: #047857; }
+    
+    .result-list { display: flex; flex-direction: column; gap: 12px; max-height: 350px; overflow-y: auto; padding-right: 4px; }
+    .chunk-item { background: var(--textarea-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .chunk-info { font-size: 13px; font-weight: 500; color: var(--text-color); }
+    
+    /* Toast 提示 */
+    #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: #0f172a; color: white; padding: 10px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 14px; transition: transform 0.3s ease; z-index: 1000; }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>📦 程式碼智能分段與合併工具</h1>
+      <p>明亮簡約風格，安全獨立運作，防止程式碼自我誤刪</p>
+    </header>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('split')">✂️ 程式碼分段工具</button>
+      <button class="tab-btn" onclick="switchTab('merge')">🔗 程式碼合併還原</button>
+    </div>
+
+    <!-- 1. 分段面板 -->
+    <div id="splitPanel" class="panel active">
+      <div>
+        <label>貼上或輸入要分割的完整原始碼：</label>
+        <textarea id="sourceCodeInput" placeholder="在此貼上您的完整程式碼..."></textarea>
+      </div>
+      <div class="controls">
+        <div class="input-group">
+          <label>切成幾段：</label>
+          <input type="number" id="chunkCountInput" value="3" min="2" max="10">
+          <span style="font-size: 13px; color: var(--text-secondary);">總字數：<strong id="totalChars" style="color:var(--text-color);">0</strong> 字</span>
+        </div>
+        <button class="btn" onclick="generateChunks()">產生分段清單</button>
+      </div>
+      <div id="chunkResultContainer" class="result-list">
+        <div style="text-align: center; color: var(--text-secondary); font-size: 13px; padding: 20px;">請點擊「產生分段清單」按鈕</div>
+      </div>
+    </div>
+
+    <!-- 2. 合併面板 -->
+    <div id="mergePanel" class="panel">
+      <div>
+        <label>依序貼上各段程式碼（工具會自動過濾分段標籤與引導語）：</label>
+        <textarea id="mergeInputArea" placeholder="請將分段的程式碼（含標籤）全部貼到這裡..."></textarea>
+      </div>
+      <div class="controls">
+        <span style="font-size: 13px; color: var(--text-secondary);">提示：直接貼入多個分段內容即可自動過濾。</span>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn" style="background: #94a3b8;" onclick="document.getElementById('mergeInputArea').value=''; showToast('已清空');">清空</button>
+          <button class="btn btn-success" onclick="processMerge()">執行合併並複製結果</button>
+        </div>
+      </div>
+      <div>
+        <label>合併完成後的乾淨原始碼：</label>
+        <textarea id="mergeOutputArea" readonly placeholder="合併後的結果會顯示在這裡..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      if (tab === 'split') {
+        document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+        document.getElementById('splitPanel').classList.add('active');
+        updateCharCount();
+      } else {
+        document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+        document.getElementById('mergePanel').classList.add('active');
+      }
+    }
+
+    const sourceInput = document.getElementById('sourceCodeInput');
+    sourceInput.addEventListener('input', updateCharCount);
+
+    function updateCharCount() {
+      const code = sourceInput.value;
+      document.getElementById('totalChars').textContent = code.length.toLocaleString();
+    }
+
+    function generateChunks() {
+      const code = sourceInput.value;
+      const totalChars = code.length;
+      const totalChunks = parseInt(document.getElementById('chunkCountInput').value, 10);
+      const container = document.getElementById('chunkResultContainer');
+      
+      if (!code.trim()) {
+        showToast("請先輸入要分割的程式碼！");
+        return;
+      }
+      if (isNaN(totalChunks) || totalChunks < 2) {
+        showToast("請至少切成 2 段以上！");
+        return;
+      }
+
+      const targetSize = Math.ceil(totalChars / totalChunks);
+      container.innerHTML = '';
+      let currentIndex = 0;
+
+      for (let i = 0; i < totalChunks; i++) {
+        let startIdx = currentIndex;
+        let endIdx;
+
+        if (i === totalChunks - 1) {
+          endIdx = totalChars;
+        } else {
+          let idealEnd = startIdx + targetSize;
+          let bestSplit = -1;
+          let forward = code.indexOf('\n\n', idealEnd);
+          let backward = code.lastIndexOf('\n\n', idealEnd);
+          
+          if (forward !== -1 && forward - idealEnd <= 1500) bestSplit = forward;
+          else if (backward !== -1 && idealEnd - backward <= 1500) bestSplit = backward;
+
+          if (bestSplit !== -1 && bestSplit > startIdx) {
+            endIdx = bestSplit + 2;
+          } else {
+            let fLine = code.indexOf('\n', idealEnd);
+            let bLine = code.lastIndexOf('\n', idealEnd);
+            endIdx = (fLine !== -1) ? fLine + 1 : idealEnd;
+          }
+        }
+
+        const chunkText = code.substring(startIdx, endIdx);
+        currentIndex = endIdx;
+
+        const isFirst = (i === 0);
+        const isLast = (i === totalChunks - 1);
+        const header = isFirst ? `先不要回覆我，請等待後續分段。\n[CODE_START: ${i + 1}/${totalChunks}]\n` : `[CODE_START: ${i + 1}/${totalChunks}]\n`;
+        const footer = isLast ? `\n[CODE_END]` : `\n[CODE_MORE]`;
+        const payload = header + chunkText + footer;
+
+        const item = document.createElement('div');
+        item.className = 'chunk-item';
+        item.innerHTML = `
+          <span class="chunk-info">第 ${i + 1} 段 (共 ${totalChunks} 段) - ${chunkText.length.toLocaleString()} 字</span>
+          <button class="btn" style="padding: 5px 12px; font-size: 12px;" onclick="copyChunk(this, \`${encodeURIComponent(payload)}\`)">複製第 ${i + 1} 段</button>
+        `;
+        container.appendChild(item);
+      }
+      showToast("分段產生完畢！");
+    }
+
+    function copyChunk(btn, encoded) {
+      const text = decodeURIComponent(encoded);
+      navigator.clipboard.writeText(text).then(() => {
+        showToast("已複製該段程式碼到剪貼簿！");
+        btn.textContent = "✅ 已複製";
+        setTimeout(() => btn.textContent = btn.textContent.replace("✅ 已複製", "複製"), 2000);
+      });
+    }
+
+    function processMerge() {
+      const rawText = document.getElementById('mergeInputArea').value;
+      if (!rawText.trim()) {
+        showToast("請先貼上要合併的程式碼！");
+        return;
+      }
+      try {
+        let cleaned = rawText;
+        cleaned = cleaned.replace(/先不要回覆我，請等待後續分段。[\r\n]*/g, '');
+        cleaned = cleaned.replace(/\[CODE_START:\s*\d+\/\d+\][\r\n]*/g, '');
+        cleaned = cleaned.replace(/\[CODE_MORE\][\r\n]*/g, '');
+        cleaned = cleaned.replace(/\[CODE_END\][\r\n]*/g, '');
+
+        const finalResult = cleaned.trim();
+        document.getElementById('mergeOutputArea').value = finalResult;
+        
+        navigator.clipboard.writeText(finalResult).then(() => {
+          showToast("合併成功！結果已自動複製並填入下方欄位");
+        });
+      } catch (err) {
+        console.error(err);
+        showToast("合併解析失敗");
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+  </script>
+</body>
+</html>
