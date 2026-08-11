@@ -824,7 +824,6 @@
       let isAdmin = false;
       let isUnlocked = false;
       let pendingDeleteId = null;
-      
       // ==========================================
       // 【新增】安全清除所有計時器的輔助函式
       // ==========================================
@@ -837,7 +836,6 @@
         Object.keys(timers).forEach(key => delete timers[key]);
         Object.keys(endTimes).forEach(key => delete endTimes[key]);
       }
-      
       // ==========================================
       // 在這裡加入防抖工具函式
       // ==========================================
@@ -1252,10 +1250,8 @@
           input.addEventListener('click', function() {
             if (this.readOnly) {
               const textToCopy = this.value ? this.value.trim() : '';
-              
               // 【已新增防手殘機制】如果格子是空的，直接結束不執行複製與 Toast
               if (!textToCopy) return;
-
               if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(textToCopy).then(() => {
                   showToast(`已複製：${textToCopy}`);
@@ -1314,7 +1310,6 @@
         let currentTargetRow = null;
         let rafId = null;
         let touchRafId = null;
-
         handle.addEventListener('mousedown', (e) => {
           if (!isAdmin) return;
           isDragging = true;
@@ -1323,15 +1318,14 @@
           e.preventDefault();
           document.addEventListener('mousemove', onMouseMove);
           document.addEventListener('mouseup', onMouseUp);
+          document.addEventListener('mouseleave', onMouseUp);
         });
 
         function onMouseMove(e) {
           if (!isDragging) return;
-          
           if (rafId) {
             cancelAnimationFrame(rafId);
           }
-
           rafId = requestAnimationFrame(() => {
             const tbody = document.getElementById('tableBody');
             const rows = Array.from(tbody.querySelectorAll('tr'));
@@ -1359,38 +1353,31 @@
         function onMouseUp(e) {
           if (!isDragging) return;
           isDragging = false;
-          
           if (rafId) {
             cancelAnimationFrame(rafId);
             rafId = null;
           }
-          
-          // 【已修正】改用 currentTargetRow 移除樣式
           if (currentTargetRow) {
             currentTargetRow.classList.remove('dragging');
           }
-          
           document.removeEventListener('mousemove', onMouseMove);
           document.removeEventListener('mouseup', onMouseUp);
+          document.removeEventListener('mouseleave', onMouseUp);
           saveTableToLocal();
           showToast('排序已更新');
         }
-
         handle.addEventListener('touchstart', (e) => {
           if (!isAdmin) return;
           isDragging = true;
           currentTargetRow = tr;
           tr.classList.add('dragging');
         }, { passive: false });
-
         handle.addEventListener('touchmove', (e) => {
           if (!isDragging) return;
           e.preventDefault();
-
           if (touchRafId) {
             cancelAnimationFrame(touchRafId);
           }
-
           touchRafId = requestAnimationFrame(() => {
             const tbody = document.getElementById('tableBody');
             const rows = Array.from(tbody.querySelectorAll('tr'));
@@ -1414,42 +1401,53 @@
             }
           });
         }, { passive: false });
-
         handle.addEventListener('touchend', (e) => {
           if (!isDragging) return;
           isDragging = false;
-          
           if (touchRafId) {
             cancelAnimationFrame(touchRafId);
             touchRafId = null;
           }
-          
-          // 【已修正】改用 currentTargetRow 移除樣式
           if (currentTargetRow) {
             currentTargetRow.classList.remove('dragging');
           }
-          
           saveTableToLocal();
           showToast('排序已更新');
         });
       }
-
-      function fallbackCopyText(text) {
+      let sharedTextarea = null;
+      async function fallbackCopyText(text) {
+        // 1. 優先嘗試現代化 Async Clipboard API
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          try {
+            await navigator.clipboard.writeText(text);
+            showToast(`已複製：${text}`);
+            return;
+          } catch (err) {
+            console.warn('現代 API 複製失敗，切換至傳統備援模式', err);
+          }
+        }
+        // 2. 舊版瀏覽器或非 HTTPS 環境備案 (execCommand)
         try {
-          const textarea = document.createElement('textarea');
-          textarea.value = text;
-          textarea.style.position = 'fixed';
-          textarea.style.opacity = '0';
-          document.body.appendChild(textarea);
-          textarea.focus();
-          textarea.select();
+          if (!sharedTextarea) {
+            sharedTextarea = document.createElement('textarea');
+            sharedTextarea.style.position = 'fixed';
+            sharedTextarea.style.opacity = '0';
+            sharedTextarea.style.pointerEvents = 'none';
+            document.body.appendChild(sharedTextarea);
+          }
+          sharedTextarea.value = text;
+          sharedTextarea.focus();
+          sharedTextarea.select();
           const successful = document.execCommand('copy');
-          document.body.removeChild(textarea);
           if (successful) {
             showToast(`已複製：${text}`);
+          } else {
+            showToast('複製失敗，請手動複製');
           }
         } catch (err) {
           console.error('備援複製發生錯誤', err);
+          showToast('複製失敗，請手動複製');
         }
       }
 
@@ -1501,18 +1499,18 @@
         const idx = checkbox.getAttribute('data-idx');
         const uniqueKey = `${uid}_${idx}`;
         const label = document.getElementById(`timer-${uid}-${idx}`);
-        if (timers[uniqueKey]) {
-          clearInterval(timers[uniqueKey].interval);
-          delete timers[uniqueKey];
-        }
-        label.classList.remove('countdown-running', 'countdown-done');
-        checkbox.classList.remove('breathing');
         if (checkbox.checked) {
           const endTime = Date.now() + 600 * 1000;
           endTimes[uniqueKey] = endTime;
           saveLocalState(uniqueKey, true, endTime);
           initTimerWithEndTime(checkbox, endTime);
         } else {
+          if (timers[uniqueKey]) {
+            clearInterval(timers[uniqueKey].interval);
+            delete timers[uniqueKey];
+          }
+          label.classList.remove('countdown-running', 'countdown-done');
+          checkbox.classList.remove('breathing');
           label.innerText = "00:00";
           delete endTimes[uniqueKey];
           saveLocalState(uniqueKey, false, 0);
@@ -1577,19 +1575,15 @@
         if (!isAdmin) return;
         clearAllLocalTimers();
         localStorage.removeItem(LOCAL_NAME_CHK_KEY);
-        
         document.querySelectorAll('.chk-receive').forEach(chk => {
           chk.checked = false;
           toggleTimer(chk, false);
         });
-        
         document.querySelectorAll('.chk-name-prefix').forEach(chk => {
           chk.checked = false;
         });
-
         // 【新增這行】將重置後的表格資料存回 LocalStorage，確保連動與儲存
         saveTableToLocal();
-
         showToast('已重置所有勾選框與倒數計時！');
       }
 
@@ -1597,25 +1591,21 @@
         const rows = document.querySelectorAll('#tableBody tr');
         const data = [];
         const localStates = getLocalStates(); // 讀取本地的計時與勾選狀態
-        
         rows.forEach((row) => {
           const uid = row.dataset.uid;
           const chks = row.querySelectorAll('.chk-receive');
           const nameChk = row.querySelector('.chk-name-prefix');
-          
           // 快取 DOM 元素，提升效能
           const cellNo = row.querySelector('.cell-no');
           const cellLevel = row.querySelector('.cell-level');
           const cellName = row.querySelector('.cell-name');
           const cellCoin = row.querySelector('.cell-coin');
           const cellPhone = row.querySelector('.cell-phone');
-          
           const cellF1 = row.querySelector('.cell-f1');
           const cellF2 = row.querySelector('.cell-f2');
           const cellF3 = row.querySelector('.cell-f3');
           const cellF4 = row.querySelector('.cell-f4');
           const cellF5 = row.querySelector('.cell-f5');
-          
           // 收集該 row 的 1~5 領取狀態與計時
           const rData = {};
           for (let i = 1; i <= 5; i++) {
@@ -1624,7 +1614,6 @@
             rData[`r${i}`] = chks[i - 1].checked;
             rData[`r${i}_time`] = chks[i - 1].checked ? (endTimes[uniqueKey] || local.endTime || 0) : 0;
           }
-          
           data.push({
             uid: uid,
             no: cellNo ? cellNo.value : '',
@@ -1653,7 +1642,7 @@
         return data;
       }
       // ==========================================
-      // 接著放您原本簡化後的 confirmSaveToGitHub 等函式
+      // 雲端同步相關函式（已加入防連點機制）
       // ==========================================
       function confirmSaveToGitHub() {
         if (!isAdmin) { showToast('請先登入管理員權限！'); return; }
@@ -1676,7 +1665,11 @@
           () => executeLoadFromGitHub()
         );
       }
+      let isSavingToCloud = false; // 防止重複點擊的鎖定狀態
       async function executeSaveToGitHub() {
+        if (!isAdmin) { showToast('請先登入管理員權限！'); return; }
+        if (isSavingToCloud) return; // 如果正在保存中，直接返回
+        isSavingToCloud = true;
         const tableData = getTableData();
         const payload = {
           description: "Grid Data Storage with Timers",
@@ -1695,7 +1688,6 @@
           if (response.ok) {
             showToast('管理員修改成功，已成功保存至雲端！');
           } else {
-            // 【已優化】精準判斷 HTTP 狀態碼與中文化錯誤訊息
             if (response.status === 401) {
               showToast('保存失敗：Token 授權失效或過期');
             } else if (response.status === 404) {
@@ -1712,9 +1704,10 @@
           }
         } catch (error) {
           showToast('網路連線失敗，請檢查網路狀態。');
+        } finally {
+          isSavingToCloud = false; // 無論成功或失敗，最後都解除鎖定
         }
       }
-
       async function executeLoadFromGitHub() {
         try {
           const response = await fetch(`https://api.github.com/gists/${G_ID}`, {
@@ -1729,23 +1722,16 @@
             if (resData.files && resData.files["grid_data.json"]) {
               const rawContent = resData.files["grid_data.json"].content;
               const data = JSON.parse(rawContent);
-              
-              // 【新增防護】確保解析出來確實是陣列，否則拋出錯誤
               if (!Array.isArray(data)) {
                 throw new Error("雲端資料格式錯誤");
               }
-              
-              // 【已修改】徹底清除所有舊計時器與殘留
               clearAllActiveTimers();
               if (typeof clearAllLocalTimers === 'function') {
                 clearAllLocalTimers();
               }
-
-              // 同步更新本地的計時與名稱勾選狀態
               const newLocalStates = {};
               const newNameChkStates = {};
-              const now = Date.now(); // 取得當前時間點
-
+              const now = Date.now();
               data.forEach(item => {
                 const uid = item.uid;
                 if (item.nameChk) newNameChkStates[uid] = true;
@@ -1753,10 +1739,7 @@
                   if (item[`r${i}`]) {
                     const uniqueKey = `${uid}_${i}`;
                     const savedTime = item[`r${i}_time`] || 0;
-                    
-                    // 【已修正】增加 5 秒防護緩衝，避免裝置時間微小誤差導致計時被誤判過期
-                    const validEndTime = savedTime > (now - 5000) ? savedTime : 0;
-                    
+                    const validEndTime = savedTime > 0 ? savedTime : 0;
                     if (validEndTime > 0) {
                       newLocalStates[uniqueKey] = {
                         checked: true,
@@ -1766,26 +1749,21 @@
                   }
                 }
               });
-              // 寫回手機本地 localStorage
               localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify(newLocalStates));
               localStorage.setItem(LOCAL_NAME_CHK_KEY, JSON.stringify(newNameChkStates));
-              
-              // 重新渲染表格
               document.getElementById('tableBody').innerHTML = ``;
               rowCounter = 0;
               data.forEach(item => addRow(item));
-              rowCounter = data.length; // 【已新增】確保 rowCounter 正確對齊當前資料量
+              rowCounter = data.length;
               saveTableToLocal();
               showToast('成功從雲端讀取資料並同步至本地！');
             }
           } else {
-            // 【已優化】精準判斷 HTTP 狀態碼與中文化錯誤訊息
             if (response.status === 401) {
               showToast('讀取失敗：Token 授權失效或過期');
             } else if (response.status === 404) {
               showToast('讀取失敗：找不到指定的 Gist ID');
             } else {
-              // 【優化】安全解析錯誤訊息，避免非 JSON 回應導致例外
               let errRes = {};
               try {
                 errRes = await response.json();
