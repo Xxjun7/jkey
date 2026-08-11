@@ -421,6 +421,8 @@
       th.toggle-trigger {
         cursor: pointer;
         transition: all 0.2s ease;
+        touch-action: manipulation;
+        /* 防止快速點擊時畫面被放大 */
       }
 
       th.toggle-trigger:hover {
