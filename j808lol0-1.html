@@ -418,15 +418,21 @@
       }
 
       /* 確保手機點擊表格任何地方都不會雙擊放大 */
-      table, th, td, button, input, .chk-container {
-       touch-action: manipulation;
+      table,
+      th,
+      td,
+      button,
+      input,
+      .chk-container {
+        touch-action: manipulation;
       }
 
       /* 讓表格區域在收合/展開時有平滑的過渡，避免瞬間劇烈拉長 */
-      .col-collapsible-r, .col-collapsible-f {
-       transition: all 0.2s ease-in-out;
+      .col-collapsible-r,
+      .col-collapsible-f {
+        transition: all 0.2s ease-in-out;
       }
-      
+
       /* 可互動點擊觸發收合的標題樣式 */
       th.toggle-trigger {
         cursor: pointer;
@@ -871,6 +877,8 @@
       const LOCAL_COL_R_STATE_KEY = 'j808_columns_collapsed_r';
       const LOCAL_COL_F_STATE_KEY = 'j808_columns_collapsed_f';
       const LOCAL_NAME_CHK_KEY = 'j808_name_checkbox_states';
+      // 防連點鎖變數
+      let isCollapsingLock = false;
       // 初始化表格欄位收合狀態（預設為 true / 隱藏）
       function initColumnState() {
         const table = document.getElementById('dataTable');
@@ -891,8 +899,10 @@
           table.classList.remove('collapsed-f');
         }
       }
-      // 切換 領1~5 欄位收合狀態 (點擊名稱)
+      // 切換 領1~5 欄位收合狀態 (點擊名稱) - 已加入防連點保護
       function toggleNameColumns() {
+        if (isCollapsingLock) return; // 🔒 鎖定中直接擋掉，防止連續狂點導致表格拉長變形
+        isCollapsingLock = true;
         const table = document.getElementById('dataTable');
         const isCurrentlyCollapsed = table.classList.contains('collapsed-r');
         if (isCurrentlyCollapsed) {
@@ -904,9 +914,15 @@
           localStorage.setItem(LOCAL_COL_R_STATE_KEY, 'true');
           showToast('已收合 領1~5 欄位');
         }
+        // 0.3 秒後解鎖
+        setTimeout(() => {
+          isCollapsingLock = false;
+        }, 300);
       }
-      // 切換 好友與電話 欄位收合狀態 (點擊幣量)
+      // 切換 好友與電話 欄位收合狀態 (點擊幣量) - 已加入防連點保護
       function toggleCoinColumns() {
+        if (isCollapsingLock) return; // 🔒 鎖定中直接擋掉
+        isCollapsingLock = true;
         const table = document.getElementById('dataTable');
         const isCurrentlyCollapsed = table.classList.contains('collapsed-f');
         if (isCurrentlyCollapsed) {
@@ -918,6 +934,10 @@
           localStorage.setItem(LOCAL_COL_F_STATE_KEY, 'true');
           showToast('已收合好友與電話欄位');
         }
+        // 0.3 秒後解鎖
+        setTimeout(() => {
+          isCollapsingLock = false;
+        }, 300);
       }
       // ==========================================
       // 新增在這裡：共用的 Modal 確認視窗函式
