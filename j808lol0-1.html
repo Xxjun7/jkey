@@ -326,7 +326,7 @@
       #dataTable.collapsed-r .col-collapsible-r,
       #dataTable.collapsed-f .col-collapsible-f {
         display: none !important;
-      } 
+      }
 
       th,
       td {
@@ -905,7 +905,7 @@
           table.classList.remove('collapsed-f');
         }
       }
-      // 切換 領1~5 欄位收合狀態 (點擊名稱) - 已加入防連點保護
+      // 切換 領1~5 欄位收合狀態 (點擊名稱) - 已加入防連點與強制重繪保護
       function toggleNameColumns() {
         if (isCollapsingLock) return; // 🔒 鎖定中直接擋掉，防止連續狂點導致表格拉長變形
         isCollapsingLock = true;
@@ -920,12 +920,14 @@
           localStorage.setItem(LOCAL_COL_R_STATE_KEY, 'true');
           showToast('已收合 領1~5 欄位');
         }
+        // 💡 強制重繪：讓 Safari 瞬間算完版面，解決收拾時需上下滑動才恢復的問題
+        void table.offsetHeight;
         // 0.3 秒後解鎖
         setTimeout(() => {
           isCollapsingLock = false;
         }, 300);
       }
-      // 切換 好友與電話 欄位收合狀態 (點擊幣量) - 已加入防連點保護
+      // 切換 好友與電話 欄位收合狀態 (點擊幣量) - 已加入防連點與強制重繪保護
       function toggleCoinColumns() {
         if (isCollapsingLock) return; // 🔒 鎖定中直接擋掉
         isCollapsingLock = true;
@@ -940,6 +942,8 @@
           localStorage.setItem(LOCAL_COL_F_STATE_KEY, 'true');
           showToast('已收合好友與電話欄位');
         }
+        // 💡 強制重繪：讓 Safari 瞬間算完版面，解決收拾時需上下滑動才恢復的問題
+        void table.offsetHeight;
         // 0.3 秒後解鎖
         setTimeout(() => {
           isCollapsingLock = false;
