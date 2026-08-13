@@ -419,18 +419,12 @@
 
       /* 確保手機點擊表格任何地方都不會雙擊放大 */
       table, th, td, button, input, .chk-container {
-      touch-action: manipulation;
-    }
-      
-      /* 防止整個網頁或表格容器在快速點擊/滑動時產生不必要的變形與拉伸 */
-      html, body {
-      overscroll-behavior-y: none; /* 禁止上下邊緣的橡皮筋彈性拉伸 */
+       touch-action: manipulation;
       }
 
-      /* 確保展開/收合的表格容器有硬體加速與固定排版 */
-      .table-container { /* 假設這是包住表格的外層容器，請帶入你們實際的容器class */
-      transform: translateZ(0); /* 啟用 GPU 硬體加速，減少畫面重繪閃爍 */
-      -webkit-overflow-scrolling: touch;
+      /* 讓表格區域在收合/展開時有平滑的過渡，避免瞬間劇烈拉長 */
+      .col-collapsible-r, .col-collapsible-f {
+       transition: all 0.2s ease-in-out;
       }
       
       /* 可互動點擊觸發收合的標題樣式 */
