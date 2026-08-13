@@ -322,6 +322,12 @@
         border-collapse: collapse;
       }
 
+      /* ====== 在這裡補上這兩行，強制收合時瞬間切換 ====== */
+      #dataTable.collapsed-r .col-collapsible-r,
+      #dataTable.collapsed-f .col-collapsible-f {
+        display: none !important;
+      } 
+
       th,
       td {
         border: 1px solid rgba(120, 90, 40, 0.3);
