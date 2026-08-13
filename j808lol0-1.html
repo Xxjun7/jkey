@@ -417,6 +417,11 @@
         text-align: center;
       }
 
+      /* 讓整張表格、表格儲存格、按鈕都套用 manipulation，防止連點放大 */
+      table, td, th, button, input {
+      touch-action: manipulation;
+      }
+      
       /* 可互動點擊觸發收合的標題樣式 */
       th.toggle-trigger {
         cursor: pointer;
