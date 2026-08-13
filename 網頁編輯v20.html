@@ -1655,7 +1655,7 @@ function processMergeCode() {
         }
       });
       
-      // ==================== 📍 點擊編輯器或行號進行範圍選取 ====================
+// ==================== 📍 點擊編輯器或行號進行範圍選取 ====================
 let isRangeSelectMode = false;
 let rangeClickStep = 0; 
 let tempStartLine = null;
@@ -1692,6 +1692,15 @@ function handleRangeLineClick(clickedLine) {
     tempStartLine = clickedLine;
     rangeClickStep = 1;
     
+    // 💡 點擊起始行時，直接用預設選取色將該行框起來
+    const lineText = editor.getLine(tempStartLine);
+    const from = { line: tempStartLine, ch: 0 };
+    const to = { line: tempStartLine, ch: lineText ? lineText.length : 0 };
+    
+    editor.setSelection(from, to);
+    editor.scrollIntoView({ from: from, to: to }, 100);
+    editor.focus();
+
     if (btnText) btnText.innerText = '📍 選結束行';
     showToast(`已記錄起始行 (第 ${tempStartLine + 1} 行)，請點擊「結束行」`);
     
