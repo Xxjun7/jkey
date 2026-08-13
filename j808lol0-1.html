@@ -905,45 +905,49 @@
           table.classList.remove('collapsed-f');
         }
       }
-      // 切換 領1~5 欄位收合狀態 (點擊名稱) - 已加入防連點與強制重繪保護
+      // 切換 領1~5 欄位收合狀態 (點擊名稱)
       function toggleNameColumns() {
-        if (isCollapsingLock) return; // 🔒 鎖定中直接擋掉，防止連續狂點導致表格拉長變形
+        if (isCollapsingLock) return;
         isCollapsingLock = true;
         const table = document.getElementById('dataTable');
         const isCurrentlyCollapsed = table.classList.contains('collapsed-r');
         if (isCurrentlyCollapsed) {
           table.classList.remove('collapsed-r');
           localStorage.setItem(LOCAL_COL_R_STATE_KEY, 'false');
+          // 💡 展開與收拾都立刻強制重繪，不延遲
+          void table.offsetHeight;
           showToast('已展開 領1~5 欄位');
         } else {
           table.classList.add('collapsed-r');
           localStorage.setItem(LOCAL_COL_R_STATE_KEY, 'true');
+          // 💡 展開與收拾都立刻強制重繪，不延遲
+          void table.offsetHeight;
           showToast('已收合 領1~5 欄位');
         }
-        // 💡 強制重繪：讓 Safari 瞬間算完版面，解決收拾時需上下滑動才恢復的問題
-        void table.offsetHeight;
         // 0.3 秒後解鎖
         setTimeout(() => {
           isCollapsingLock = false;
         }, 300);
       }
-      // 切換 好友與電話 欄位收合狀態 (點擊幣量) - 已加入防連點與強制重繪保護
+      // 切換 好友與電話 欄位收合狀態 (點擊幣量)
       function toggleCoinColumns() {
-        if (isCollapsingLock) return; // 🔒 鎖定中直接擋掉
+        if (isCollapsingLock) return;
         isCollapsingLock = true;
         const table = document.getElementById('dataTable');
         const isCurrentlyCollapsed = table.classList.contains('collapsed-f');
         if (isCurrentlyCollapsed) {
           table.classList.remove('collapsed-f');
           localStorage.setItem(LOCAL_COL_F_STATE_KEY, 'false');
+          // 💡 展開與收拾都立刻強制重繪，不延遲
+          void table.offsetHeight;
           showToast('已展開好友與電話欄位');
         } else {
           table.classList.add('collapsed-f');
           localStorage.setItem(LOCAL_COL_F_STATE_KEY, 'true');
+          // 💡 展開與收拾都立刻強制重繪，不延遲
+          void table.offsetHeight;
           showToast('已收合好友與電話欄位');
         }
-        // 💡 強制重繪：讓 Safari 瞬間算完版面，解決收拾時需上下滑動才恢復的問題
-        void table.offsetHeight;
         // 0.3 秒後解鎖
         setTimeout(() => {
           isCollapsingLock = false;
