@@ -2,9 +2,8 @@
 <html lang="zh-TW">
   <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no, viewport-fit=cover">
     <title>j808 管理面板 - 英雄聯盟風格</title>
-    <!-- 引入LOL風格英文字體與符文風字體 -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
       :root {
@@ -13,78 +12,62 @@
         --lol-gold-3: #785a28;
         --lol-gold-4: #463714;
         --lol-hextech-blue: #0ac8b9;
-        --lol-hextech-glow: rgba(10, 200, 185, 0.4);
+        --lol-hextech-glow: rgba(10, 200, 185, .4);
         --lol-purple-dark: #090614;
-        --lol-purple-panel: rgba(20, 16, 38, 0.75);
-        --lol-purple-border: rgba(120, 90, 40, 0.6);
-        --lol-purple-glow: rgba(147, 51, 234, 0.25);
+        --lol-purple-panel: rgba(20, 16, 38, .75);
+        --lol-purple-border: rgba(120, 90, 40, .6);
+        --lol-purple-glow: rgba(147, 51, 234, .25);
         --lol-red: #e84057;
         --lol-green: #20c997;
-        /* ========================================================== */
-        /* 【欄位寬度與高度集中設定區】在此直接修改各欄位與表格列高！ */
-        /* ========================================================== */
         --w-no: 55px;
-        /* 編號 */
         --w-level: 70px;
-        /* 等級 */
         --w-name: 180px;
-        /* 名稱 (含勾選框) */
         --w-receive: 65px;
-        /* 領1~5 (單一欄位) */
         --w-coin: 85px;
-        /* 幣量 */
         --w-friend: 85px;
-        /* 好友1~5 (單一欄位) */
         --w-phone: 85px;
-        /* 電話 */
         --w-action: 120px;
-        /* 操作 / 隱藏控制 */
-        
         --row-height: 42px;
-        /* 統一整張表格的列高（可自由修改此數值，如 36px, 42px） */
-      }
-
-      html, body {
-        width: 100% !important;
-        max-width: 100% !important;
-        overflow-x: hidden !important;
-        position: relative;
       }
 
       * {
-        box-sizing: border-box;
+        box-sizing: border-box
+      }
+
+      html,
+      body {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        margin: 0;
+        overflow-x: hidden !important;
+        position: relative
+      }
+
+      body {
+        font-family: 'Noto Sans TC', 'Cinzel', Arial, sans-serif;
+        padding: 20px;
+        background: #05030a radial-gradient(circle at 50% 20%, #1a0f35 0%, #06040d 70%);
+        color: var(--lol-gold-1);
+        min-height: 100vh;
+        background-attachment: fixed
       }
 
       ::-webkit-scrollbar {
         width: 8px;
-        height: 8px;
+        height: 8px
       }
 
       ::-webkit-scrollbar-track {
-        background: rgba(5, 3, 10, 0.9);
-        border-left: 1px solid rgba(120, 90, 40, 0.3);
-        border-right: 1px solid rgba(120, 90, 40, 0.3);
+        background: rgba(5, 3, 10, .9);
+        border-left: 1px solid rgba(120, 90, 40, .3);
+        border-right: 1px solid rgba(120, 90, 40, .3)
       }
 
       ::-webkit-scrollbar-thumb {
         background: linear-gradient(180deg, #785a28 0%, #463714 100%);
         border: 1px solid var(--lol-gold-2);
-        border-radius: 2px;
-      }
-
-      ::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(180deg, #c8aa6e 0%, #785a28 100%);
-        border-color: var(--lol-gold-1);
-      }
-
-      body {
-        font-family: 'Noto Sans TC', 'Cinzel', Arial, sans-serif;
-        margin: 0;
-        padding: 20px;
-        background: #05030a radial-gradient(circle at 50% 20%, #1a0f35 0%, #06040d 70%);
-        color: var(--lol-gold-1);
-        min-height: 100vh;
-        background-attachment: fixed;
+        border-radius: 2px
       }
 
       .header-container {
@@ -92,15 +75,14 @@
         flex-direction: column;
         gap: 15px;
         border-bottom: 2px solid var(--lol-gold-3);
-        padding-bottom: 20px;
+        padding: 20px;
         margin-bottom: 20px;
         position: relative;
         background: var(--lol-purple-panel);
         backdrop-filter: blur(10px);
-        padding: 20px;
         border-radius: 4px;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.7), inset 0 0 15px var(--lol-purple-glow);
-        border: 1px solid var(--lol-gold-3);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, .7), inset 0 0 15px var(--lol-purple-glow);
+        border: 1px solid var(--lol-gold-3)
       }
 
       h2 {
@@ -111,12 +93,12 @@
         color: var(--lol-gold-1);
         text-transform: uppercase;
         letter-spacing: 2px;
-        text-shadow: 0 0 10px rgba(200, 170, 110, 0.5), 0 0 20px rgba(120, 90, 40, 0.8);
-        font-weight: 700;
+        text-shadow: 0 0 10px rgba(200, 170, 110, .5), 0 0 20px rgba(120, 90, 40, .8);
+        font-weight: 700
       }
 
       .login-box {
-        background: rgba(10, 8, 20, 0.8);
+        background: rgba(10, 8, 20, .8);
         padding: 12px 16px;
         border-radius: 2px;
         border: 1px solid var(--lol-gold-3);
@@ -126,50 +108,50 @@
         align-items: stretch;
         font-size: 15px;
         width: 100%;
-        box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.8);
+        box-shadow: inset 0 0 8px rgba(0, 0, 0, .8)
       }
 
       .login-form-inner {
         display: flex;
         gap: 8px;
-        width: 100%;
+        width: 100%
       }
 
-      input[type="text"],
-      input[type="password"],
-      input[type="number"] {
-        background: rgba(5, 3, 10, 0.7);
+      input[type=text],
+      input[type=password],
+      input[type=number] {
+        background: rgba(5, 3, 10, .7);
         color: var(--lol-gold-1);
         padding: 8px 10px;
         border: 1px solid var(--lol-gold-3);
         border-radius: 2px;
         font-size: 14px;
         box-sizing: border-box;
-        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        transition: border-color .3s ease, box-shadow .3s ease;
         outline: none;
         width: auto;
         min-width: 60px;
-        max-width: 300px;
+        max-width: 300px
       }
 
-      input[type="text"]:focus,
-      input[type="password"]:focus,
-      input[type="number"]:focus {
+      input[type=text]:focus,
+      input[type=password]:focus,
+      input[type=number]:focus {
         border-color: var(--lol-hextech-blue);
         box-shadow: 0 0 8px var(--lol-hextech-glow);
-        background: rgba(10, 15, 25, 0.9);
+        background: rgba(10, 15, 25, .9)
       }
 
       input:read-only {
-        background: rgba(15, 12, 25, 0.3);
-        border-color: rgba(120, 90, 40, 0.2);
+        background: rgba(15, 12, 25, .3);
+        border-color: rgba(120, 90, 40, .2);
         color: var(--lol-gold-1);
-        cursor: pointer;
+        cursor: pointer
       }
 
       input:read-only:hover {
         border-color: var(--lol-hextech-blue);
-        background: rgba(10, 200, 185, 0.1);
+        background: rgba(10, 200, 185, .1)
       }
 
       .user-status {
@@ -179,7 +161,7 @@
         align-items: center;
         justify-content: space-between;
         gap: 10px;
-        width: 100%;
+        width: 100%
       }
 
       .btn-container {
@@ -187,7 +169,7 @@
         display: flex;
         flex-wrap: wrap;
         gap: 12px;
-        align-items: center;
+        align-items: center
       }
 
       button {
@@ -202,20 +184,20 @@
         font-family: 'Cinzel', 'Noto Sans TC', serif;
         letter-spacing: 1px;
         text-transform: uppercase;
-        transition: all 0.2s ease;
+        transition: all .2s ease;
         position: relative;
-        box-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+        box-shadow: 0 0 5px rgba(0, 0, 0, .8)
       }
 
       button:hover {
         color: var(--lol-gold-1);
         border-color: var(--lol-gold-1);
         background: linear-gradient(180deg, #2b3138 0%, #1a1d24 100%);
-        box-shadow: 0 0 10px rgba(200, 170, 110, 0.4);
+        box-shadow: 0 0 10px rgba(200, 170, 110, .4)
       }
 
       button:active {
-        transform: translateY(1px);
+        transform: translateY(1px)
       }
 
       .btn-add {
@@ -223,14 +205,14 @@
         color: #5cdb95;
         background: linear-gradient(180deg, #122b1c 0%, #08140d 100%);
         flex: 1;
-        min-width: 110px;
+        min-width: 110px
       }
 
       .btn-add:hover {
         border-color: #28a745;
         color: #fff;
-        box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
-        background: linear-gradient(180deg, #193d27 0%, #0d2115 100%);
+        box-shadow: 0 0 10px rgba(40, 167, 69, .5);
+        background: linear-gradient(180deg, #193d27 0%, #0d2115 100%)
       }
 
       .btn-unlock {
@@ -238,28 +220,21 @@
         color: #ffd700;
         background: linear-gradient(180deg, #3d3014 0%, #181206 100%);
         flex: 1;
-        min-width: 130px;
+        min-width: 130px
       }
 
       .btn-unlock:hover {
         border-color: #ffd700;
         color: #fff;
-        box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-        background: linear-gradient(180deg, #57441d 0%, #241a09 100%);
+        box-shadow: 0 0 10px rgba(255, 215, 0, .5);
+        background: linear-gradient(180deg, #57441d 0%, #241a09 100%)
       }
 
       .btn-unlock.unlocked {
         border-color: var(--lol-hextech-blue);
         color: var(--lol-hextech-blue);
         background: linear-gradient(180deg, #092830 0%, #031015 100%);
-        box-shadow: 0 0 8px var(--lol-hextech-glow);
-      }
-
-      .btn-unlock.unlocked:hover {
-        border-color: #00ffff;
-        color: #fff;
-        box-shadow: 0 0 12px var(--lol-hextech-glow);
-        background: linear-gradient(180deg, #0d3b47 0%, #061f26 100%);
+        box-shadow: 0 0 8px var(--lol-hextech-glow)
       }
 
       .btn-reset {
@@ -267,14 +242,14 @@
         color: #ff6b6b;
         background: linear-gradient(180deg, #381216 0%, #1a080a 100%);
         flex: 1;
-        min-width: 130px;
+        min-width: 130px
       }
 
       .btn-reset:hover {
         border-color: var(--lol-red);
         color: #fff;
-        box-shadow: 0 0 10px rgba(232, 64, 87, 0.5);
-        background: linear-gradient(180deg, #521a20 0%, #290d10 100%);
+        box-shadow: 0 0 10px rgba(232, 64, 87, .5);
+        background: linear-gradient(180deg, #521a20 0%, #290d10 100%)
       }
 
       .btn-save {
@@ -282,14 +257,7 @@
         color: var(--lol-hextech-blue);
         background: linear-gradient(180deg, #092830 0%, #031015 100%);
         flex: 1;
-        min-width: 150px;
-      }
-
-      .btn-save:hover {
-        border-color: #00ffff;
-        color: #fff;
-        box-shadow: 0 0 12px var(--lol-hextech-glow);
-        background: linear-gradient(180deg, #0d3b47 0%, #061f26 100%);
+        min-width: 150px
       }
 
       .btn-load {
@@ -297,53 +265,60 @@
         color: var(--lol-gold-2);
         background: linear-gradient(180deg, #3d3014 0%, #181206 100%);
         flex: 1;
-        min-width: 150px;
-      }
-
-      .btn-load:hover {
-        border-color: var(--lol-gold-1);
-        color: #fff;
-        box-shadow: 0 0 12px rgba(200, 170, 110, 0.5);
-        background: linear-gradient(180deg, #57441d 0%, #241a09 100%);
+        min-width: 150px
       }
 
       .btn-login {
         border-color: var(--lol-gold-3);
         color: var(--lol-gold-2);
         white-space: nowrap;
-        padding: 8px 16px;
+        padding: 8px 16px
       }
 
+      /* ===== 核心修正：表格只允許 .table-responsive 橫向滾動 ===== */
       .table-responsive {
+        display: block;
         width: 100%;
         max-width: 100%;
+        min-width: 0;
         overflow-x: auto;
+        overflow-y: visible;
         -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
         border: 1px solid var(--lol-gold-3);
         border-radius: 4px;
         background: var(--lol-purple-panel);
         backdrop-filter: blur(10px);
         margin-top: 10px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-        contain: paint;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, .8);
+        contain: layout paint;
+        isolation: isolate;
+      }
+
+      .table-scroll-lock {
+        width: max-content;
+        min-width: 100%;
+        max-width: none;
       }
 
       table {
-        width: 100%;
+        display: table;
+        width: max-content;
+        min-width: 100%;
+        max-width: none;
         table-layout: fixed;
         border-collapse: collapse;
+        border-spacing: 0;
       }
 
-      /* 【統一控制整張表格高度】套用自訂變數到 tr 與 td */
       tbody tr {
-        height: var(--row-height);
-        transition: background 0.2s ease;
+        height: var(--row-height)
       }
 
       th,
       td {
         height: var(--row-height);
-        border: 1px solid rgba(120, 90, 40, 0.3);
+        border: 1px solid rgba(120, 90, 40, .3);
         padding: 0 6px;
         text-align: center;
         white-space: nowrap;
@@ -353,83 +328,74 @@
       }
 
       th {
-        background: rgba(15, 11, 25, 0.9);
+        background: rgba(15, 11, 25, .9);
         color: var(--lol-gold-2);
         font-family: 'Cinzel', 'Noto Sans TC', serif;
         font-size: 14px;
         letter-spacing: 1px;
-        border-bottom: 2px solid var(--lol-gold-3);
+        border-bottom: 2px solid var(--lol-gold-3)
       }
 
-      /* ========================================================== */
-      /* 【連動綁定套用區】使用上方定義的 CSS 變數，完美同步 th 與 td 寬度！ */
-      /* ========================================================== */
       th:nth-child(1),
       td:nth-child(1) {
         width: var(--w-no);
-        min-width: var(--w-no);
+        min-width: var(--w-no)
       }
 
       th:nth-child(2),
       td:nth-child(2) {
         width: var(--w-level);
-        min-width: var(--w-level);
+        min-width: var(--w-level)
       }
 
       th:nth-child(3),
       td:nth-child(3) {
         width: var(--w-name);
-        min-width: var(--w-name);
+        min-width: var(--w-name)
       }
 
       th.col-collapsible-r,
       td.col-collapsible-r {
         width: var(--w-receive);
-        min-width: var(--w-receive);
+        min-width: var(--w-receive)
       }
 
       th:nth-child(9),
       td:nth-child(9) {
         width: var(--w-coin);
-        min-width: var(--w-coin);
+        min-width: var(--w-coin)
       }
 
       th.col-collapsible-f,
       td.col-collapsible-f {
         width: var(--w-friend);
-        min-width: var(--w-friend);
+        min-width: var(--w-friend)
       }
 
-      /* 電話欄位特別獨立對應 */
       th.col-phone-th,
       td.col-phone-td {
         width: var(--w-phone);
-        min-width: var(--w-phone);
+        min-width: var(--w-phone)
       }
 
       th.user-only,
-      td.user-only {
-        width: var(--w-action);
-        min-width: var(--w-action);
-      }
-
+      td.user-only,
       th.admin-only,
       td.admin-only {
         width: var(--w-action);
-        min-width: var(--w-action);
+        min-width: var(--w-action)
       }
 
-      /* 名稱儲存格排版樣式（勾選框 + 輸入框） */
       .name-cell-container {
         display: flex;
         align-items: center;
         gap: 6px;
         width: 100%;
         height: 100%;
+        min-width: 0
       }
 
-      /* 表格內的 input 填滿儲存格高度，且字型大小維持固定 */
-      table input[type="text"] {
+      table input[type=text] {
         width: 100% !important;
         height: calc(var(--row-height) - 6px) !important;
         max-width: none !important;
@@ -437,59 +403,50 @@
         font-size: 14px !important;
         padding: 0 4px !important;
         text-align: center;
-        box-sizing: border-box !important;
+        box-sizing: border-box !important
       }
 
-      /* 可互動點擊觸發收合的標題樣式 */
       th.toggle-trigger {
         cursor: pointer;
-        transition: all 0.2s ease;
         touch-action: manipulation;
-        /* 防止快速點擊時畫面被放大 */
+        user-select: none
       }
 
       th.toggle-trigger:hover {
         color: var(--lol-hextech-blue);
-        background: rgba(10, 200, 185, 0.12);
-        text-shadow: 0 0 8px var(--lol-hextech-glow);
+        background: rgba(10, 200, 185, .12);
+        text-shadow: 0 0 8px var(--lol-hextech-glow)
       }
 
-      /* 可摺疊欄位樣式控制 (領1~5專用) */
-      .col-collapsible-r {
-        transition: all 0.3s ease;
-      }
-
-      .collapsed-r .col-collapsible-r {
-        display: none !important;
-      }
-
-      /* 可摺疊欄位樣式控制 (好友與電話專用) */
+      /* 重要：移除 all transition，避免 Safari 快速切換時累積 layout */
+      .col-collapsible-r,
       .col-collapsible-f {
-        transition: all 0.3s ease;
+        transition: none !important
       }
 
+      .collapsed-r .col-collapsible-r,
       .collapsed-f .col-collapsible-f {
-        display: none !important;
+        display: none !important
       }
 
       tbody tr:hover {
-        background: rgba(147, 51, 234, 0.08);
+        background: rgba(147, 51, 234, .08)
       }
 
       tbody tr.row-hidden {
-        display: none !important;
+        display: none !important
       }
 
       tbody tr.dragging {
-        opacity: 0.4;
-        background: rgba(10, 200, 185, 0.15) !important;
+        opacity: .4;
+        background: rgba(10, 200, 185, .15) !important
       }
 
       .action-buttons-group {
         display: flex;
         gap: 4px;
         justify-content: center;
-        align-items: center;
+        align-items: center
       }
 
       .drag-handle {
@@ -501,18 +458,12 @@
         border-radius: 2px;
         font-weight: bold;
         user-select: none;
-        touch-action: none;
-      }
-
-      .drag-handle:active {
-        cursor: grabbing;
-        border-color: var(--lol-hextech-blue);
-        color: var(--lol-hextech-blue);
+        touch-action: none
       }
 
       .cell-coin {
         color: #ffeb7b;
-        font-weight: bold;
+        font-weight: bold
       }
 
       .chk-container {
@@ -522,54 +473,54 @@
         justify-content: center;
         gap: 2px;
         width: 100%;
-        height: 100%;
+        height: 100%
       }
 
       @keyframes breathing {
         0% {
           box-shadow: 0 0 2px var(--lol-hextech-glow);
           border-color: var(--lol-gold-3);
-          transform: scale(1);
+          transform: scale(1)
         }
 
         50% {
           box-shadow: 0 0 12px var(--lol-hextech-blue);
           border-color: var(--lol-hextech-blue);
-          transform: scale(1.08);
+          transform: scale(1.08)
         }
 
         100% {
           box-shadow: 0 0 2px var(--lol-hextech-glow);
           border-color: var(--lol-gold-3);
-          transform: scale(1);
+          transform: scale(1)
         }
       }
 
-      input[type="checkbox"] {
+      input[type=checkbox] {
         appearance: none;
         -webkit-appearance: none;
         width: 16px;
         height: 16px;
         border: 1px solid var(--lol-gold-3);
-        background: rgba(5, 3, 10, 0.8);
+        background: rgba(5, 3, 10, .8);
         cursor: pointer;
         position: relative;
-        transition: all 0.2s ease;
+        transition: all .2s ease;
         border-radius: 2px;
-        flex-shrink: 0;
+        flex-shrink: 0
       }
 
-      input[type="checkbox"].breathing {
-        animation: breathing 1.8s infinite ease-in-out;
+      input[type=checkbox].breathing {
+        animation: breathing 1.8s infinite ease-in-out
       }
 
-      input[type="checkbox"]:checked {
+      input[type=checkbox]:checked {
         border-color: var(--lol-hextech-blue);
-        background: rgba(10, 200, 185, 0.2);
-        box-shadow: 0 0 8px var(--lol-hextech-glow);
+        background: rgba(10, 200, 185, .2);
+        box-shadow: 0 0 8px var(--lol-hextech-glow)
       }
 
-      input[type="checkbox"]:checked::after {
+      input[type=checkbox]:checked::after {
         content: '◆';
         font-size: 10px;
         color: var(--lol-hextech-blue);
@@ -577,7 +528,7 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        text-shadow: 0 0 5px var(--lol-hextech-blue);
+        text-shadow: 0 0 5px var(--lol-hextech-blue)
       }
 
       .timer-label {
@@ -585,26 +536,26 @@
         color: #888;
         font-family: monospace;
         letter-spacing: 1px;
-        line-height: 1;
+        line-height: 1
       }
 
       .countdown-running {
         color: var(--lol-red);
         font-weight: bold;
-        text-shadow: 0 0 6px rgba(232, 64, 87, 0.6);
+        text-shadow: 0 0 6px rgba(232, 64, 87, .6)
       }
 
       .countdown-done {
         color: var(--lol-hextech-blue);
         font-weight: bold;
-        text-shadow: 0 0 6px var(--lol-hextech-glow);
+        text-shadow: 0 0 6px var(--lol-hextech-glow)
       }
 
       .hide-control-header {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 4px;
+        gap: 4px
       }
 
       .btn-restore-all {
@@ -612,39 +563,33 @@
         font-size: 11px;
         border-color: var(--lol-gold-3);
         color: var(--lol-gold-2);
-        background: rgba(10, 8, 20, 0.9);
-      }
-
-      .btn-restore-all:hover {
-        border-color: var(--lol-hextech-blue);
-        color: var(--lol-hextech-blue);
+        background: rgba(10, 8, 20, .9)
       }
 
       .modal-overlay {
         position: fixed;
-        top: 0;
-        left: 0;
+        inset: 0;
         width: 100%;
         height: 100%;
-        background: rgba(5, 3, 10, 0.35);
+        background: rgba(5, 3, 10, .35);
         backdrop-filter: blur(2px);
         -webkit-backdrop-filter: blur(2px);
         display: none;
         justify-content: center;
         align-items: center;
-        z-index: 9999;
+        z-index: 9999
       }
 
       .modal-box {
-        background: rgba(18, 13, 33, 0.85);
+        background: rgba(18, 13, 33, .85);
         backdrop-filter: blur(4px);
         -webkit-backdrop-filter: blur(4px);
-        border: 1.5px solid rgba(200, 170, 110, 0.6);
+        border: 1.5px solid rgba(200, 170, 110, .6);
         border-radius: 6px;
         padding: 25px;
         width: 320px;
         text-align: center;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(147, 51, 234, 0.2);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, .6), inset 0 0 20px rgba(147, 51, 234, .2)
       }
 
       .modal-title {
@@ -652,42 +597,25 @@
         font-size: 18px;
         color: var(--lol-gold-1);
         margin-bottom: 15px;
-        letter-spacing: 1px;
-        text-shadow: 0 0 8px rgba(200, 170, 110, 0.4);
+        letter-spacing: 1px
       }
 
       .modal-content {
         font-size: 15px;
         color: var(--lol-gold-2);
         margin-bottom: 25px;
-        word-break: break-all;
+        word-break: break-all
       }
 
       .modal-buttons {
         display: flex;
         gap: 12px;
-        justify-content: center;
+        justify-content: center
       }
 
-      .modal-btn-cancel {
-        border-color: var(--lol-gold-3);
-        color: var(--lol-gold-2);
-        background: rgba(30, 23, 40, 0.5);
-        flex: 1;
-      }
-
+      .modal-btn-cancel,
       .modal-btn-confirm {
-        border-color: var(--lol-red);
-        color: #ff6b6b;
-        background: linear-gradient(180deg, rgba(56, 18, 22, 0.8) 0%, rgba(26, 8, 10, 0.8) 100%);
-        flex: 1;
-      }
-
-      .modal-btn-confirm:hover {
-        border-color: var(--lol-red);
-        color: #fff;
-        background: linear-gradient(180deg, #521a20 0%, #290d10 100%);
-        box-shadow: 0 0 10px rgba(232, 64, 87, 0.5);
+        flex: 1
       }
 
       #copyToast {
@@ -695,59 +623,75 @@
         bottom: 30px;
         left: 50%;
         transform: translateX(-50%) translateY(20px);
-        background: rgba(15, 11, 25, 0.95);
+        background: rgba(15, 11, 25, .95);
         color: var(--lol-gold-1);
         border: 1px solid var(--lol-gold-2);
         padding: 8px 16px;
         border-radius: 4px;
         font-weight: bold;
-        font-family: 'Cinzel', 'Noto Sans TC', serif;
-        letter-spacing: 1px;
-        box-shadow: 0 0 15px var(--lol-purple-glow), inset 0 0 8px rgba(200, 170, 110, 0.2);
         opacity: 0;
         pointer-events: none;
-        transition: all 0.3s ease;
+        transition: all .3s ease;
         z-index: 10000;
         text-align: center;
         max-width: 80vw;
         width: max-content;
         white-space: normal;
         word-break: break-word;
-        font-size: 13px;
+        font-size: 13px
       }
 
       #copyToast.show {
         opacity: 1;
-        transform: translateX(-50%) translateY(0);
+        transform: translateX(-50%) translateY(0)
       }
 
       .admin-only {
-        display: none !important;
+        display: none !important
       }
 
       .user-only {
-        display: table-cell;
+        display: table-cell
       }
 
-      @media (min-width: 576px) {
+      @supports (-webkit-touch-callout:none) {
+
+        html,
+        body {
+          width: 100%;
+          max-width: 100vw;
+          min-width: 0;
+          overflow-x: hidden !important
+        }
+
+        .table-responsive {
+          width: 100%;
+          max-width: 100vw;
+          min-width: 0;
+          overflow-x: auto !important;
+          overflow-y: visible
+        }
+      }
+
+      @media (min-width:576px) {
         .header-container {
           flex-direction: row;
           justify-content: space-between;
-          align-items: center;
+          align-items: center
         }
 
         h2 {
-          text-align: left;
+          text-align: left
         }
 
         .login-box {
           width: auto;
-          flex-direction: row;
+          flex-direction: row
         }
 
         .login-box input {
           width: 110px;
-          flex: none;
+          flex: none
         }
 
         .btn-add,
@@ -755,18 +699,17 @@
         .btn-reset,
         .btn-save,
         .btn-load {
-          flex: none;
+          flex: none
         }
 
         .user-status {
           width: auto;
-          justify-content: flex-start;
+          justify-content: flex-start
         }
       }
     </style>
   </head>
   <body>
-
     <div class="header-container">
       <h2>j808 管理控制台</h2>
       <div class="login-box" id="loginBox">
@@ -775,13 +718,9 @@
           <input type="password" id="customPass" placeholder="密碼">
           <button class="btn-login" onclick="handleLogin()">管理員登入</button>
         </div>
-        <div id="userInfo" class="user-status" style="display: none;">
-          <span>✦ 管理員權限已驗證</span>
-          <button onclick="handleLogout()" style="padding: 4px 10px; font-size: 12px;">登出</button>
-        </div>
+        <div id="userInfo" class="user-status" style="display:none"><span>✦ 管理員權限已驗證</span><button onclick="handleLogout()" style="padding:4px 10px;font-size:12px">登出</button></div>
       </div>
     </div>
-
     <div class="btn-container">
       <button class="btn-add admin-only" onclick="addRow()">+ 新增紀錄</button>
       <button class="btn-unlock admin-only" id="unlockBtn" onclick="toggleUnlock()">解除鎖定</button>
@@ -790,1029 +729,379 @@
       <button class="btn-load admin-only" onclick="confirmLoadFromGitHub()">讀取雲端 (GitHub)</button>
     </div>
 
-    <div class="table-responsive">
-      <table id="dataTable" class="collapsed-r collapsed-f">
-        <thead>
-          <tr>
-            <th>編號</th>
-            <th>等級</th>
-            <th class="toggle-trigger" onclick="toggleNameColumns(event)" title="點擊展開/收合 領1~5 欄位">名稱</th>
-            <th class="col-collapsible-r">領1</th>
-            <th class="col-collapsible-r">領2</th>
-            <th class="col-collapsible-r">領3</th>
-            <th class="col-collapsible-r">領4</th>
-            <th class="col-collapsible-r">領5</th>
-            <th class="toggle-trigger" onclick="toggleCoinColumns(event)" title="點擊展開/收合 好友與電話欄位">幣量</th>
-            <th class="col-collapsible-f">好友1</th>
-            <th class="col-collapsible-f">好友2</th>
-            <th class="col-collapsible-f">好友3</th>
-            <th class="col-collapsible-f">好友4</th>
-            <th class="col-collapsible-f">好友5</th>
-            <th class="col-collapsible-f col-phone-th">電話</th>
-            <th class="user-only">
-              <div class="hide-control-header">
-                <button class="btn-restore-all" onclick="restoreAllHiddenRows()">恢復</button>
-              </div>
-            </th>
-            <th class="admin-only">操作</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-      </table>
-    </div>
-
-    <!-- 自定義確認 UI 彈窗 (共用) -->
-    <div class="modal-overlay" id="confirmModal">
-      <div class="modal-box">
-        <div class="modal-title" id="modalTitle">確認刪除</div>
-        <div class="modal-content" id="modalText">確定要刪除「」嗎？</div>
-        <div class="modal-buttons">
-          <button class="modal-btn-cancel" onclick="closeConfirmModal()">取消</button>
-          <button class="modal-btn-confirm" id="modalConfirmBtn">刪除</button>
-        </div>
+    <div class="table-responsive" id="tableResponsive">
+      <div class="table-scroll-lock">
+        <table id="dataTable" class="collapsed-r collapsed-f">
+          <thead>
+            <tr>
+              <th>編號</th>
+              <th>等級</th>
+              <th class="toggle-trigger" onclick="toggleNameColumns(event)">名稱</th>
+              <th class="col-collapsible-r">領1</th>
+              <th class="col-collapsible-r">領2</th>
+              <th class="col-collapsible-r">領3</th>
+              <th class="col-collapsible-r">領4</th>
+              <th class="col-collapsible-r">領5</th>
+              <th class="toggle-trigger" onclick="toggleCoinColumns(event)">幣量</th>
+              <th class="col-collapsible-f">好友1</th>
+              <th class="col-collapsible-f">好友2</th>
+              <th class="col-collapsible-f">好友3</th>
+              <th class="col-collapsible-f">好友4</th>
+              <th class="col-collapsible-f">好友5</th>
+              <th class="col-collapsible-f col-phone-th">電話</th>
+              <th class="user-only">
+                <div class="hide-control-header"><button class="btn-restore-all" onclick="restoreAllHiddenRows()">恢復</button></div>
+              </th>
+              <th class="admin-only">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
       </div>
     </div>
 
-    <!-- 統一通用 Toast 提示元件 -->
+    <div class="modal-overlay" id="confirmModal">
+      <div class="modal-box">
+        <div class="modal-title" id="modalTitle">確認刪除</div>
+        <div class="modal-content" id="modalText">確定要刪除嗎？</div>
+        <div class="modal-buttons"><button class="modal-btn-cancel" onclick="closeConfirmModal()">取消</button><button class="modal-btn-confirm" id="modalConfirmBtn">刪除</button></div>
+      </div>
+    </div>
     <div id="copyToast">已複製內容</div>
 
     <script>
-      const T_PART1 = "2ajJg1LkRQh0Cz";
-      const T_PART2 = "twHr9WgAby6rM6";
-      const T_PART3 = "EY1ywTH9";
+      const T_PART1 = "2ajJg1LkRQh0Cz",
+        T_PART2 = "twHr9WgAby6rM6",
+        T_PART3 = "EY1ywTH9";
       const G_ID = "a3f8fa6f452b98b777440a5c0558c190";
-      const _0x112a = "ajgwOA=="; // "808"
-      const _0x889f = "ajEwMg=="; // "102"
-      let rowCounter = 0;
-      const timers = {};
-      const endTimes = {};
-      let isAdmin = false;
-      let isUnlocked = false;
-      let pendingDeleteId = null;
+      const _0x112a = "ajgwOA==",
+        _0x889f = "ajEwMg==";
+      let rowCounter = 0,
+        isAdmin = false,
+        isUnlocked = false,
+        pendingDeleteId = null;
+      const timers = {},
+        endTimes = {};
+      const LOCAL_STATE_KEY = 'j808_user_timers',
+        LOCAL_DATA_KEY = 'j808_local_table_data',
+        LOCAL_HIDDEN_KEY = 'j808_hidden_rows_state',
+        LOCAL_COL_R_STATE_KEY = 'j808_columns_collapsed_r',
+        LOCAL_COL_F_STATE_KEY = 'j808_columns_collapsed_f',
+        LOCAL_NAME_CHK_KEY = 'j808_name_checkbox_states';
+      let lastClickTime = 0,
+        columnToggleLock = false,
+        columnLayoutRaf = 0;
 
-      // 紀錄上一次點擊時間，用於阻止 iOS 雙擊放大
-      let lastClickTime = 0;
-      function preventDoubleTapZoom(event) {
-        const currentTime = new Date().getTime();
-        const tapLength = currentTime - lastClickTime;
-        if (tapLength < 300 && tapLength > 0) {
-          event.preventDefault();
-        }
-        lastClickTime = currentTime;
-      }
+      function preventDoubleTapZoom(e) { const n = Date.now(),
+          d = n - lastClickTime; if (d < 300 && d > 0) e.preventDefault();
+        lastClickTime = n }
 
-      // 安全清除所有計時器的輔助函式
-      function clearAllActiveTimers() {
-        for (const key in timers) {
-          if (timers[key] && timers[key].interval) {
-            clearInterval(timers[key].interval);
-          }
-        }
-        Object.keys(timers).forEach(key => delete timers[key]);
-        Object.keys(endTimes).forEach(key => delete endTimes[key]);
-      }
+      function debounce(fn, wait) { let t; return function(...a) { clearTimeout(t);
+          t = setTimeout(() => fn.apply(this, a), wait) } }
+      const debouncedSaveTableToLocal = debounce(saveTableToLocal, 400);
 
-      // 防抖工具函式
-      function debounce(func, wait) {
-        let timeout;
-        return function(...args) {
-          clearTimeout(timeout);
-          timeout = setTimeout(() => func.apply(this, args), wait);
-        };
-      }
-      const debouncedSaveTableToLocal = debounce(() => {
-        saveTableToLocal();
-      }, 400);
+      function _getD(s) { return atob(s) }
 
-      function _getD(str) { return atob(str); }
+      function _getK() { return "ghp_" + T_PART1 + T_PART2 + T_PART3 }
 
-      function _getK() { return "gh" + "p_" + T_PART1 + T_PART2 + T_PART3; }
-      const LOCAL_STATE_KEY = 'j808_user_timers';
-      const LOCAL_DATA_KEY = 'j808_local_table_data';
-      const LOCAL_HIDDEN_KEY = 'j808_hidden_rows_state';
-      const LOCAL_COL_R_STATE_KEY = 'j808_columns_collapsed_r';
-      const LOCAL_COL_F_STATE_KEY = 'j808_columns_collapsed_f';
-      const LOCAL_NAME_CHK_KEY = 'j808_name_checkbox_states';
+      function clearAllActiveTimers() { Object.values(timers).forEach(x => x && x.interval && clearInterval(x.interval));
+        Object.keys(timers).forEach(k => delete timers[k]);
+        Object.keys(endTimes).forEach(k => delete endTimes[k]) }
 
-      // 初始化表格欄位收合狀態（預設為 true / 隱藏）
+      function getLocalStates() { try { return JSON.parse(localStorage.getItem(LOCAL_STATE_KEY)) || {} } catch (e) { return {} } }
+
+      function saveLocalState(k, c, t) { const d = getLocalStates(); if (c) d[k] = { checked: true, endTime: t };
+        else delete d[k];
+        localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify(d)) }
+
+      function clearAllLocalTimers() { localStorage.removeItem(LOCAL_STATE_KEY) }
+
+      function getNameChkStates() { try { return JSON.parse(localStorage.getItem(LOCAL_NAME_CHK_KEY)) || {} } catch (e) { return {} } }
+
+      function saveNameChkState(uid, c) { const d = getNameChkStates(); if (c) d[uid] = true;
+        else delete d[uid];
+        localStorage.setItem(LOCAL_NAME_CHK_KEY, JSON.stringify(d)) }
+
+      function getHiddenRowsState() { try { return JSON.parse(localStorage.getItem(LOCAL_HIDDEN_KEY)) || {} } catch (e) { return {} } }
+
+      function saveHiddenRowState(uid, h) { const d = getHiddenRowsState(); if (h) d[uid] = true;
+        else delete d[uid];
+        localStorage.setItem(LOCAL_HIDDEN_KEY, JSON.stringify(d)) }
+
       function initColumnState() {
-        const table = document.getElementById('dataTable');
-        const isCollapsedR = localStorage.getItem(LOCAL_COL_R_STATE_KEY);
-        if (isCollapsedR === null || isCollapsedR === 'true') {
-          table.classList.add('collapsed-r');
-          localStorage.setItem(LOCAL_COL_R_STATE_KEY, 'true');
-        } else {
-          table.classList.remove('collapsed-r');
-        }
-        
-        const isCollapsedF = localStorage.getItem(LOCAL_COL_F_STATE_KEY);
-        if (isCollapsedF === null || isCollapsedF === 'true') {
-          table.classList.add('collapsed-f');
-          localStorage.setItem(LOCAL_COL_F_STATE_KEY, 'true');
-        } else {
-          table.classList.remove('collapsed-f');
-        }
+        const t = dataTable;
+        const r = localStorage.getItem(LOCAL_COL_R_STATE_KEY),
+          f = localStorage.getItem(LOCAL_COL_F_STATE_KEY);
+        t.classList.toggle('collapsed-r', r === null || r === 'true');
+        t.classList.toggle('collapsed-f', f === null || f === 'true');
+        if (r === null) localStorage.setItem(LOCAL_COL_R_STATE_KEY, 'true');
+        if (f === null) localStorage.setItem(LOCAL_COL_F_STATE_KEY, 'true');
       }
-
-      // 切換 領1~5 欄位收合狀態 (點擊名稱)
-      function toggleNameColumns(event) {
-        if (event) preventDoubleTapZoom(event);
-        const table = document.getElementById('dataTable');
-        const isCurrentlyCollapsed = table.classList.contains('collapsed-r');
-        if (isCurrentlyCollapsed) {
-          table.classList.remove('collapsed-r');
-          localStorage.setItem(LOCAL_COL_R_STATE_KEY, 'false');
-          showToast('已展開 領1~5 欄位');
-        } else {
-          table.classList.add('collapsed-r');
-          localStorage.setItem(LOCAL_COL_R_STATE_KEY, 'true');
-          showToast('已收合 領1~5 欄位');
-        }
-      }
-
-      // 切換 好友與電話 欄位收合狀態 (點擊幣量)
-      function toggleCoinColumns(event) {
-        if (event) preventDoubleTapZoom(event);
-        const table = document.getElementById('dataTable');
-        const isCurrentlyCollapsed = table.classList.contains('collapsed-f');
-        if (isCurrentlyCollapsed) {
-          table.classList.remove('collapsed-f');
-          localStorage.setItem(LOCAL_COL_F_STATE_KEY, 'false');
-          showToast('已展開好友與電話欄位');
-        } else {
-          table.classList.add('collapsed-f');
-          localStorage.setItem(LOCAL_COL_F_STATE_KEY, 'true');
-          showToast('已收合好友與電話欄位');
-        }
-      }
-
-      // 共用的 Modal 確認視窗函式
-      function showConfirmModal(title, text, confirmText, isDanger = false, onConfirm = () => {}) {
-        document.getElementById('modalTitle').innerText = title;
-        document.getElementById('modalText').innerText = text;
-        const confirmBtn = document.getElementById('modalConfirmBtn');
-        confirmBtn.innerText = confirmText;
-        confirmBtn.className = 'modal-btn-confirm';
-        if (isDanger) {
-          confirmBtn.removeAttribute('style');
-        } else {
-          confirmBtn.style.borderColor = 'var(--lol-hextech-blue)';
-          confirmBtn.style.color = 'var(--lol-hextech-blue)';
-          confirmBtn.style.background = 'linear-gradient(180deg, rgba(9, 40, 48, 0.9) 0%, rgba(3, 16, 21, 0.9) 100%)';
-        }
-        confirmBtn.onclick = function() {
-          onConfirm();
-          closeConfirmModal();
-        };
-        document.getElementById('confirmModal').style.display = 'flex';
-      }
-
-      function getLocalStates() {
-        try { return JSON.parse(localStorage.getItem(LOCAL_STATE_KEY)) || {}; } catch (e) { return {}; }
-      }
-
-      function saveLocalState(uniqueKey, checked, endTime) {
-        const data = getLocalStates();
-        if (checked) {
-          data[uniqueKey] = { checked: true, endTime: endTime };
-        } else {
-          delete data[uniqueKey];
-        }
-        localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify(data));
-      }
-
-      function clearAllLocalTimers() {
-        localStorage.removeItem(LOCAL_STATE_KEY);
-      }
-
-      function getNameChkStates() {
-        try { return JSON.parse(localStorage.getItem(LOCAL_NAME_CHK_KEY)) || {}; } catch (e) { return {}; }
-      }
-
-      function saveNameChkState(uid, checked) {
-        const data = getNameChkStates();
-        if (checked) {
-          data[uid] = true;
-        } else {
-          delete data[uid];
-        }
-        localStorage.setItem(LOCAL_NAME_CHK_KEY, JSON.stringify(data));
-      }
-
-      function getHiddenRowsState() {
-        try { return JSON.parse(localStorage.getItem(LOCAL_HIDDEN_KEY)) || {}; } catch (e) { return {}; }
-      }
-
-      function saveHiddenRowState(uid, isHidden) {
-        const data = getHiddenRowsState();
-        if (isHidden) {
-          data[uid] = true;
-        } else {
-          delete data[uid];
-        }
-        localStorage.setItem(LOCAL_HIDDEN_KEY, JSON.stringify(data));
-      }
-
-      function restoreAllHiddenRows() {
-        localStorage.removeItem(LOCAL_HIDDEN_KEY);
-        document.querySelectorAll('#tableBody tr').forEach(tr => {
-          tr.classList.remove('row-hidden');
-          const chkHide = tr.querySelector('.chk-hide-row');
-          if (chkHide) chkHide.checked = false;
+      /* 核心：切換時保留水平/垂直位置，並把 layout 更新限制在 requestAnimationFrame */
+      function performColumnToggle(cls, key, msg) {
+        if (columnToggleLock) return;
+        columnToggleLock = true;
+        const wrap = document.getElementById('tableResponsive'),
+          t = document.getElementById('dataTable');
+        const oldX = wrap.scrollLeft,
+          oldY = window.scrollY;
+        const collapsed = t.classList.contains(cls);
+        t.classList.toggle(cls, !collapsed);
+        localStorage.setItem(key, !collapsed ? 'true' : 'false');
+        if (columnLayoutRaf) cancelAnimationFrame(columnLayoutRaf);
+        columnLayoutRaf = requestAnimationFrame(() => {
+          const maxX = Math.max(0, wrap.scrollWidth - wrap.clientWidth);
+          wrap.scrollLeft = Math.min(oldX, maxX);
+          window.scrollTo(0, oldY);
+          columnLayoutRaf = requestAnimationFrame(() => {
+            const maxX2 = Math.max(0, wrap.scrollWidth - wrap.clientWidth);
+            if (Math.abs(wrap.scrollLeft - oldX) > 1) wrap.scrollLeft = Math.min(oldX, maxX2);
+            window.scrollTo(0, oldY);
+            columnToggleLock = false;
+            columnLayoutRaf = 0;
+          });
         });
-        showToast('已全部恢復顯示');
+        showToast(msg);
       }
 
-      function saveTableToLocal() {
-        const tableData = getTableData();
-        if (tableData.length === 0) {
-          localStorage.removeItem(LOCAL_DATA_KEY);
-        } else {
-          localStorage.setItem(LOCAL_DATA_KEY, JSON.stringify(tableData));
-        }
+      function toggleNameColumns(e) { if (e) { e.preventDefault();
+          preventDoubleTapZoom(e) } const t = dataTable;
+        performColumnToggle('collapsed-r', LOCAL_COL_R_STATE_KEY, t.classList.contains('collapsed-r') ? '已展開 領1~5 欄位' : '已收合 領1~5 欄位') }
+
+      function toggleCoinColumns(e) { if (e) { e.preventDefault();
+          preventDoubleTapZoom(e) } const t = dataTable;
+        performColumnToggle('collapsed-f', LOCAL_COL_F_STATE_KEY, t.classList.contains('collapsed-f') ? '已展開好友與電話欄位' : '已收合好友與電話欄位') }
+
+      function showConfirmModal(title, text, confirmText, isDanger = false, onConfirm = () => {}) {
+        modalTitle.innerText = title;
+        modalText.innerText = text;
+        const b = modalConfirmBtn;
+        b.innerText = confirmText;
+        b.className = 'modal-btn-confirm';
+        if (!isDanger) { b.style.borderColor = 'var(--lol-hextech-blue)';
+          b.style.color = 'var(--lol-hextech-blue)';
+          b.style.background = 'linear-gradient(180deg,rgba(9,40,48,.9) 0%,rgba(3,16,21,.9) 100%)' } else b.removeAttribute('style');
+        b.onclick = () => { onConfirm();
+          closeConfirmModal() };
+        confirmModal.style.display = 'flex'
       }
+
+      function closeConfirmModal() { confirmModal.style.display = 'none';
+        pendingDeleteId = null }
       let toastTimer = null;
 
-      function showToast(message) {
-        const toast = document.getElementById('copyToast');
-        toast.innerText = message;
-        toast.classList.add('show');
-        if (toastTimer) {
-          clearTimeout(toastTimer);
-        }
-        toastTimer = setTimeout(() => {
-          toast.classList.remove('show');
-        }, 1800);
-      }
+      function showToast(m) { copyToast.innerText = m;
+        copyToast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => copyToast.classList.remove('show'), 1800) }
 
-      // DOM Loaded 初始化
+      function saveTableToLocal() { const d = getTableData(); if (!d.length) localStorage.removeItem(LOCAL_DATA_KEY);
+        else localStorage.setItem(LOCAL_DATA_KEY, JSON.stringify(d)) }
+
+      function restoreAllHiddenRows() { localStorage.removeItem(LOCAL_HIDDEN_KEY);
+        document.querySelectorAll('#tableBody tr').forEach(r => { r.classList.remove('row-hidden'); const c = r.querySelector('.chk-hide-row'); if (c) c.checked = false });
+        showToast('已全部恢復顯示') }
       window.addEventListener('DOMContentLoaded', () => {
         initColumnState();
-        if (localStorage.getItem('j808_is_admin') === 'true') {
-          setAdminMode(true);
-        }
-        try {
-          const localSavedData = localStorage.getItem(LOCAL_DATA_KEY);
-          if (localSavedData !== null) {
-            const data = JSON.parse(localSavedData);
-            document.getElementById('tableBody').innerHTML = '';
-            rowCounter = 0;
-            if (data && data.length > 0) {
-              data.forEach(item => addRow(item, true));
-              rowCounter = data.length;
-            }
-          }
-        } catch (e) {
-          console.error("載入本地暫存失敗", e);
-        }
+        if (localStorage.getItem('j808_is_admin') === 'true') setAdminMode(true);
+        reloadTableFromLocal();
       });
-
-      // 跨分頁同步監聽
-      window.addEventListener('storage', (e) => {
-        if ([LOCAL_STATE_KEY, LOCAL_DATA_KEY, LOCAL_NAME_CHK_KEY, LOCAL_HIDDEN_KEY].includes(e.key)) {
-          const localSavedData = localStorage.getItem(LOCAL_DATA_KEY);
-          if (localSavedData !== null) {
-            try {
-              const data = JSON.parse(localSavedData);
-              const tbody = document.getElementById('tableBody');
-              if (tbody) {
-                tbody.innerHTML = '';
-                rowCounter = 0;
-                if (data && data.length > 0) {
-                  data.forEach(item => addRow(item, true));
-                }
-              }
-            } catch (err) {
-              console.error("跨分頁同步載入失敗", err);
-            }
-          }
-        }
+      window.addEventListener('storage', e => {
+        if ([LOCAL_STATE_KEY, LOCAL_DATA_KEY, LOCAL_NAME_CHK_KEY, LOCAL_HIDDEN_KEY].includes(e.key)) reloadTableFromLocal();
       });
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) document.querySelectorAll('.chk-receive:checked').forEach(c => { const k = `${c.dataset.uid}_${c.dataset.idx}`; if (endTimes[k]) initTimerWithEndTime(c, endTimes[k]) }) });
 
-      // 切換回分頁時自動校正倒數計時
-      document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) {
-          document.querySelectorAll('.chk-receive:checked').forEach(chk => {
-            const uid = chk.getAttribute('data-uid');
-            const idx = chk.getAttribute('data-idx');
-            const uniqueKey = `${uid}_${idx}`;
-            if (endTimes[uniqueKey]) {
-              initTimerWithEndTime(chk, endTimes[uniqueKey]);
-            }
-          });
-        }
-      });
-
-      function handleLogin() {
-        const userIn = document.getElementById('customUser').value;
-        const passIn = document.getElementById('customPass').value;
-        if (userIn === _getD(_0x112a) && passIn === _getD(_0x889f)) {
-          localStorage.setItem('j808_is_admin', 'true');
+      function handleLogin() { if (customUser.value === _getD(_0x112a) && customPass.value === _getD(_0x889f)) { localStorage.setItem('j808_is_admin', 'true');
           setAdminMode(true);
           reloadTableFromLocal();
-          showToast('管理員登入成功');
-        } else {
-          showToast('帳號或密碼錯誤！');
-        }
-      }
+          showToast('管理員登入成功') } else showToast('帳號或密碼錯誤！') }
 
-      function handleLogout() {
-        localStorage.removeItem('j808_is_admin');
+      function handleLogout() { localStorage.removeItem('j808_is_admin');
         setAdminMode(false);
         reloadTableFromLocal();
-        showToast('已登出管理員');
-      }
+        showToast('已登出管理員') }
 
-      function reloadTableFromLocal() {
-        try {
-          clearAllActiveTimers();
-          const localSavedData = localStorage.getItem(LOCAL_DATA_KEY);
-          document.getElementById('tableBody').innerHTML = '';
-          rowCounter = 0;
-          if (localSavedData) {
-            const data = JSON.parse(localSavedData);
-            if (data && data.length > 0) {
-              data.forEach(item => addRow(item, true));
-              rowCounter = data.length;
-            }
-          }
-        } catch (e) {
-          console.error("重新渲染表格失敗", e);
-        }
-      }
+      function reloadTableFromLocal() { try { clearAllActiveTimers();
+          tableBody.innerHTML = '';
+          rowCounter = 0; const s = localStorage.getItem(LOCAL_DATA_KEY); if (s) { const d = JSON.parse(s); if (Array.isArray(d)) d.forEach(x => addRow(x, true)) } } catch (e) { console.error(e) } }
 
-      function setAdminMode(status) {
-        isAdmin = status;
+      function setAdminMode(s) { isAdmin = s;
         isUnlocked = false;
         updateUnlockUI();
-        const adminElements = document.querySelectorAll('.admin-only');
-        const userElements = document.querySelectorAll('.user-only');
-        if (isAdmin) {
-          document.getElementById('loginForm').style.setProperty('display', 'none', 'important');
-          document.getElementById('userInfo').style.setProperty('display', 'flex', 'important');
-          adminElements.forEach(el => el.style.setProperty('display', 'block', 'important'));
-          userElements.forEach(el => el.style.setProperty('display', 'none', 'important'));
-          const thOps = document.querySelectorAll('th.admin-only');
-          thOps.forEach(th => th.style.setProperty('display', 'table-cell', 'important'));
-        } else {
-          document.getElementById('loginForm').style.setProperty('display', 'flex', 'important');
-          document.getElementById('userInfo').style.setProperty('display', 'none', 'important');
-          document.getElementById('customUser').value = '';
-          document.getElementById('customPass').value = '';
-          adminElements.forEach(el => el.style.setProperty('display', 'none', 'important'));
-          userElements.forEach(el => el.style.setProperty('display', 'table-cell', 'important'));
-        }
-        updateInputsState();
-      }
+        document.querySelectorAll('.admin-only').forEach(x => x.style.setProperty('display', s ? 'block' : 'none', 'important'));
+        document.querySelectorAll('.user-only').forEach(x => x.style.setProperty('display', s ? 'none' : 'table-cell', 'important'));
+        document.querySelectorAll('th.admin-only').forEach(x => x.style.setProperty('display', s ? 'table-cell' : 'none', 'important'));
+        loginForm.style.setProperty('display', s ? 'none' : 'flex', 'important');
+        userInfo.style.setProperty('display', s ? 'flex' : 'none', 'important'); if (!s) { customUser.value = '';
+          customPass.value = '' } updateInputsState() }
 
-      function toggleUnlock() {
-        if (!isAdmin) return;
+      function toggleUnlock() { if (!isAdmin) return;
         isUnlocked = !isUnlocked;
         updateUnlockUI();
-        updateInputsState();
-      }
+        updateInputsState() }
 
-      function updateUnlockUI() {
-        const unlockBtn = document.getElementById('unlockBtn');
-        if (isUnlocked) {
-          unlockBtn.innerText = "已解除鎖定";
-          unlockBtn.classList.add('unlocked');
-        } else {
-          unlockBtn.innerText = "解除鎖定";
-          unlockBtn.classList.remove('unlocked');
-        }
-      }
+      function updateUnlockUI() { unlockBtn.innerText = isUnlocked ? '已解除鎖定' : '解除鎖定';
+        unlockBtn.classList.toggle('unlocked', isUnlocked) }
 
-      function updateInputsState() {
-        const inputs = document.querySelectorAll('#tableBody input[type="text"]');
-        const shouldReadOnly = !(isAdmin && isUnlocked);
-        inputs.forEach(input => {
-          input.readOnly = shouldReadOnly;
-        });
-      }
+      function updateInputsState() { document.querySelectorAll('#tableBody input[type=text]').forEach(i => i.readOnly = !(isAdmin && isUnlocked)) }
 
       function addRow(data = {}, isInitializing = false) {
         rowCounter++;
-        const uid = data.uid || ('row_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7));
-        const currentId = rowCounter;
-        const tbody = document.getElementById('tableBody');
-        const tr = document.createElement('tr');
-        tr.id = `row-${currentId}`;
+        const uid = data.uid || ('row_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7)),
+          tr = document.createElement('tr');
+        tr.id = 'row-' + rowCounter;
         tr.dataset.uid = uid;
-        tr.setAttribute('draggable', 'false');
-        const hiddenStates = getHiddenRowsState();
-        const isRowHidden = !!hiddenStates[uid];
-        if (isRowHidden) {
-          tr.classList.add('row-hidden');
-        }
-        const localStates = getLocalStates();
-        let receiveColsHtml = '';
-        for (let i = 1; i <= 5; i++) {
-          const uniqueKey = `${uid}_${i}`;
-          const local = localStates[uniqueKey];
-          let isChecked = false;
-          if (local !== undefined) {
-            isChecked = local.checked;
-          } else {
-            isChecked = !!data[`r${i}`];
-          }
-          const chkAttribute = isChecked ? 'checked' : '';
-          receiveColsHtml += `
-            <td class="col-collapsible-r">
-                <div class="chk-container">
-                    <input type="checkbox" class="chk-receive" data-uid="${uid}" data-idx="${i}" ${chkAttribute} onchange="toggleTimer(this, true)">
-                    <div class="timer-label" id="timer-${uid}-${i}">00:00</div>
-                </div>
-            </td>
-          `;
-        }
-        
-        const nameChkStates = getNameChkStates();
-        let isNameChkChecked = false;
-        if (nameChkStates[uid] !== undefined) {
-          isNameChkChecked = nameChkStates[uid];
-        } else {
-          isNameChkChecked = !!data.nameChk;
-        }
-        const nameChkAttr = isNameChkChecked ? 'checked' : '';
-        const isReadOnly = (isAdmin && isUnlocked) ? '' : 'readonly';
-        const hideChkChecked = isRowHidden ? 'checked' : '';
-        const userCellHtml = `
-            <td class="user-only" style="${isAdmin ? 'display:none !important;' : ''}">
-                <div class="chk-container">
-                    <input type="checkbox" class="chk-hide-row" data-uid="${uid}" ${hideChkChecked} onchange="toggleHideRow(this)">
-                </div>
-            </td>
-        `;
-        const actionHtml = isAdmin ? `
-            <td>
-                <div class="action-buttons-group">
-                    <button onclick="confirmDelete('${uid}')" style="color:var(--lol-red); border-color:var(--lol-red); padding: 4px 10px;">刪除</button>
-                    <span class="drag-handle" title="按住拖曳排序">≡</span>
-                </div>
-            </td>
-        ` : `<td class="admin-only"></td>`;
-        tr.innerHTML = `
-            <td><input type="text" class="cell-no" value="${data.no || currentId}" ${isReadOnly}></td>
-            <td><input type="text" class="cell-level" value="${data.level || ''}" ${isReadOnly}></td>
-            <td>
-              <div class="name-cell-container">
-                <input type="checkbox" class="chk-name-prefix" data-uid="${uid}" ${nameChkAttr} onchange="saveNameCheckboxState(this)">
-                <input type="text" class="cell-name" value="${data.name || ''}" ${isReadOnly}>
-              </div>
-            </td>
-            ${receiveColsHtml}
-            <td><input type="text" class="cell-coin" value="${data.coin || ''}" ${isReadOnly}></td>
-            <td class="col-collapsible-f"><input type="text" class="cell-f1" value="${data.f1 || ''}" ${isReadOnly}></td>
-            <td class="col-collapsible-f"><input type="text" class="cell-f2" value="${data.f2 || ''}" ${isReadOnly}></td>
-            <td class="col-collapsible-f"><input type="text" class="cell-f3" value="${data.f3 || ''}" ${isReadOnly}></td>
-            <td class="col-collapsible-f"><input type="text" class="cell-f4" value="${data.f4 || ''}" ${isReadOnly}></td>
-            <td class="col-collapsible-f"><input type="text" class="cell-f5" value="${data.f5 || ''}" ${isReadOnly}></td>
-            <td class="col-collapsible-f col-phone-td"><input type="text" class="cell-phone" value="${data.phone || ''}" ${isReadOnly}></td>
-            ${userCellHtml}
-            ${actionHtml}
-        `;
-        tbody.appendChild(tr);
+        const hidden = getHiddenRowsState();
+        if (hidden[uid]) tr.classList.add('row-hidden');
+        const states = getLocalStates();
+        let rhtml = '';
+        for (let i = 1; i <= 5; i++) { const k = `${uid}_${i}`,
+            l = states[k],
+            checked = l !== undefined ? l.checked : !!data[`r${i}`];
+          rhtml += `<td class="col-collapsible-r"><div class="chk-container"><input type="checkbox" class="chk-receive" data-uid="${uid}" data-idx="${i}" ${checked?'checked':''} onchange="toggleTimer(this)"><div class="timer-label" id="timer-${uid}-${i}">00:00</div></div></td>` }
+        const ns = getNameChkStates(),
+          nameChecked = ns[uid] !== undefined ? ns[uid] : !!data.nameChk,
+          ro = isAdmin && isUnlocked ? '' : 'readonly';
+        const user = `<td class="user-only" style="${isAdmin?'display:none!important':''}"><div class="chk-container"><input type="checkbox" class="chk-hide-row" data-uid="${uid}" ${hidden[uid]?'checked':''} onchange="toggleHideRow(this)"></div></td>`;
+        const action = isAdmin ? `<td><div class="action-buttons-group"><button onclick="confirmDelete('${uid}')" style="color:var(--lol-red);border-color:var(--lol-red);padding:4px 10px">刪除</button><span class="drag-handle">≡</span></div></td>` : `<td class="admin-only"></td>`;
+        tr.innerHTML = `<td><input type="text" class="cell-no" value="${data.no||rowCounter}" ${ro}></td><td><input type="text" class="cell-level" value="${data.level||''}" ${ro}></td><td><div class="name-cell-container"><input type="checkbox" class="chk-name-prefix" data-uid="${uid}" ${nameChecked?'checked':''} onchange="saveNameCheckboxState(this)"><input type="text" class="cell-name" value="${data.name||''}" ${ro}></div></td>${rhtml}<td><input type="text" class="cell-coin" value="${data.coin||''}" ${ro}></td><td class="col-collapsible-f"><input type="text" class="cell-f1" value="${data.f1||''}" ${ro}></td><td class="col-collapsible-f"><input type="text" class="cell-f2" value="${data.f2||''}" ${ro}></td><td class="col-collapsible-f"><input type="text" class="cell-f3" value="${data.f3||''}" ${ro}></td><td class="col-collapsible-f"><input type="text" class="cell-f4" value="${data.f4||''}" ${ro}></td><td class="col-collapsible-f"><input type="text" class="cell-f5" value="${data.f5||''}" ${ro}></td><td class="col-collapsible-f col-phone-td"><input type="text" class="cell-phone" value="${data.phone||''}" ${ro}></td>${user}${action}`;
+        tableBody.appendChild(tr);
         const handle = tr.querySelector('.drag-handle');
-        if (handle) {
-          bindDragAndDropEvents(tr, handle);
-        }
-        const inputs = tr.querySelectorAll('input[type="text"]');
-        inputs.forEach(input => {
-          input.addEventListener('input', function() {
-            debouncedSaveTableToLocal();
-          });
-          input.addEventListener('click', function() {
-            if (this.readOnly) {
-              const textToCopy = this.value ? this.value.trim() : '';
-              if (!textToCopy) return;
-              if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(textToCopy).then(() => {
-                  showToast(`已複製：${textToCopy}`);
-                }).catch(() => {
-                  fallbackCopyText(textToCopy);
-                });
-              } else {
-                fallbackCopyText(textToCopy);
-              }
-            }
-          });
-        });
-        for (let i = 1; i <= 5; i++) {
-          const uniqueKey = `${uid}_${i}`;
-          const chk = tr.querySelector(`.chk-receive[data-idx="${i}"]`);
-          const local = localStates[uniqueKey];
-          let targetEndTime = (local && local.endTime) ? local.endTime : data[`r${i}_time`];
-          if (chk.checked) {
-            if (targetEndTime) {
-              endTimes[uniqueKey] = targetEndTime;
-              initTimerWithEndTime(chk, targetEndTime);
-            } else {
-              const defaultEndTime = Date.now() + 600 * 1000;
-              endTimes[uniqueKey] = defaultEndTime;
-              saveLocalState(uniqueKey, true, defaultEndTime);
-              initTimerWithEndTime(chk, defaultEndTime);
-            }
-          }
-        }
-        if (!isInitializing) {
-          saveTableToLocal();
-        }
+        if (handle) bindDragAndDropEvents(tr, handle);
+        tr.querySelectorAll('input[type=text]').forEach(i => { i.addEventListener('input', debouncedSaveTableToLocal);
+          i.addEventListener('click', () => { if (i.readOnly && i.value) fallbackCopyText(i.value.trim()) }) });
+        for (let i = 1; i <= 5; i++) { const k = `${uid}_${i}`,
+            c = tr.querySelector(`.chk-receive[data-idx="${i}"]`),
+            l = states[k],
+            end = l?.endTime || data[`r${i}_time`]; if (c.checked) initTimerWithEndTime(c, end || Date.now() + 600000) }
+        if (!isInitializing) saveTableToLocal()
       }
 
-      function saveNameCheckboxState(checkbox) {
-        const uid = checkbox.getAttribute('data-uid');
-        saveNameChkState(uid, checkbox.checked);
-        saveTableToLocal();
-      }
+      function saveNameCheckboxState(c) { saveNameChkState(c.dataset.uid, c.checked);
+        saveTableToLocal() }
 
-      function toggleHideRow(checkbox) {
-        const uid = checkbox.getAttribute('data-uid');
-        const tr = document.querySelector(`tr[data-uid="${uid}"]`);
-        if (!tr) return;
-        if (checkbox.checked) {
-          tr.classList.add('row-hidden');
-          saveHiddenRowState(uid, true);
-        } else {
-          tr.classList.remove('row-hidden');
-          saveHiddenRowState(uid, false);
-        }
-      }
+      function toggleHideRow(c) { const r = document.querySelector(`tr[data-uid="${c.dataset.uid}"]`); if (!r) return;
+        r.classList.toggle('row-hidden', c.checked);
+        saveHiddenRowState(c.dataset.uid, c.checked) }
 
-      function bindDragAndDropEvents(tr, handle) {
-        let isDragging = false;
-        let currentTargetRow = null;
-        let rafId = null;
-        let touchRafId = null;
-        handle.addEventListener('mousedown', (e) => {
-          if (!isAdmin) return;
-          isDragging = true;
-          currentTargetRow = tr;
+      function bindDragAndDropEvents(tr, h) {
+        let dragging = false,
+          raf = 0;
+        h.addEventListener('mousedown', e => { if (!isAdmin) return;
+          dragging = true;
           tr.classList.add('dragging');
           e.preventDefault();
-          document.addEventListener('mousemove', onMouseMove);
-          document.addEventListener('mouseup', onMouseUp);
-          document.addEventListener('mouseleave', onMouseUp);
-        });
+          document.addEventListener('mousemove', move);
+          document.addEventListener('mouseup', up) });
 
-        function onMouseMove(e) {
-          if (!isDragging) return;
-          if (rafId) {
-            cancelAnimationFrame(rafId);
-          }
-          rafId = requestAnimationFrame(() => {
-            const tbody = document.getElementById('tableBody');
-            const rows = Array.from(tbody.querySelectorAll('tr'));
-            const mouseY = e.clientY;
-            let targetRow = null;
-            for (let r of rows) {
-              const rect = r.getBoundingClientRect();
-              if (mouseY >= rect.top && mouseY <= rect.bottom) {
-                targetRow = r;
-                break;
-              }
-            }
-            if (targetRow && targetRow !== currentTargetRow) {
-              const rect = targetRow.getBoundingClientRect();
-              const midpoint = rect.top + rect.height / 2;
-              if (mouseY < midpoint) {
-                tbody.insertBefore(currentTargetRow, targetRow);
-              } else {
-                tbody.insertBefore(currentTargetRow, targetRow.nextSibling);
-              }
-            }
-          });
-        }
+        function move(e) { if (!dragging) return;
+          cancelAnimationFrame(raf);
+          raf = requestAnimationFrame(() => { const rows = [...tableBody.querySelectorAll('tr')],
+              target = rows.find(r => { const b = r.getBoundingClientRect(); return e.clientY >= b.top && e.clientY <= b.bottom }); if (target && target !== tr) { const b = target.getBoundingClientRect();
+              tableBody.insertBefore(tr, e.clientY < b.top + b.height / 2 ? target : target.nextSibling) } }) }
 
-        function onMouseUp() {
-          if (!isDragging) return;
-          isDragging = false;
-          if (rafId) {
-            cancelAnimationFrame(rafId);
-            rafId = null;
-          }
-          if (currentTargetRow) {
-            currentTargetRow.classList.remove('dragging');
-          }
-          document.removeEventListener('mousemove', onMouseMove);
-          document.removeEventListener('mouseup', onMouseUp);
-          document.removeEventListener('mouseleave', onMouseUp);
+        function up() { if (!dragging) return;
+          dragging = false;
+          cancelAnimationFrame(raf);
+          tr.classList.remove('dragging');
+          document.removeEventListener('mousemove', move);
+          document.removeEventListener('mouseup', up);
           saveTableToLocal();
-          showToast('排序已更新');
-        }
-
-        handle.addEventListener('touchstart', () => {
-          if (!isAdmin) return;
-          isDragging = true;
-          currentTargetRow = tr;
-          tr.classList.add('dragging');
-        }, { passive: false });
-
-        handle.addEventListener('touchmove', (e) => {
-          if (!isDragging) return;
-          e.preventDefault();
-          if (touchRafId) {
-            cancelAnimationFrame(touchRafId);
-          }
-          touchRafId = requestAnimationFrame(() => {
-            const tbody = document.getElementById('tableBody');
-            const rows = Array.from(tbody.querySelectorAll('tr'));
-            const touchY = e.touches[0].clientY;
-            let targetRow = null;
-            for (let r of rows) {
-              const rect = r.getBoundingClientRect();
-              if (touchY >= rect.top && touchY <= rect.bottom) {
-                targetRow = r;
-                break;
-              }
-            }
-            if (targetRow && targetRow !== currentTargetRow) {
-              const rect = targetRow.getBoundingClientRect();
-              const midpoint = rect.top + rect.height / 2;
-              if (touchY < midpoint) {
-                tbody.insertBefore(currentTargetRow, targetRow);
-              } else {
-                tbody.insertBefore(currentTargetRow, targetRow.nextSibling);
-              }
-            }
-          });
-        }, { passive: false });
-
-        handle.addEventListener('touchend', () => {
-          if (!isDragging) return;
-          isDragging = false;
-          if (touchRafId) {
-            cancelAnimationFrame(touchRafId);
-            touchRafId = null;
-          }
-          if (currentTargetRow) {
-            currentTargetRow.classList.remove('dragging');
-          }
-          saveTableToLocal();
-          showToast('排序已更新');
-        });
+          showToast('排序已更新') }
+        h.addEventListener('touchstart', () => { if (isAdmin) { dragging = true;
+            tr.classList.add('dragging') } }, { passive: true });
+        h.addEventListener('touchmove', e => { if (!dragging) return;
+          e.preventDefault(); const y = e.touches[0].clientY;
+          cancelAnimationFrame(raf);
+          raf = requestAnimationFrame(() => { const target = [...tableBody.querySelectorAll('tr')].find(r => { const b = r.getBoundingClientRect(); return y >= b.top && y <= b.bottom }); if (target && target !== tr) { const b = target.getBoundingClientRect();
+              tableBody.insertBefore(tr, y < b.top + b.height / 2 ? target : target.nextSibling) } }) }, { passive: false });
+        h.addEventListener('touchend', up)
       }
-
       let sharedTextarea = null;
-      async function fallbackCopyText(text) {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          try {
-            await navigator.clipboard.writeText(text);
-            showToast(`已複製：${text}`);
-            return;
-          } catch (err) {
-            console.warn('現代 API 複製失敗，切換至傳統備援模式', err);
-          }
-        }
-        try {
-          if (!sharedTextarea) {
-            sharedTextarea = document.createElement('textarea');
-            sharedTextarea.style.position = 'fixed';
-            sharedTextarea.style.opacity = '0';
-            sharedTextarea.style.pointerEvents = 'none';
-            document.body.appendChild(sharedTextarea);
-          }
-          sharedTextarea.value = text;
+      async function fallbackCopyText(t) { try { await navigator.clipboard.writeText(t);
+          showToast(`已複製：${t}`); return } catch (e) {} try { if (!sharedTextarea) { sharedTextarea = document.createElement('textarea');
+            sharedTextarea.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+            document.body.appendChild(sharedTextarea) } sharedTextarea.value = t;
           sharedTextarea.focus();
           sharedTextarea.select();
-          const successful = document.execCommand('copy');
-          if (successful) {
-            showToast(`已複製：${text}`);
-          } else {
-            showToast('複製失敗，請手動複製');
-          }
-        } catch (err) {
-          console.error('備援複製發生錯誤', err);
-          showToast('複製失敗，請手動複製');
-        }
-      }
+          document.execCommand('copy');
+          showToast(`已複製：${t}`) } catch (e) { showToast('複製失敗，請手動複製') } }
 
-      function initTimerWithEndTime(checkbox, endTime) {
-        const uid = checkbox.getAttribute('data-uid');
-        const idx = checkbox.getAttribute('data-idx');
-        const uniqueKey = `${uid}_${idx}`;
-        const label = document.getElementById(`timer-${uid}-${idx}`);
-        if (!label) return;
-        if (timers[uniqueKey]) {
-          clearInterval(timers[uniqueKey].interval);
-          delete timers[uniqueKey];
-        }
-        label.classList.remove('countdown-running', 'countdown-done');
-        checkbox.classList.remove('breathing');
-        const now = Date.now();
-        let remainingSeconds = Math.floor((endTime - now) / 1000);
-        if (remainingSeconds <= 0) {
-          label.innerText = "00:00";
-          label.classList.add('countdown-done');
-          return;
-        }
-        label.classList.add('countdown-running');
-        checkbox.classList.add('breathing');
-        const updateDisplay = (secs) => {
-          const mins = String(Math.floor(secs / 60)).padStart(2, '0');
-          const s = String(secs % 60).padStart(2, '0');
-          label.innerText = `${mins}:${s}`;
-        };
-        updateDisplay(remainingSeconds);
-        const interval = setInterval(() => {
-          const currentRemaining = Math.floor((endTime - Date.now()) / 1000);
-          if (currentRemaining <= 0) {
-            clearInterval(interval);
-            label.innerText = "00:00";
-            label.classList.remove('countdown-running');
-            label.classList.add('countdown-done');
-            checkbox.classList.remove('breathing');
-            delete timers[uniqueKey];
-          } else {
-            updateDisplay(currentRemaining);
-          }
-        }, 1000);
-        timers[uniqueKey] = { interval: interval };
-      }
+      function initTimerWithEndTime(c, end) { const k = `${c.dataset.uid}_${c.dataset.idx}`,
+          label = document.getElementById(`timer-${c.dataset.uid}-${c.dataset.idx}`); if (!label) return; if (timers[k]) clearInterval(timers[k].interval); if (!end) { label.innerText = '00:00'; return } const update = () => { const s = Math.floor((end - Date.now()) / 1000); if (s <= 0) { clearInterval(timers[k]);
+            delete timers[k];
+            label.innerText = '00:00';
+            label.className = 'timer-label countdown-done';
+            c.classList.remove('breathing') } else { label.className = 'timer-label countdown-running';
+            label.innerText = `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+            c.classList.add('breathing') } };
+        update();
+        timers[k] = { interval: setInterval(update, 1000) };
+        endTimes[k] = end }
 
-      function toggleTimer(checkbox) {
-        const uid = checkbox.getAttribute('data-uid');
-        const idx = checkbox.getAttribute('data-idx');
-        const uniqueKey = `${uid}_${idx}`;
-        const label = document.getElementById(`timer-${uid}-${idx}`);
-        if (checkbox.checked) {
-          const endTime = Date.now() + 600 * 1000;
-          endTimes[uniqueKey] = endTime;
-          saveLocalState(uniqueKey, true, endTime);
-          initTimerWithEndTime(checkbox, endTime);
-        } else {
-          if (timers[uniqueKey]) {
-            clearInterval(timers[uniqueKey].interval);
-            delete timers[uniqueKey];
-          }
-          label.classList.remove('countdown-running', 'countdown-done');
-          checkbox.classList.remove('breathing');
-          label.innerText = "00:00";
-          delete endTimes[uniqueKey];
-          saveLocalState(uniqueKey, false, 0);
-        }
+      function toggleTimer(c) { const k = `${c.dataset.uid}_${c.dataset.idx}`,
+          label = document.getElementById(`timer-${c.dataset.uid}-${c.dataset.idx}`); if (c.checked) { const end = Date.now() + 600000;
+          saveLocalState(k, true, end);
+          initTimerWithEndTime(c, end) } else { if (timers[k]) clearInterval(timers[k].interval);
+          delete timers[k];
+          delete endTimes[k];
+          label.innerText = '00:00';
+          label.className = 'timer-label';
+          c.classList.remove('breathing');
+          saveLocalState(k, false, 0) } saveTableToLocal() }
+
+      function confirmDelete(uid) { if (!isAdmin) return;
+        pendingDeleteId = uid; const r = document.querySelector(`tr[data-uid="${uid}"]`),
+          n = r?.querySelector('.cell-name')?.value.trim();
+        showConfirmModal('確認刪除', `確定要刪除 ${n?'「'+n+'」':'此筆紀錄'} 嗎？`, '刪除', true, () => executeDelete(uid)) }
+
+      function executeDelete(uid) { const r = document.querySelector(`tr[data-uid="${uid}"]`); if (!r) return; for (let i = 1; i <= 5; i++) { const k = `${uid}_${i}`; if (timers[k]) clearInterval(timers[k].interval);
+          delete timers[k];
+          delete endTimes[k];
+          saveLocalState(k, false, 0) } saveHiddenRowState(uid, false); const ns = getNameChkStates();
+        delete ns[uid];
+        localStorage.setItem(LOCAL_NAME_CHK_KEY, JSON.stringify(ns));
+        r.remove();
         saveTableToLocal();
-      }
+        showToast('已刪除紀錄') }
 
-      function confirmDelete(uid) {
-        if (!isAdmin) return;
-        pendingDeleteId = uid;
-        const row = document.querySelector(`tr[data-uid="${uid}"]`);
-        let nameVal = '';
-        if (row) {
-          const nameInput = row.querySelector('.cell-name');
-          if (nameInput) {
-            nameVal = nameInput.value.trim();
-          }
-        }
-        const displayName = nameVal ? `「${nameVal}」` : `此筆紀錄`;
-        document.getElementById('modalTitle').innerText = '確認刪除';
-        document.getElementById('modalText').innerText = `確定要刪除 ${displayName} 嗎？`;
-        const confirmBtn = document.getElementById('modalConfirmBtn');
-        confirmBtn.innerText = '刪除';
-        confirmBtn.className = 'modal-btn-confirm';
-        confirmBtn.removeAttribute('style');
-        confirmBtn.onclick = function() {
-          executeDelete(pendingDeleteId);
-          closeConfirmModal();
-        };
-        document.getElementById('confirmModal').style.display = 'flex';
-      }
-
-      function closeConfirmModal() {
-        document.getElementById('confirmModal').style.display = 'none';
-        pendingDeleteId = null;
-      }
-
-      function executeDelete(uid) {
-        const row = document.querySelector(`tr[data-uid="${uid}"]`);
-        if (row) {
-          for (let i = 1; i <= 5; i++) {
-            const uniqueKey = `${uid}_${i}`;
-            if (timers[uniqueKey]) {
-              clearInterval(timers[uniqueKey].interval);
-              delete timers[uniqueKey];
-            }
-            delete endTimes[uniqueKey];
-            saveLocalState(uniqueKey, false, 0);
-          }
-          const nameStates = JSON.parse(localStorage.getItem(LOCAL_NAME_CHK_KEY) || '{}');
-          delete nameStates[uid];
-          localStorage.setItem(LOCAL_NAME_CHK_KEY, JSON.stringify(nameStates));
-          saveHiddenRowState(uid, false);
-          row.remove();
-          saveTableToLocal();
-          showToast('已刪除紀錄');
-        }
-      }
-
-      function resetCheckboxes() {
-        if (!isAdmin) return;
+      function resetCheckboxes() { if (!isAdmin) return;
         clearAllLocalTimers();
         localStorage.removeItem(LOCAL_NAME_CHK_KEY);
-        document.querySelectorAll('.chk-receive').forEach(chk => {
-          chk.checked = false;
-          toggleTimer(chk);
-        });
-        document.querySelectorAll('.chk-name-prefix').forEach(chk => {
-          chk.checked = false;
-        });
+        document.querySelectorAll('.chk-receive').forEach(c => { c.checked = false;
+          toggleTimer(c) });
+        document.querySelectorAll('.chk-name-prefix').forEach(c => c.checked = false);
         saveTableToLocal();
-        showToast('已重置所有勾選框與倒數計時！');
-      }
+        showToast('已重置所有勾選框與倒數計時！') }
 
-      function getTableData() {
-        const rows = document.querySelectorAll('#tableBody tr');
-        const data = [];
-        const localStates = getLocalStates();
-        rows.forEach((row) => {
-          const uid = row.dataset.uid;
-          const chks = row.querySelectorAll('.chk-receive');
-          const nameChk = row.querySelector('.chk-name-prefix');
-          const cellNo = row.querySelector('.cell-no');
-          const cellLevel = row.querySelector('.cell-level');
-          const cellName = row.querySelector('.cell-name');
-          const cellCoin = row.querySelector('.cell-coin');
-          const cellPhone = row.querySelector('.cell-phone');
-          const cellF1 = row.querySelector('.cell-f1');
-          const cellF2 = row.querySelector('.cell-f2');
-          const cellF3 = row.querySelector('.cell-f3');
-          const cellF4 = row.querySelector('.cell-f4');
-          const cellF5 = row.querySelector('.cell-f5');
-          const rData = {};
-          for (let i = 1; i <= 5; i++) {
-            const uniqueKey = `${uid}_${i}`;
-            const local = localStates[uniqueKey] || {};
-            rData[`r${i}`] = chks[i - 1].checked;
-            rData[`r${i}_time`] = chks[i - 1].checked ? (endTimes[uniqueKey] || local.endTime || 0) : 0;
-          }
-          data.push({
-            uid: uid,
-            no: cellNo ? cellNo.value : '',
-            level: cellLevel ? cellLevel.value : '',
-            nameChk: nameChk ? nameChk.checked : false,
-            name: cellName ? cellName.value : '',
-            coin: cellCoin ? cellCoin.value : '',
-            r1: rData.r1,
-            r1_time: rData.r1_time,
-            r2: rData.r2,
-            r2_time: rData.r2_time,
-            r3: rData.r3,
-            r3_time: rData.r3_time,
-            r4: rData.r4,
-            r4_time: rData.r4_time,
-            r5: rData.r5,
-            r5_time: rData.r5_time,
-            f1: cellF1 ? cellF1.value : '',
-            f2: cellF2 ? cellF2.value : '',
-            f3: cellF3 ? cellF3.value : '',
-            f4: cellF4 ? cellF4.value : '',
-            f5: cellF5 ? cellF5.value : '',
-            phone: cellPhone ? cellPhone.value : '',
-          });
-        });
-        return data;
-      }
+      function getTableData() { return [...document.querySelectorAll('#tableBody tr')].map(r => { const uid = r.dataset.uid,
+            ch = [...r.querySelectorAll('.chk-receive')],
+            g = s => r.querySelector(s)?.value || '',
+            d = { uid, no: g('.cell-no'), level: g('.cell-level'), nameChk: r.querySelector('.chk-name-prefix')?.checked || false, name: g('.cell-name'), coin: g('.cell-coin'), f1: g('.cell-f1'), f2: g('.cell-f2'), f3: g('.cell-f3'), f4: g('.cell-f4'), f5: g('.cell-f5'), phone: g('.cell-phone') }; for (let i = 1; i <= 5; i++) { const k = `${uid}_${i}`;
+            d[`r${i}`] = ch[i - 1].checked;
+            d[`r${i}_time`] = ch[i - 1].checked ? (endTimes[k] || getLocalStates()[k]?.endTime || 0) : 0 } return d }) }
 
-      function confirmSaveToGitHub() {
-        if (!isAdmin) { showToast('請先登入管理員權限！'); return; }
-        showConfirmModal(
-          '確認保存',
-          '確定要將目前資料保存至雲端 (GitHub) 嗎？',
-          '保存',
-          false,
-          () => executeSaveToGitHub()
-        );
-      }
+      function confirmSaveToGitHub() { if (!isAdmin) return showToast('請先登入管理員權限！');
+        showConfirmModal('確認保存', '確定要將目前資料保存至雲端 (GitHub) 嗎？', '保存', false, executeSaveToGitHub) }
 
-      function confirmLoadFromGitHub() {
-        if (!isAdmin) { showToast('請先登入管理員權限！'); return; }
-        showConfirmModal(
-          '確認讀取',
-          '確定要從雲端 (GitHub) 讀取資料嗎？（這將會覆寫目前的本地資料）',
-          '讀取',
-          false,
-          () => executeLoadFromGitHub()
-        );
-      }
-
+      function confirmLoadFromGitHub() { if (!isAdmin) return showToast('請先登入管理員權限！');
+        showConfirmModal('確認讀取', '確定要從雲端 (GitHub) 讀取資料嗎？（這將會覆寫目前的本地資料）', '讀取', false, executeLoadFromGitHub) }
       let isSavingToCloud = false;
-      async function executeSaveToGitHub() {
-        if (!isAdmin) { showToast('請先登入管理員權限！'); return; }
-        if (isSavingToCloud) return;
-        isSavingToCloud = true;
-        const tableData = getTableData();
-        const payload = {
-          description: "Grid Data Storage with Timers",
-          files: { "grid_data.json": { content: JSON.stringify(tableData, null, 2) } }
-        };
-        try {
-          const response = await fetch(`https://api.github.com/gists/${G_ID}`, {
-            method: 'PATCH',
-            headers: {
-              'Authorization': `Bearer ${_getK()}`,
-              'Accept': 'application/vnd.github.v3+json',
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-          });
-          if (response.ok) {
-            showToast('管理員修改成功，已成功保存至雲端！');
-          } else {
-            if (response.status === 401) {
-              showToast('保存失敗：Token 授權失效或過期');
-            } else if (response.status === 404) {
-              showToast('保存失敗：找不到指定的 Gist ID');
-            } else {
-              const errRes = await response.json().catch(() => ({}));
-              const errorMapping = {
-                'Bad credentials': '金鑰 (Token) 驗證失敗',
-                'Not Found': '找不到指定的資源'
-              };
-              const errorMsg = errorMapping[errRes.message] || errRes.message || `狀態碼 ${response.status}`;
-              showToast('保存失敗：' + errorMsg);
-            }
-          }
-        } catch (error) {
-          showToast('網路連線失敗，請檢查網路狀態。');
-        } finally {
-          isSavingToCloud = false;
-        }
-      }
-
-      async function executeLoadFromGitHub() {
-        try {
-          const response = await fetch(`https://api.github.com/gists/${G_ID}`, {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${_getK()}`,
-              'Accept': 'application/vnd.github.v3+json'
-            }
-          });
-          if (response.ok) {
-            const resData = await response.json();
-            if (resData.files && resData.files["grid_data.json"]) {
-              const rawContent = resData.files["grid_data.json"].content;
-              const data = JSON.parse(rawContent);
-              if (!Array.isArray(data)) {
-                throw new Error("雲端資料格式錯誤");
-              }
-              clearAllActiveTimers();
-              if (typeof clearAllLocalTimers === 'function') {
-                clearAllLocalTimers();
-              }
-              const newLocalStates = {};
-              const newNameChkStates = {};
-              data.forEach(item => {
-                const uid = item.uid;
-                if (item.nameChk) newNameChkStates[uid] = true;
-                for (let i = 1; i <= 5; i++) {
-                  if (item[`r${i}`]) {
-                    const uniqueKey = `${uid}_${i}`;
-                    const savedTime = item[`r${i}_time`] || 0;
-                    const validEndTime = savedTime > 0 ? savedTime : 0;
-                    if (validEndTime > 0) {
-                      newLocalStates[uniqueKey] = {
-                        checked: true,
-                        endTime: validEndTime
-                      };
-                    }
-                  }
-                }
-              });
-              localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify(newLocalStates));
-              localStorage.setItem(LOCAL_NAME_CHK_KEY, JSON.stringify(newNameChkStates));
-              document.getElementById('tableBody').innerHTML = ``;
-              rowCounter = 0;
-              data.forEach(item => addRow(item));
-              rowCounter = data.length;
-              saveTableToLocal();
-              showToast('成功從雲端讀取資料並同步至本地！');
-            }
-          } else {
-            if (response.status === 401) {
-              showToast('讀取失敗：Token 授權失效或過期');
-            } else if (response.status === 404) {
-              showToast('讀取失敗：找不到指定的 Gist ID');
-            } else {
-              let errRes = {};
-              try {
-                errRes = await response.json();
-              } catch (e) {
-                // 忽略解析失敗
-              }
-              const errorMapping = {
-                'Bad credentials': '金鑰 (Token) 驗證失敗',
-                'Not Found': '找不到指定的資源'
-              };
-              const errorMsg = errorMapping[errRes.message] || errRes.message || `狀態碼 ${response.status}`;
-              showToast('讀取失敗：' + errorMsg);
-            }
-          }
-        } catch (error) {
-          showToast('網路連線失敗，請檢查網路狀態。');
-        }
-      }
+      async function executeSaveToGitHub() { if (!isAdmin || isSavingToCloud) return;
+        isSavingToCloud = true; try { const r = await fetch(`https://api.github.com/gists/${G_ID}`, { method: 'PATCH', headers: { Authorization: `Bearer ${_getK()}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' }, body: JSON.stringify({ description: 'Grid Data Storage with Timers', files: { 'grid_data.json': { content: JSON.stringify(getTableData(), null, 2) } } }) });
+          showToast(r.ok ? '管理員修改成功，已成功保存至雲端！' : `保存失敗：狀態碼 ${r.status}`) } catch (e) { showToast('網路連線失敗，請檢查網路狀態。') } finally { isSavingToCloud = false } }
+      async function executeLoadFromGitHub() { try { const r = await fetch(`https://api.github.com/gists/${G_ID}`, { headers: { Authorization: `Bearer ${_getK()}`, Accept: 'application/vnd.github.v3+json' } }); if (!r.ok) return showToast(`讀取失敗：狀態碼 ${r.status}`); const j = await r.json(),
+            d = JSON.parse(j.files['grid_data.json'].content);
+          clearAllActiveTimers();
+          clearAllLocalTimers(); const ns = {},
+            ls = {};
+          d.forEach(x => { if (x.nameChk) ns[x.uid] = true; for (let i = 1; i <= 5; i++)
+              if (x[`r${i}`] && x[`r${i}_time`]) ls[`${x.uid}_${i}`] = { checked: true, endTime: x[`r${i}_time`] } });
+          localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify(ls));
+          localStorage.setItem(LOCAL_NAME_CHK_KEY, JSON.stringify(ns));
+          localStorage.setItem(LOCAL_DATA_KEY, JSON.stringify(d));
+          reloadTableFromLocal();
+          showToast('成功從雲端讀取資料並同步至本地！') } catch (e) { showToast('網路連線失敗，請檢查網路狀態。') } }
     </script>
   </body>
 </html>
