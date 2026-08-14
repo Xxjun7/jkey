@@ -861,9 +861,7 @@
         lastClickTime = currentTime;
       }
 
-      // ==========================================
-      // 【新增】安全清除所有計時器的輔助函式
-      // ==========================================
+      // 安全清除所有計時器的輔助函式
       function clearAllActiveTimers() {
         for (const key in timers) {
           if (timers[key] && timers[key].interval) {
@@ -874,9 +872,7 @@
         Object.keys(endTimes).forEach(key => delete endTimes[key]);
       }
 
-      // ==========================================
-      // 在這裡加入防抖工具函式
-      // ==========================================
+      // 防抖工具函式
       function debounce(func, wait) {
         let timeout;
         return function(...args) {
@@ -901,7 +897,6 @@
       // 初始化表格欄位收合狀態（預設為 true / 隱藏）
       function initColumnState() {
         const table = document.getElementById('dataTable');
-        // 領1~5 狀態
         const isCollapsedR = localStorage.getItem(LOCAL_COL_R_STATE_KEY);
         if (isCollapsedR === null || isCollapsedR === 'true') {
           table.classList.add('collapsed-r');
@@ -909,7 +904,7 @@
         } else {
           table.classList.remove('collapsed-r');
         }
-        // 好友與電話 狀態
+        
         const isCollapsedF = localStorage.getItem(LOCAL_COL_F_STATE_KEY);
         if (isCollapsedF === null || isCollapsedF === 'true') {
           table.classList.add('collapsed-f');
@@ -951,10 +946,8 @@
         }
       }
 
-      // ==========================================
-      // 新增在這裡：共用的 Modal 確認視窗函式
-      // ==========================================
-      function showConfirmModal(title, text, confirmText, isDanger = false, onConfirm) {
+      // 共用的 Modal 確認視窗函式
+      function showConfirmModal(title, text, confirmText, isDanger = false, onConfirm = () => {}) {
         document.getElementById('modalTitle').innerText = title;
         document.getElementById('modalText').innerText = text;
         const confirmBtn = document.getElementById('modalConfirmBtn');
@@ -992,7 +985,6 @@
         localStorage.removeItem(LOCAL_STATE_KEY);
       }
 
-      // 名稱前方勾選框狀態儲存
       function getNameChkStates() {
         try { return JSON.parse(localStorage.getItem(LOCAL_NAME_CHK_KEY)) || {}; } catch (e) { return {}; }
       }
@@ -1067,7 +1059,7 @@
             rowCounter = 0;
             if (data && data.length > 0) {
               data.forEach(item => addRow(item, true));
-              rowCounter = data.length; // 對齊編號
+              rowCounter = data.length;
             }
           }
         } catch (e) {
@@ -1133,7 +1125,7 @@
 
       function reloadTableFromLocal() {
         try {
-          clearAllActiveTimers(); // 清除舊計時器
+          clearAllActiveTimers();
           const localSavedData = localStorage.getItem(LOCAL_DATA_KEY);
           document.getElementById('tableBody').innerHTML = '';
           rowCounter = 0;
@@ -1141,7 +1133,7 @@
             const data = JSON.parse(localSavedData);
             if (data && data.length > 0) {
               data.forEach(item => addRow(item, true));
-              rowCounter = data.length; // 讓 rowCounter 正確對齊當前資料量
+              rowCounter = data.length;
             }
           }
         } catch (e) {
@@ -1234,7 +1226,7 @@
             </td>
           `;
         }
-        // 名稱前方勾選框狀態
+        
         const nameChkStates = getNameChkStates();
         let isNameChkChecked = false;
         if (nameChkStates[uid] !== undefined) {
@@ -1297,7 +1289,7 @@
               if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(textToCopy).then(() => {
                   showToast(`已複製：${textToCopy}`);
-                }).catch(err => {
+                }).catch(() => {
                   fallbackCopyText(textToCopy);
                 });
               } else {
@@ -1392,7 +1384,7 @@
           });
         }
 
-        function onMouseUp(e) {
+        function onMouseUp() {
           if (!isDragging) return;
           isDragging = false;
           if (rafId) {
@@ -1408,12 +1400,14 @@
           saveTableToLocal();
           showToast('排序已更新');
         }
-        handle.addEventListener('touchstart', (e) => {
+
+        handle.addEventListener('touchstart', () => {
           if (!isAdmin) return;
           isDragging = true;
           currentTargetRow = tr;
           tr.classList.add('dragging');
         }, { passive: false });
+
         handle.addEventListener('touchmove', (e) => {
           if (!isDragging) return;
           e.preventDefault();
@@ -1443,7 +1437,8 @@
             }
           });
         }, { passive: false });
-        handle.addEventListener('touchend', (e) => {
+
+        handle.addEventListener('touchend', () => {
           if (!isDragging) return;
           isDragging = false;
           if (touchRafId) {
@@ -1457,6 +1452,7 @@
           showToast('排序已更新');
         });
       }
+
       let sharedTextarea = null;
       async function fallbackCopyText(text) {
         if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -1534,7 +1530,7 @@
         timers[uniqueKey] = { interval: interval };
       }
 
-      function toggleTimer(checkbox, isUserClick = true) {
+      function toggleTimer(checkbox) {
         const uid = checkbox.getAttribute('data-uid');
         const idx = checkbox.getAttribute('data-idx');
         const uniqueKey = `${uid}_${idx}`;
@@ -1616,7 +1612,7 @@
         localStorage.removeItem(LOCAL_NAME_CHK_KEY);
         document.querySelectorAll('.chk-receive').forEach(chk => {
           chk.checked = false;
-          toggleTimer(chk, false);
+          toggleTimer(chk);
         });
         document.querySelectorAll('.chk-name-prefix').forEach(chk => {
           chk.checked = false;
@@ -1699,6 +1695,7 @@
           () => executeLoadFromGitHub()
         );
       }
+
       let isSavingToCloud = false;
       async function executeSaveToGitHub() {
         if (!isAdmin) { showToast('請先登入管理員權限！'); return; }
@@ -1742,6 +1739,7 @@
           isSavingToCloud = false;
         }
       }
+
       async function executeLoadFromGitHub() {
         try {
           const response = await fetch(`https://api.github.com/gists/${G_ID}`, {
@@ -1765,7 +1763,6 @@
               }
               const newLocalStates = {};
               const newNameChkStates = {};
-              const now = Date.now();
               data.forEach(item => {
                 const uid = item.uid;
                 if (item.nameChk) newNameChkStates[uid] = true;
