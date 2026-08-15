@@ -69,9 +69,19 @@
         border-color: var(--lol-gold-1);
       }
 
+      html,
+      body {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        overflow-x: clip;
+        overscroll-behavior-x: none;
+      }
+
       body {
         font-family: 'Noto Sans TC', 'Cinzel', Arial, sans-serif;
-        margin: 0;
         padding: 20px;
         background: #05030a radial-gradient(circle at 50% 20%, #1a0f35 0%, #06040d 70%);
         color: var(--lol-gold-1);
@@ -306,10 +316,26 @@
         padding: 8px 16px;
       }
 
+      /*
+       * ==========================================================
+       * 【iOS Safari 表格水平佈局隔離】
+       * .table-responsive 是整頁唯一的水平滾動容器。
+       * table 可以超出 viewport，但超出的寬度只能存在於本容器內。
+       * ==========================================================
+       */
       .table-responsive {
         width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
         overflow-x: auto;
+        overflow-y: hidden;
         -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+        overscroll-behavior-y: auto;
+        isolation: isolate;
+        contain: layout paint;
+        position: relative;
         border: 1px solid var(--lol-gold-3);
         border-radius: 4px;
         background: var(--lol-purple-panel);
@@ -318,10 +344,17 @@
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
       }
 
-      table {
-        width: 100%;
+      .table-responsive > table {
+        /*
+         * max-content 讓展開欄位時由 table 產生真正的內容寬度；
+         * min-width:100% 確保欄位收合後仍填滿容器。
+         */
+        width: max-content;
+        min-width: 100%;
+        max-width: none;
         table-layout: fixed;
         border-collapse: collapse;
+        margin: 0;
       }
 
       /* 【統一控制整張表格高度】套用自訂變數到 tr 與 td */
@@ -420,6 +453,20 @@
       }
 
       /* 表格內的 input 填滿儲存格高度 */
+      /*
+       * table 本身可以是超過 viewport 的 layout island，
+       * 但任何內容都不得把 overflow 傳遞到 body。
+       */
+      .table-responsive table,
+      .table-responsive th,
+      .table-responsive td {
+        box-sizing: border-box;
+      }
+
+      .table-responsive table {
+        flex: 0 0 auto;
+      }
+
       table input[type="text"] {
         width: 100% !important;
         height: calc(var(--row-height) - 6px) !important;
@@ -443,20 +490,17 @@
         text-shadow: 0 0 8px var(--lol-hextech-glow);
       }
 
-      /* 可摺疊欄位樣式控制 (領1~5專用) */
-      .col-collapsible-r {
-        transition: all 0.3s ease;
-      }
-
-      .collapsed-r .col-collapsible-r {
-        display: none !important;
-      }
-
-      /* 可摺疊欄位樣式控制 (好友與電話專用) */
+      /*
+       * 收合欄位不要使用 transition: all。
+       * display:none / display:table-cell 會觸發 table layout，
+       * iOS Safari 快速切換時若再疊加 transition，容易留下暫時性錯誤寬度。
+       */
+      .col-collapsible-r,
       .col-collapsible-f {
-        transition: all 0.3s ease;
+        transition: none !important;
       }
 
+      .collapsed-r .col-collapsible-r,
       .collapsed-f .col-collapsible-f {
         display: none !important;
       }
@@ -878,33 +922,146 @@
           table.classList.remove('collapsed-f');
         }
       }
-      // 切換 領1~5 欄位收合狀態 (點擊名稱)
-      function toggleNameColumns() {
-        const table = document.getElementById('dataTable');
-        const isCurrentlyCollapsed = table.classList.contains('collapsed-r');
-        if (isCurrentlyCollapsed) {
-          table.classList.remove('collapsed-r');
-          localStorage.setItem(LOCAL_COL_R_STATE_KEY, 'false');
-          showToast('已展開 領1~5 欄位');
-        } else {
-          table.classList.add('collapsed-r');
-          localStorage.setItem(LOCAL_COL_R_STATE_KEY, 'true');
-          showToast('已收合 領1~5 欄位');
+      /*
+       * ==========================================================
+       * 【iOS Safari 快速展開／收合防抖 + Layout Lock】
+       *
+       * 目的：
+       * 1. 每一幀最多只真正修改一次 table class。
+       * 2. 快速連點 10~20 次時，最後狀態仍依點擊次數正確落定。
+       * 3. 切換前記錄 table-responsive.scrollLeft。
+       * 4. 切換後在同一個 frame 的下一個 RAF 恢復 scrollLeft。
+       * 5. 同時記錄 window scrollX / scrollY，避免頁面上下位置跳動。
+       * 6. 強制 table 在 wrapper 內重新計算，而不是讓 body 參與寬度計算。
+       * ==========================================================
+       */
+      let columnLayoutRAF = 0;
+      let columnLayoutLocked = false;
+      let pendingCollapsedR = null;
+      let pendingCollapsedF = null;
+      let pendingColumnToast = '';
+
+      function getTableScrollState() {
+        const wrapper = document.querySelector('.table-responsive');
+        return {
+          wrapper,
+          scrollLeft: wrapper ? wrapper.scrollLeft : 0,
+          scrollTop: wrapper ? wrapper.scrollTop : 0,
+          windowX: window.scrollX || window.pageXOffset || 0,
+          windowY: window.scrollY || window.pageYOffset || 0
+        };
+      }
+
+      function restoreTableScrollState(state) {
+        if (!state) return;
+
+        const wrapper = state.wrapper;
+        if (wrapper) {
+          wrapper.scrollLeft = state.scrollLeft;
+          wrapper.scrollTop = state.scrollTop;
+        }
+
+        /*
+         * iOS Safari 在 table layout 完成後偶爾會重新校正 viewport。
+         * 這裡只恢復原本的 window 座標，不改 viewport meta，也不禁止縮放。
+         */
+        if (
+          Math.abs((window.scrollX || window.pageXOffset || 0) - state.windowX) > 0 ||
+          Math.abs((window.scrollY || window.pageYOffset || 0) - state.windowY) > 0
+        ) {
+          window.scrollTo(state.windowX, state.windowY);
         }
       }
-      // 切換 好友與電話 欄位收合狀態 (點擊幣量)
-      function toggleCoinColumns() {
+
+      function requestColumnLayout(type) {
         const table = document.getElementById('dataTable');
-        const isCurrentlyCollapsed = table.classList.contains('collapsed-f');
-        if (isCurrentlyCollapsed) {
-          table.classList.remove('collapsed-f');
-          localStorage.setItem(LOCAL_COL_F_STATE_KEY, 'false');
-          showToast('已展開好友與電話欄位');
+        if (!table) return;
+
+        /*
+         * 在 RAF 尚未執行前，所有快速點擊只修改 pending state。
+         * 因此不會在同一個 frame 內連續觸發多次 table layout。
+         */
+        if (type === 'r') {
+          const current = pendingCollapsedR !== null
+            ? pendingCollapsedR
+            : table.classList.contains('collapsed-r');
+          pendingCollapsedR = !current;
+          pendingColumnToast = pendingCollapsedR
+            ? '已收合 領1~5 欄位'
+            : '已展開 領1~5 欄位';
         } else {
-          table.classList.add('collapsed-f');
-          localStorage.setItem(LOCAL_COL_F_STATE_KEY, 'true');
-          showToast('已收合好友與電話欄位');
+          const current = pendingCollapsedF !== null
+            ? pendingCollapsedF
+            : table.classList.contains('collapsed-f');
+          pendingCollapsedF = !current;
+          pendingColumnToast = pendingCollapsedF
+            ? '已收合好友與電話欄位'
+            : '已展開好友與電話欄位';
         }
+
+        if (columnLayoutRAF) return;
+
+        const state = getTableScrollState();
+        columnLayoutLocked = true;
+
+        columnLayoutRAF = requestAnimationFrame(() => {
+          columnLayoutRAF = 0;
+
+          /*
+           * 一次性套用目前這一幀累積的最終狀態。
+           */
+          if (pendingCollapsedR !== null) {
+            table.classList.toggle('collapsed-r', pendingCollapsedR);
+            localStorage.setItem(
+              LOCAL_COL_R_STATE_KEY,
+              pendingCollapsedR ? 'true' : 'false'
+            );
+            pendingCollapsedR = null;
+          }
+
+          if (pendingCollapsedF !== null) {
+            table.classList.toggle('collapsed-f', pendingCollapsedF);
+            localStorage.setItem(
+              LOCAL_COL_F_STATE_KEY,
+              pendingCollapsedF ? 'true' : 'false'
+            );
+            pendingCollapsedF = null;
+          }
+
+          /*
+           * 讓 Safari 完成一次 table intrinsic width / scrollWidth reflow，
+           * 再於下一個 frame 恢復水平位置。
+           */
+          void table.offsetWidth;
+
+          requestAnimationFrame(() => {
+            restoreTableScrollState(state);
+            columnLayoutLocked = false;
+
+            if (pendingColumnToast) {
+              showToast(pendingColumnToast);
+              pendingColumnToast = '';
+            }
+
+            /*
+             * 若在本次 layout lock 期間又有新的點擊，
+             * 再安排下一個 frame，不讓多次 layout 疊在一起。
+             */
+            if (pendingCollapsedR !== null || pendingCollapsedF !== null) {
+              requestColumnLayout('r');
+            }
+          });
+        });
+      }
+
+      // 切換 領1~5 欄位收合狀態 (點擊名稱)
+      function toggleNameColumns() {
+        requestColumnLayout('r');
+      }
+
+      // 切換 好友與電話欄位收合狀態 (點擊幣量)
+      function toggleCoinColumns() {
+        requestColumnLayout('f');
       }
       // ==========================================
       // 新增在這裡：共用的 Modal 確認視窗函式
