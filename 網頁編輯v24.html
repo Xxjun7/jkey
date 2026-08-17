@@ -1573,22 +1573,440 @@
       }
 
       function createLocalResourceInterceptorScript() {
-        const resources = {};
-        localResourceMap.forEach((item, key) => { resources[key] = item.url; });
-        const safeJson = JSON.stringify(resources)
-          .replace(/</g, '\\u003C')
-          .replace(/>/g, '\\u003E')
-          .replace(/&/g, '\\u0026');
-        return `<script>\n(function(){\n  const LOCAL_RESOURCE_MAP = ${safeJson};\n  const map = new Map(Object.entries(LOCAL_RESOURCE_MAP));\n  function norm(v){\n    if(typeof v !== 'string') return '';\n    let k=v.trim(); try{k=decodeURIComponent(k);}catch(e){}\n    k=k.split('#')[0].split('?')[0].replace(/\\\\/g,'/');\n    while(k.indexOf('./')===0) k=k.slice(2);\n    k=k.replace(/^\\/+/, '');\n    const a=[]; k.split('/').forEach(function(p){if(!p||p==='.')return;if(p==='..'){if(a.length)a.pop();return;}a.push(p);});\n    return a.join('/');\n  }\n  function resolve(v){\n    if(typeof v!=='string') return null;\n    const x=v.trim();\n    if(!x || /^(?:[a-z][a-z0-9+.-]*:|\\/\\/)/i.test(x)) return null;\n    return map.get(norm(x)) || null;\n  }\n  function rewriteElement(el){\n    if(!el || el.nodeType!==1) return;\n    ['src','href','data'].forEach(function(attr){\n      if(!el.hasAttribute || !el.hasAttribute(attr)) return;\n      const old=el.getAttribute(attr), url=resolve(old);\n      if(url && old!==url) el.setAttribute(attr,url);\n    });\n    if(el.hasAttribute && el.hasAttribute('style')){\n      el.style.cssText=el.getAttribute('style').replace(/url\\(\\s*(["']?)([^)"']+?)\\1\\s*\\)/gi,function(all,q,v){const u=resolve(v.trim());return u?'url('+q+u+q+')':all;});\n    }\n  }\n  function scan(root){\n    if(!root||!root.querySelectorAll) return;\n    rewriteElement(root);\n    root.querySelectorAll('[src],[href],[data],[style]').forEach(rewriteElement);\n  }\n  const originalSetAttribute=Element.prototype.setAttribute;\n  Element.prototype.setAttribute=function(name,value){\n    if((name==='src'||name==='href'||name==='data') && typeof value==='string'){const u=resolve(value); if(u)value=u;}\n    return originalSetAttribute.call(this,name,value);\n  };\n  const descriptors=[['HTMLImageElement','src'],['HTMLMediaElement','src'],['HTMLScriptElement','src'],['HTMLIFrameElement','src'],['HTMLSourceElement','src'],['HTMLLinkElement','href'],['HTMLObjectElement','data'],['HTMLEmbedElement','src']];\n  descriptors.forEach(function(pair){try{const proto=window[pair[0]]&&window[pair[0]].prototype; if(!proto)return; const d=Object.getOwnPropertyDescriptor(proto,pair[1]); if(!d||!d.set)return; Object.defineProperty(proto,pair[1],{configurable:d.configurable,enumerable:d.enumerable,get:d.get,set:function(v){const u=resolve(v); return d.set.call(this,u||v);}});}catch(e){}});\n  const OriginalImage=window.Image;\n  if(OriginalImage){window.Image=function(){const img=new OriginalImage(...arguments); const d=Object.getOwnPropertyDescriptor(HTMLImageElement.prototype,'src'); if(d&&d.set)Object.defineProperty(img,'src',{configurable:true,get:d.get.bind(img),set:function(v){d.set.call(img,resolve(v)||v);}}); return img;}; window.Image.prototype=OriginalImage.prototype;}\n  const originalFetch=window.fetch;\n  if(originalFetch) window.fetch=function(input,init){if(typeof input==='string'){const u=resolve(input);if(u)input=u;}else if(input&&typeof Request!=='undefined'&&input instanceof Request){const u=resolve(input.url);if(u)input=new Request(u,input);}return originalFetch.call(this,input,init);};\n  const OriginalXHR=window.XMLHttpRequest;\n  if(OriginalXHR){const open=OriginalXHR.prototype.open; OriginalXHR.prototype.open=function(method,url){const args=[].slice.call(arguments);if(typeof url==='string'){const u=resolve(url);if(u)args[1]=u;}return open.apply(this,args);};}\n  if(window.Audio){
-    const OriginalAudio=window.Audio;
-    window.Audio=function(src){
-      const audio=new OriginalAudio();
-      if(typeof src==='string') audio.src=resolve(src)||src;
+  const resources = {};
+
+  localResourceMap.forEach((item, key) => {
+    resources[key] = item.url;
+  });
+
+  const safeJson = JSON.stringify(resources)
+    .replace(/</g, '\\u003C')
+    .replace(/>/g, '\\u003E')
+    .replace(/&/g, '\\u0026');
+
+  const closingScriptTag = '</scr' + 'ipt>';
+
+  return `<script>
+(function(){
+  const LOCAL_RESOURCE_MAP = ${safeJson};
+  const map = new Map(Object.entries(LOCAL_RESOURCE_MAP));
+
+  function norm(v){
+    if(typeof v !== 'string') return '';
+
+    let k = v.trim();
+
+    try {
+      k = decodeURIComponent(k);
+    } catch(e) {}
+
+    k = k
+      .split('#')[0]
+      .split('?')[0]
+      .replace(/\\\\/g, '/');
+
+    while(k.indexOf('./') === 0) {
+      k = k.slice(2);
+    }
+
+    k = k.replace(/^\\/+/, '');
+
+    const a = [];
+
+    k.split('/').forEach(function(p){
+      if(!p || p === '.') return;
+
+      if(p === '..'){
+        if(a.length) a.pop();
+        return;
+      }
+
+      a.push(p);
+    });
+
+    return a.join('/');
+  }
+
+  function resolve(v){
+    if(typeof v !== 'string') return null;
+
+    const x = v.trim();
+
+    if(
+      !x ||
+      /^(?:[a-z][a-z0-9+.-]*:|\\/\\/)/i.test(x)
+    ) {
+      return null;
+    }
+
+    return map.get(norm(x)) || null;
+  }
+
+  function rewriteElement(el){
+    if(!el || el.nodeType !== 1) return;
+
+    ['src','href','data'].forEach(function(attr){
+
+      if(!el.hasAttribute || !el.hasAttribute(attr)) {
+        return;
+      }
+
+      const old = el.getAttribute(attr);
+      const url = resolve(old);
+
+      if(url && old !== url) {
+        el.setAttribute(attr, url);
+      }
+    });
+
+    if(el.hasAttribute && el.hasAttribute('style')){
+      el.style.cssText =
+        el.getAttribute('style').replace(
+          /url\\(\\s*(["']?)([^)"']+?)\\1\\s*\\)/gi,
+          function(all, q, v){
+
+            const u = resolve(v.trim());
+
+            return u
+              ? 'url(' + q + u + q + ')'
+              : all;
+          }
+        );
+    }
+  }
+
+  function scan(root){
+    if(!root || !root.querySelectorAll) return;
+
+    rewriteElement(root);
+
+    root
+      .querySelectorAll('[src],[href],[data],[style]')
+      .forEach(rewriteElement);
+  }
+
+  const originalSetAttribute =
+    Element.prototype.setAttribute;
+
+  Element.prototype.setAttribute = function(name, value){
+
+    if(
+      (name === 'src' ||
+       name === 'href' ||
+       name === 'data') &&
+      typeof value === 'string'
+    ){
+
+      const u = resolve(value);
+
+      if(u) {
+        value = u;
+      }
+    }
+
+    return originalSetAttribute.call(
+      this,
+      name,
+      value
+    );
+  };
+
+  const descriptors = [
+    ['HTMLImageElement', 'src'],
+    ['HTMLMediaElement', 'src'],
+    ['HTMLScriptElement', 'src'],
+    ['HTMLIFrameElement', 'src'],
+    ['HTMLSourceElement', 'src'],
+    ['HTMLLinkElement', 'href'],
+    ['HTMLObjectElement', 'data'],
+    ['HTMLEmbedElement', 'src']
+  ];
+
+  descriptors.forEach(function(pair){
+
+    try {
+
+      const proto =
+        window[pair[0]] &&
+        window[pair[0]].prototype;
+
+      if(!proto) return;
+
+      const d =
+        Object.getOwnPropertyDescriptor(
+          proto,
+          pair[1]
+        );
+
+      if(!d || !d.set) return;
+
+      Object.defineProperty(
+        proto,
+        pair[1],
+        {
+          configurable: d.configurable,
+          enumerable: d.enumerable,
+
+          get: d.get,
+
+          set: function(v){
+
+            const u = resolve(v);
+
+            return d.set.call(
+              this,
+              u || v
+            );
+          }
+        }
+      );
+
+    } catch(e) {
+
+      console.warn(
+        'Local resource property interceptor failed:',
+        pair[0],
+        pair[1],
+        e
+      );
+    }
+
+  });
+
+  const OriginalImage = window.Image;
+
+  if(OriginalImage){
+
+    window.Image = function(){
+
+      const img =
+        new OriginalImage(...arguments);
+
+      const d =
+        Object.getOwnPropertyDescriptor(
+          HTMLImageElement.prototype,
+          'src'
+        );
+
+      if(d && d.set){
+
+        Object.defineProperty(
+          img,
+          'src',
+          {
+            configurable: true,
+
+            get: d.get
+              ? d.get.bind(img)
+              : undefined,
+
+            set: function(v){
+
+              d.set.call(
+                img,
+                resolve(v) || v
+              );
+            }
+          }
+        );
+      }
+
+      return img;
+    };
+
+    window.Image.prototype =
+      OriginalImage.prototype;
+  }
+
+  const originalFetch = window.fetch;
+
+  if(originalFetch){
+
+    window.fetch = function(input, init){
+
+      if(typeof input === 'string'){
+
+        const u = resolve(input);
+
+        if(u) {
+          input = u;
+        }
+
+      } else if(
+        input &&
+        typeof Request !== 'undefined' &&
+        input instanceof Request
+      ){
+
+        const u = resolve(input.url);
+
+        if(u){
+          input = new Request(u, input);
+        }
+      }
+
+      return originalFetch.call(
+        this,
+        input,
+        init
+      );
+    };
+  }
+
+  const OriginalXHR =
+    window.XMLHttpRequest;
+
+  if(OriginalXHR){
+
+    const open =
+      OriginalXHR.prototype.open;
+
+    OriginalXHR.prototype.open =
+      function(method, url){
+
+        const args =
+          [].slice.call(arguments);
+
+        if(typeof url === 'string'){
+
+          const u = resolve(url);
+
+          if(u) {
+            args[1] = u;
+          }
+        }
+
+        return open.apply(
+          this,
+          args
+        );
+      };
+  }
+
+  // 🎵 Audio 本地資源攔截
+  if(window.Audio){
+
+    const OriginalAudio =
+      window.Audio;
+
+    window.Audio = function(src){
+
+      const audio =
+        new OriginalAudio();
+
+      if(typeof src === 'string'){
+
+        const resolved =
+          resolve(src);
+
+        audio.src =
+          resolved || src;
+
+        console.log(
+          '[Local Audio]',
+          src,
+          '=>',
+          audio.src
+        );
+      }
+
       return audio;
     };
-    window.Audio.prototype=OriginalAudio.prototype;
-  }\n  window.addEventListener('message',function(e){\n    if(!e.data || e.data.type!=='LOCAL_RESOURCE_MAP') return;\n    map.clear(); Object.entries(e.data.resources||{}).forEach(function(entry){map.set(norm(entry[0]),entry[1]);}); scan(document.documentElement);\n  });\n  const observer=new MutationObserver(function(mutations){mutations.forEach(function(m){m.addedNodes.forEach(function(n){if(n.nodeType===1)scan(n);});m.forEach(function(){if(m.target&&m.target.nodeType===1)rewriteElement(m.target);});});});\n  if(document.documentElement) observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['src','href','data','style']});\n  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){scan(document.documentElement);}); else scan(document.documentElement);\n  window.__LOCAL_RESOURCE_READY__=true;\n})();\n<\\/script>`;
+
+    window.Audio.prototype =
+      OriginalAudio.prototype;
+  }
+
+  window.addEventListener(
+    'message',
+    function(e){
+
+      if(
+        !e.data ||
+        e.data.type !== 'LOCAL_RESOURCE_MAP'
+      ) {
+        return;
       }
+
+      map.clear();
+
+      Object.entries(
+        e.data.resources || {}
+      ).forEach(function(entry){
+
+        map.set(
+          norm(entry[0]),
+          entry[1]
+        );
+      });
+
+      scan(document.documentElement);
+
+    }
+  );
+
+  const observer =
+    new MutationObserver(
+      function(mutations){
+
+        mutations.forEach(function(m){
+
+          m.addedNodes.forEach(function(n){
+
+            if(n.nodeType === 1){
+              scan(n);
+            }
+
+          });
+
+          if(
+            m.target &&
+            m.target.nodeType === 1
+          ){
+            rewriteElement(m.target);
+          }
+
+        });
+      }
+    );
+
+  if(document.documentElement){
+
+    observer.observe(
+      document.documentElement,
+      {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        attributeFilter: [
+          'src',
+          'href',
+          'data',
+          'style'
+        ]
+      }
+    );
+  }
+
+  if(document.readyState === 'loading'){
+
+    document.addEventListener(
+      'DOMContentLoaded',
+      function(){
+        scan(document.documentElement);
+      }
+    );
+
+  } else {
+
+    scan(document.documentElement);
+  }
+
+  window.__LOCAL_RESOURCE_READY__ = true;
+
+})();
+${closingScriptTag}`;
+}
 
       function syncLocalResourcesToIframe(iframe) {
         if (!iframe || !iframe.contentWindow) return;
