@@ -1,0 +1,2393 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="utf-8">
+    <title>極簡線上 HTML/JS 編輯器</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- CodeMirror 核心與主題 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/material-darker.min.css">
+    <!-- CodeMirror 搜尋外掛樣式 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/dialog/dialog.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/search/matchesonscrollbar.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/closetag.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/closebrackets.min.js"></script>
+    <!-- CodeMirror 標籤與括號對應外掛 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/matchbrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/matchtags.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/xml-fold.min.js"></script>
+    <!-- CodeMirror 搜尋相關 JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/dialog/dialog.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/search/searchcursor.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/search/search.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/scroll/annotatescrollbar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/search/matchesonscrollbar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/search/jump-to-line.min.js"></script>
+
+    <!-- Split.js 拖曳分割頁面 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.5/split.min.js"></script>
+
+    <!-- Emmet 語法支援 -->
+    <script src="https://cdn.jsdelivr.net/npm/emmet-codemirror@1.2.5/dist/emmet.min.js"></script>
+    <!-- js-beautify 程式碼美化排版 (完整三合一包) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.9/beautify.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.9/beautify-css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.9/beautify-html.min.js"></script>
+
+    <style>
+      /* ==========================================
+         1. 主題變數設定 (Theme Variables)
+         ========================================== */
+      /* ── 淺色主題變數 ── */
+      :root {
+        --bg-color: #eff2f6;
+        --pane-bg: #ffffff;
+        --header-bg: #f8f9fa;
+        --border-color: #e5e5ea;
+        --text-main: #1d1d1f;
+        --text-secondary: #86868b;
+        --btn-bg: #f4f5f7;
+        --btn-text: #1d1d1f;
+        --btn-border: rgba(0, 0, 0, 0.08);
+        --green: #5f7f4f;
+        --green-dark: #64854c;
+        --radius: 8px;
+      }
+
+      /* ── 深色主題變數 ── */
+      body.theme-dark {
+        --bg-color: #1a1a1e;
+        --pane-bg: #242429;
+        --header-bg: #2c2c32;
+        --border-color: #383842;
+        --text-main: #f0f0f5;
+        --text-secondary: #a0a0b0;
+        --btn-bg: #32323a;
+        --btn-text: #f0f0f5;
+        --btn-border: rgba(255, 255, 255, 0.1);
+        --green: #488259;
+        --green-dark: #3b6c49;
+      }
+
+      /* ── 工程師模式 (Dev Mode) 主題變數 ── */
+      body.theme-dev {
+        --bg-color: #121214;
+        --pane-bg: #1e1e1e;
+        --header-bg: #252526;
+        --border-color: #333333;
+        --text-main: #d4d4d4;
+        --text-secondary: #858585;
+        --btn-bg: #2d2d2d;
+        --btn-text: #cccccc;
+        --btn-border: #3c3c3c;
+        --green: #0e639c;
+        --green-dark: #1177bb;
+      }
+
+      /* ==========================================
+         2. 編輯器與第三方套件樣式覆蓋 (Editor Overrides)
+         ========================================== */
+      body.theme-dark .CodeMirror-matchingbracket,
+      body.theme-dev .CodeMirror-matchingbracket {
+        background-color: rgba(255, 204, 0, 0.35) !important;
+        color: #ffcc00 !important;
+        font-weight: bold;
+        outline: 1px solid rgba(255, 204, 0, 0.6);
+      }
+
+      body.theme-dark .CodeMirror-selected,
+      body.theme-dev .CodeMirror-selected,
+      body.theme-dark.CodeMirror-focused .CodeMirror-selected,
+      body.theme-dev.CodeMirror-focused .CodeMirror-selected {
+        background: rgba(41, 128, 185, 0.5) !important;
+      }
+
+      .cm-s-material-darker .CodeMirror-selected,
+      .cm-s-material-darker.CodeMirror-focused .CodeMirror-selected {
+        background: rgba(90, 130, 230, 0.45) !important;
+      }
+
+      .CodeMirror {
+        position: absolute !important;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 100% !important;
+        font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Fira Code", monospace;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      /* ==========================================
+         3. 全域基礎樣式 (Global Base Styles)
+         ========================================== */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        overflow: hidden;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        transition: background-color 0.25s, color 0.25s;
+      }
+
+      /* ==========================================
+         4. 介面版面配置 (Main Layout & Panes)
+         ========================================== */
+      .main-container {
+        display: flex;
+        flex-direction: row;
+        height: 100vh;
+        padding: 12px;
+        gap: 0;
+      }
+
+      .pane {
+        background: var(--pane-bg);
+        border-radius: var(--radius);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        min-height: 240px;
+        transition: background 0.25s, border-color 0.25s;
+      }
+
+      .pane.fullscreen {
+        position: fixed !important;
+        inset: 0;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 9999;
+        border-radius: 0;
+        border: none;
+      }
+
+      .pane-header {
+        min-height: 48px;
+        height: auto;
+        padding: 6px 10px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--header-bg);
+        flex-shrink: 0;
+        flex-wrap: wrap;
+        gap: 6px;
+        transition: background 0.25s, border-color 0.25s;
+      }
+
+      .pane-title {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .pane-content {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ==========================================
+         5. 按鈕與表單控制項樣式 (Actions & Controls)
+         ========================================== */
+      #wordCountDisplay {
+        font-size: 12px;
+        color: var(--text-secondary);
+        font-weight: 400;
+        opacity: 0.85;
+      }
+
+      .pane-title .mini-btn {
+        background: var(--btn-bg);
+        border: 1px solid var(--btn-border);
+        color: var(--btn-text);
+        font-size: 11px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 400;
+        transition: all 0.2s ease;
+      }
+
+      .pane-title .mini-btn:hover {
+        background: var(--green);
+        color: #fff;
+        border-color: transparent;
+      }
+
+      .actions {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .actions button,
+      .actions select,
+      .actions input[type="text"] {
+        border: 1px solid var(--btn-border);
+        background: var(--btn-bg);
+        color: var(--btn-text);
+        font-weight: 500;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        outline: none;
+      }
+
+      .actions select {
+        border-radius: 6px;
+        cursor: pointer;
+        padding: 4px 10px;
+      }
+
+      .actions button {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+      }
+
+      .actions input[type="text"] {
+        border-radius: 6px;
+        padding: 3px 8px;
+        width: 110px;
+        transition: width 0.2s ease;
+      }
+
+      .actions input[type="text"]:focus {
+        width: 150px;
+        border-color: var(--green);
+      }
+
+      .actions button:hover,
+      .actions select:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+      }
+
+      .actions .btn-primary {
+        background: var(--green);
+        color: #fff;
+        border: none;
+      }
+
+      .actions .btn-primary:hover {
+        background: var(--green-dark);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+      }
+
+      .auto-run-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .auto-run-label input[type="checkbox"] {
+        width: 13px;
+        height: 13px;
+        cursor: pointer;
+        accent-color: var(--green);
+      }
+
+      /* ==========================================
+         6. 預覽畫面與裝置模擬器 (Preview & Device Emulation)
+         ========================================== */
+      #iframewrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        position: relative;
+        overflow: auto;
+        background: rgba(0, 0, 0, 0.02);
+      }
+
+      iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        display: block;
+        background: #fff;
+        transition: all 0.3s ease;
+      }
+
+      body.device-emulation-mode #iframewrapper {
+        padding: 20px;
+      }
+
+      body.device-emulation-mode iframe {
+        width: var(--device-w, 375px) !important;
+        height: var(--device-h, 667px) !important;
+        max-width: 100%;
+        max-height: 100%;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        border: 8px solid #333;
+        border-radius: 24px;
+        flex-shrink: 0;
+      }
+
+      /* ==========================================
+         7. 分割調整線 (Split Gutters)
+         ========================================== */
+      .gutter {
+        background-color: transparent;
+        background-repeat: no-repeat;
+        background-position: 50%;
+        flex-shrink: 0;
+      }
+
+      .gutter.gutter-horizontal {
+        cursor: col-resize;
+        width: 10px !important;
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="20" viewBox="0 0 4 20"><circle cx="2" cy="4" r="1.5" fill="%23888888"/><circle cx="2" cy="10" r="1.5" fill="%23888888"/><circle cx="2" cy="16" r="1.5" fill="%23888888"/></svg>');
+      }
+
+      .gutter.gutter-vertical {
+        cursor: row-resize;
+        height: 10px !important;
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="4" viewBox="0 0 20 4"><circle cx="4" cy="2" r="1.5" fill="%23888888"/><circle cx="10" cy="2" r="1.5" fill="%23888888"/><circle cx="16" cy="2" r="1.5" fill="%23888888"/></svg>');
+      }
+
+      /* ==========================================
+         8. 元素檢查器面板 (Element Inspector Panel)
+         ========================================== */
+      #inspector-pane {
+        background: #18181c;
+        color: #e0e0e0;
+        font-family: monospace;
+        font-size: 12px;
+        display: flex;
+        flex-direction: column;
+        border-top: 1px solid var(--border-color);
+      }
+
+      .inspector-header {
+        height: 30px;
+        background: #222226;
+        padding: 0 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: #aaa;
+        font-weight: bold;
+      }
+
+      .inspector-content {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+        margin: 0;
+      }
+
+      .inspector-item {
+        margin-bottom: 8px;
+        word-break: break-all;
+        white-space: pre-wrap;
+        background: #222226;
+        padding: 8px;
+        border-radius: 4px;
+        border-left: 3px solid #75beff;
+      }
+
+      .inspector-item span.label {
+        color: #75beff;
+        font-weight: bold;
+      }
+
+      .inspector-item code.clickable-code {
+        cursor: pointer;
+        color: #ce9178;
+        transition: color 0.15s, background 0.15s;
+        padding: 1px 3px;
+        border-radius: 3px;
+        display: inline-block;
+      }
+
+      .inspector-item code.clickable-code:hover {
+        background: rgba(117, 190, 255, 0.15);
+        color: #9cdcfe;
+        text-decoration: underline;
+      }
+
+      /* ==========================================
+         9. 彈跳視窗與互動元件 (Modals & Toolbox UI)
+         ========================================== */
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-overlay.active {
+        display: flex;
+      }
+
+      /* ── 📥 本地資源暫存區 ── */
+      #localFilesModal .modal-card {
+        width: 92%;
+        max-height: 88vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      #localFileDropZone.local-files-dragover {
+        border-color: var(--green) !important;
+        background: rgba(72, 130, 89, 0.12) !important;
+        transform: scale(1.01);
+      }
+
+      .local-file-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 4px;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .local-file-row:last-child {
+        border-bottom: none;
+      }
+
+      .local-file-icon {
+        flex: 0 0 24px;
+        font-size: 18px;
+        text-align: center;
+      }
+
+      .local-file-info {
+        min-width: 0;
+        flex: 1;
+      }
+
+      .local-file-name {
+        color: var(--text-main);
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .local-file-meta {
+        color: var(--text-secondary);
+        font-size: 11px;
+        margin-top: 3px;
+      }
+
+      .local-file-delete {
+        flex: 0 0 auto;
+        padding: 5px 8px;
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        background: var(--btn-bg);
+        color: var(--btn-text);
+        cursor: pointer;
+      }
+
+      .local-file-delete:hover {
+        background: rgba(231, 76, 60, .14);
+      }
+
+      .modal-box {
+        background: var(--pane-bg);
+        color: var(--text-main);
+        width: 90%;
+        max-width: 500px;
+        border-radius: var(--radius);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        max-height: 80vh;
+        border: 1px solid var(--border-color);
+      }
+
+      .modal-header {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .modal-header input {
+        flex: 1;
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        background: var(--header-bg);
+        color: var(--text-main);
+        border-radius: 6px;
+        font-size: 14px;
+        outline: none;
+      }
+
+      .modal-body {
+        padding: 0;
+        overflow-y: auto;
+        flex: 1;
+      }
+
+      .lib-item {
+        padding: 11px 16px;
+        border-bottom: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+
+      .lib-item:hover {
+        background: var(--header-bg);
+      }
+
+      .lib-name {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text-main);
+        margin-bottom: 3px;
+      }
+
+      .lib-desc {
+        font-size: 12px;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .close-btn {
+        background: transparent;
+        border: none;
+        font-size: 22px;
+        color: var(--text-secondary);
+        cursor: pointer;
+      }
+
+      .palette-box {
+        max-width: 420px;
+        padding: 16px;
+      }
+
+      .palette-title {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .color-picker-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+        background: var(--header-bg);
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+      }
+
+      .color-picker-wrapper input[type="color"] {
+        -webkit-appearance: none;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 6px;
+        cursor: pointer;
+        background: transparent;
+      }
+
+      .color-hex-display {
+        font-family: monospace;
+        font-size: 15px;
+        font-weight: 600;
+        flex: 1;
+      }
+
+      .palette-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .palette-actions button {
+        flex: 1;
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid var(--btn-border);
+        background: var(--btn-bg);
+        color: var(--btn-text);
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 13px;
+        transition: all 0.2s;
+      }
+
+      /* ── 🧰 工具箱下拉選單項目樣式 ── */
+      .toolbox-item {
+        background: transparent;
+        border: none;
+        color: var(--text-main, #fff);
+        padding: 8px 12px;
+        text-align: left;
+        font-size: 13px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.2s;
+        white-space: nowrap;
+        width: 100%;
+      }
+
+      .toolbox-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      /* ==========================================
+         10. 工具提示與系統提示框 (Utilities & Toast)
+         ========================================== */
+      .kbd {
+        padding: 1px 4px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+        font-size: 10px;
+      }
+
+      #framesize {
+        font-size: 11px;
+        color: #a43673;
+        margin-left: 4px;
+      }
+
+      #toast {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #323232;
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        z-index: 10000;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+      }
+
+      #toast.show {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="main-container" id="split-container">
+      <!-- ── 左側：原始碼區塊 ── -->
+      <div id="split-0" class="pane">
+        <div class="pane-header">
+          <div class="pane-title">
+            <span>原始碼<span id="wordCountDisplay">("0字┇0字")</span></span>
+            <label class="auto-run-label" title="修改後自動運行">
+              <input type="checkbox" id="autoRunCheck" checked>
+              <span>自動運行</span>
+            </label>
+            <button class="mini-btn" onclick="pasteCodeFromClipboard()" title="貼上剪貼簿內容">貼上</button>
+            <button class="mini-btn" onclick="copyCodeToClipboard()" title="複製編輯器全部程式碼">複製</button>
+          </div>
+          <div class="actions">
+            <input type="text" id="quickSearchInput" placeholder="🔍 快速搜尋" title="輸入關鍵字即自動跳轉到找到的地方" oninput="handleQuickSearch(this.value)" onkeydown="handleQuickSearchKey(event)">
+
+            <button onclick="changeFontSize(-1)" title="縮小字體">A-</button>
+            <button onclick="changeFontSize(1)" title="放大字體">A+</button>
+            <button onclick="toggleRangeMode()" title="點擊後，在編輯器中點兩行來決定範圍"><span id="rangeBtnText">📍 範圍選取</span></button>
+
+            <!-- 🧰 工具箱按鈕與下拉面板容器 -->
+            <div style="position: relative; display: inline-block;">
+              <button class="btn-secondary" onclick="toggleToolbox()" title="開啟工具箱">
+                🧰 工具箱
+              </button>
+
+              <!-- 工具箱下拉面板 (已修正：改為 left: 0 或向內對齊避免超出邊界) -->
+              <div id="toolboxPanel" style="display: none; position: absolute; top: 100%; left: 0; margin-top: 6px; background: var(--header-bg, #2d2d2d); border: 1px solid var(--border-color, #444); border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; min-width: 140px; padding: 6px; flex-direction: column; gap: 4px;">
+                <button class="toolbox-item" onclick="formatCode(); closeToolbox();">🧹 美化排版</button>
+                <button class="toolbox-item" onclick="openChunkModal(); closeToolbox();">✂️ 智能分段</button>
+                <button class="toolbox-item" onclick="openMergeModal(); closeToolbox();">📦 合併分段</button>
+                <button class="toolbox-item" onclick="closeToolbox(); openLocalFilesModal();">📥 本地資源暫存</button>
+                <button class="toolbox-item" onclick="openCDNModal(); closeToolbox();">🌐 外部庫 (CDN)</button>
+                <button class="toolbox-item" onclick="openUploadModal(); closeToolbox();">📁 上傳檔案</button>
+                <button class="toolbox-item" onclick="downloadCode(); closeToolbox();">💾 下載檔案</button>
+              </div>
+            </div>
+
+            <button onclick="resetCode()" title="重置程式碼">重置</button>
+
+            <button class="btn-primary" onclick="submitTryit()" title="運行 (Ctrl+Enter)">
+              <span>運行</span>
+              <span class="kbd">Ctrl+↵</span>
+            </button>
+          </div>
+        </div>
+        <div class="pane-content">
+          <textarea id="textareaCode"></textarea>
+        </div>
+      </div>
+
+      <!-- ── 右側：運行結果與元素檢查器 ── -->
+      <div id="split-1" class="pane">
+        <div class="pane-header">
+          <div class="pane-title">
+            運行結果<span id="framesize"></span>
+          </div>
+          <div class="actions">
+            <select id="deviceSelect" onchange="changeDeviceMode(this.value)" title="選擇預覽裝置尺寸">
+              <option value="desktop">🖥️ 電腦全寬</option>
+              <optgroup label="── 蘋果 iPhone ──">
+                <option value="375,667">iPhone SE/8 (直 375×667)</option>
+                <option value="667,375">iPhone SE/8 (橫 667×375)</option>
+                <option value="390,844">iPhone 14/15 (直 390×844)</option>
+                <option value="844,390">iPhone 14/15 (橫 844×390)</option>
+                <option value="430,932">iPhone 16 Pro Max (直 430×932)</option>
+                <option value="932,430">iPhone 16 Pro Max (橫 932×430)</option>
+              </optgroup>
+              <optgroup label="── 安卓 & 平板 ──">
+                <option value="412,915">Android / Pixel (直 412×915)</option>
+                <option value="915,412">Android / Pixel (橫 915×412)</option>
+                <option value="768,1024">iPad 平板 (直 768×1024)</option>
+                <option value="1024,768">iPad 平板 (橫 1024×768)</option>
+              </optgroup>
+            </select>
+
+            <button onclick="openPaletteModal()" title="開啟調色盤挑選顏色">🎨 調色盤</button>
+            <button id="inspectorToggleBtn" onclick="toggleInspector()" title="開關元素檢查器面板">🔍 檢查元素</button>
+            <button id="fullscreenBtn" onclick="toggleFullscreen()" title="全螢幕預覽">全螢幕</button>
+            <button id="themeToggleBtn" onclick="cycleTheme()" title="切換 淺色 / 深色 / 工程師模式">
+              <span id="themeLabel">主題: 淺色</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="pane-content" id="right-split-container">
+          <div id="split-iframe" style="height: 100%; position:relative;">
+            <div id="iframewrapper" style="height:100%;"></div>
+          </div>
+          <div id="inspector-pane" style="height: 0%; display: none;">
+            <div class="inspector-header">
+              <span id="inspector-status">元素檢查模式：已關閉 (點擊按鈕或啟用後在預覽畫面中點選元素)</span>
+              <div>
+                <button id="pickElementBtn" onclick="toggleElementPicker()" style="background:var(--green); border:none; color:#fff; cursor:pointer; font-size:11px; padding:2px 8px; border-radius:4px; margin-right:6px;">選取元素</button>
+                <button onclick="clearInspector()" style="background:none; border:none; color:#aaa; cursor:pointer; font-size:11px;">清空</button>
+              </div>
+            </div>
+            <div id="inspector-content" class="inspector-content">
+              <div style="color: #888;">請點擊上方「選取元素」按鈕，然後在右側預覽網頁中點擊任意元素以檢查其詳細資訊。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 彈跳視窗：智能分段複製 Modal ── -->
+    <div class="modal-overlay" id="chunkModal" onclick="closeChunkModal(event)">
+      <div class="modal-box palette-box" onclick="event.stopPropagation()">
+        <div class="palette-title">
+          <span>✂️ 智能分段複製工具</span>
+          <button class="close-btn" onclick="closeChunkModal(event)">&times;</button>
+        </div>
+        <div style="margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
+          設定要切成的段數，將自動生成包含標記的複製按鈕：
+        </div>
+        <div class="color-picker-wrapper" style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span style="font-size: 13px; font-weight: 500;">分段數量：</span>
+          <input type="number" id="chunkCountInput" value="3" min="2" max="10" style="width: 70px; padding: 6px; border: 1px solid var(--border-color); background: var(--header-bg); color: var(--text-main); border-radius: 6px; text-align: center; font-size: 14px;">
+
+          <!-- 總字數顯示區塊 -->
+          <span style="font-size: 13px; color: var(--text-secondary);">
+            (總共 <span id="totalCodeChars" style="color: var(--green); font-weight: bold;">0</span> 字)
+          </span>
+
+          <button class="btn-primary" onclick="generateChunkButtons()" style="padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; border: none; margin-left: auto;">生成按鈕</button>
+        </div>
+        <div id="chunkResultContainer" style="display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto;">
+          <div style="text-align: center; color: var(--text-secondary); font-size: 13px; padding: 10px;">請點擊上方「生成按鈕」</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 彈跳視窗：程式碼分段合併器 Modal ── -->
+    <div class="modal-overlay" id="mergeModal" onclick="closeMergeModal(event)">
+      <div class="modal-box palette-box" onclick="event.stopPropagation()">
+        <div class="palette-title">
+          <span>📦 程式碼分段合併器</span>
+          <button class="close-btn" onclick="closeMergeModal(event)">&times;</button>
+        </div>
+        <div style="margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
+          請依序將被切段的程式碼貼在下方（支援直接貼上帶有 <code style="color:var(--green)">[CODE_START]</code> 的完整片段，工具會自動辨識並去除標記）：
+        </div>
+        <textarea id="mergeInputArea" placeholder="在此依序貼上第 1 段、第 2 段..." style="width: 100%; height: 180px; background: var(--header-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; font-family: monospace; font-size: 13px; resize: vertical; box-sizing: border-box; margin-bottom: 12px;"></textarea>
+
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button class="btn-secondary" onclick="document.getElementById('mergeInputArea').value=''; showToast('已清空合併輸入框');" style="padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; border: 1px solid var(--border-color); background: transparent; color: var(--text-main);">清空</button>
+          <button class="btn-primary" onclick="processMergeCode()" style="padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; border: none; margin-left: auto;">✨ 一鍵合併並載入</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 【本地資源暫存 Modal】 ==================== -->
+    <div id="localFilesModal" class="modal-overlay" onclick="closeLocalFilesModal(event)">
+      <div class="modal-card" onclick="event.stopPropagation()" style="max-width: 600px; background: var(--modal-bg, #ffffff); color: var(--text-color, #333); border: 1px solid var(--border-color, #e0e0e0); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+
+        <!-- 標題列 -->
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border-color, #eee);">
+          <h3 class="modal-title" style="margin: 0; font-size: 16px; font-weight: 600;">📥 本地資源暫存區</h3>
+          <button class="modal-close" onclick="closeLocalFilesModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-secondary, #666);">&times;</button>
+        </div>
+
+        <!-- 內容主體 -->
+        <div class="modal-body" style="padding: 20px;">
+          <p style="font-size: 13px; color: var(--text-secondary, #666); margin-bottom: 14px; line-height: 1.5;">
+            在此上傳或拖放檔案（如音效 <code>.mp3</code>、圖片 <code>.png</code>/<code>.jpg</code>、<code>.json</code> 等）。iframe 預覽中的程式碼可直接用檔名（如 <code>new Audio('bgm01.mp3')</code>）進行連動測試！
+          </p>
+
+          <!-- 拖放與上傳區（確保不透明、有清晰背景） -->
+          <div id="localFileDropZone" style="border: 2px dashed var(--border-color, #ccc); border-radius: 8px; padding: 24px; text-align: center; background: var(--editor-bg, #f9f9f9); cursor: pointer; transition: all 0.3s ease;">
+            <span style="font-size: 14px; font-weight: 500; color: var(--text-color, #333);">📥 點擊此處或拖曳檔案至此上傳</span>
+            <span style="display: block; font-size: 12px; color: var(--text-secondary, #666); margin-top: 6px;">支援各種音訊、圖片、文字與二進位檔案</span>
+            <input type="file" id="localFilesInput" multiple style="display: none;" onchange="handleLocalFilesSelected(event)">
+          </div>
+
+          <!-- 已暫存檔案列表容器（仿照智能分段工具的白底容器設計） -->
+          <div style="margin-top: 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 13px; font-weight: 600; color: var(--text-color, #333);">已暫存的檔案清單 (<span id="localFileCount">0</span>)</span>
+              <button class="btn-secondary" style="font-size: 11px; padding: 4px 10px; cursor: pointer;" onclick="clearAllLocalFiles()">清空全部</button>
+            </div>
+            <!-- 檔案列表白底容器 -->
+            <div id="localFilesList" style="max-height: 180px; overflow-y: auto; border: 1px solid var(--border-color, #ddd); border-radius: 6px; padding: 10px; background: var(--editor-bg, #ffffff); font-size: 12px; color: var(--text-color, #333);">
+              <div style="text-align: center; color: var(--text-secondary, #888); padding: 16px;">目前尚無暫存檔案</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 底部按鈕列 -->
+        <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 12px 20px; border-top: 1px solid var(--border-color, #eee);">
+          <button class="btn-secondary" onclick="closeLocalFilesModal()" style="padding: 6px 14px; cursor: pointer;">關閉</button>
+          <button class="btn-primary" onclick="applyAndRunLocalFiles()" style="padding: 6px 14px; cursor: pointer;">更新預覽並套用</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── 彈跳視窗：外部函式庫 Modal ── -->
+    <div class="modal-overlay" id="cdnModal" onclick="closeCDNModal(event)">
+      <div class="modal-box" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <input type="text" id="cdnSearchInput" placeholder="搜尋 CDNJS (例如: jquery, vue, bootstrap)" autocomplete="off">
+          <button class="close-btn" onclick="closeCDNModal(event)">&times;</button>
+        </div>
+        <div class="modal-body" id="cdnResults">
+          <div style="padding:24px; text-align:center; color:var(--text-secondary); font-size:14px;">輸入庫名進行檢索</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         【功能 10｜檔案上傳 Modal】
+         本機檔案／網址／Ctrl+V／拖放 → uploadedCodeBuffer → CodeMirror
+         ============================================================ -->
+    <!-- 📁 上傳檔案 Modal -->
+    <div class="modal-overlay" id="uploadModal" onclick="closeUploadModal(event)">
+      <div class="modal-box palette-box" onclick="event.stopPropagation()">
+        <div class="palette-title">
+          <span>📁 檔案上傳與來源載入</span>
+          <button class="close-btn" onclick="closeUploadModal(event)">&times;</button>
+        </div>
+
+        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+          支援多種來源，輕鬆將程式碼載入至編輯器中：
+        </div>
+
+        <!-- 方式一：檔案上傳 -->
+        <div style="margin-bottom: 12px; background: var(--header-bg); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">1. 選擇本機檔案上傳：</label>
+          <input type="file" id="localFileInput" accept=".html,.htm,.js,.css,.txt,text/html,text/javascript,text/css,text/plain" onchange="handleFileSelect(event)" style="width: 100%; font-size: 12px; color: var(--text-main); cursor: pointer;">
+        </div>
+
+        <!-- 方式二：輸入網址 -->
+        <div style="margin-bottom: 12px; background: var(--header-bg); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">2. 輸入遠端網址載入：</label>
+          <div style="display: flex; gap: 6px;">
+            <input type="text" id="urlInput" placeholder="https://example.com/code.html" style="flex: 1; padding: 6px 10px; border: 1px solid var(--border-color); background: var(--pane-bg); color: var(--text-main); border-radius: 6px; font-size: 12px; outline: none;">
+            <button class="btn-primary" onclick="fetchCodeFromUrl()" style="padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; border: none;">抓取</button>
+          </div>
+        </div>
+
+        <!-- 方式三：Ctrl+V 貼上或拖曳區域 -->
+        <div style="margin-bottom: 14px; background: var(--header-bg); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">3. 直接貼上 (Ctrl+V) 或拖放檔案：</label>
+          <div id="uploadDropZone" contenteditable="true" style="width: 100%; height: 75px; background: var(--pane-bg); color: var(--text-secondary); border: 1px dashed var(--border-color); border-radius: 6px; padding: 6px; font-size: 12px; display: flex; align-items: center; justify-content: center; text-align: center; outline: none; overflow-y: auto;">
+            在此點擊後按下 Ctrl+V 貼上程式碼，或拖曳檔案至此
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+          <button class="btn-secondary" onclick="closeUploadModal()" style="padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; border: 1px solid var(--border-color); background: transparent; color: var(--text-main);">取消</button>
+          <button class="btn-primary" onclick="applyUploadedCode()" style="padding: 6px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; border: none;">✨ 載入到編輯器</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 彈跳視窗：調色盤 Modal ── -->
+    <div class="modal-overlay" id="paletteModal" onclick="closePaletteModal(event)">
+      <div class="modal-box palette-box" onclick="event.stopPropagation()">
+        <div class="palette-title">
+          <span>🎨 色彩調色盤</span>
+          <button class="close-btn" onclick="closePaletteModal(event)">&times;</button>
+        </div>
+        <div class="color-picker-wrapper">
+          <input type="color" id="colorPickerInput" value="#5F7F4F" oninput="updateColorHex(this.value)">
+          <div class="color-hex-display" id="colorHexDisplay">#5F7F4F</div>
+        </div>
+        <div class="palette-actions">
+          <button onclick="copyColorHex()">複製 Hex</button>
+          <button class="btn-primary" onclick="insertColorCode()">插入游標處</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Toast 系統提示方塊 ── -->
+    <div id="toast"></div>
+
+    <script>
+      /* ============================================================
+         【功能索引｜JavaScript】
+         01. 編輯器初始化／字數統計／剪貼簿
+         02. 預覽裝置尺寸／主題切換
+         03. 元素檢查器／元素選取／預覽執行
+         04. 快速搜尋／程式碼美化／字體／重置／預覽尺寸
+         05. Toast／自動執行／全螢幕／調色盤
+         06. 智能分段／分段合併
+         07. CDN 外部函式庫
+         08. 範圍選取
+         09. 工具箱
+         10. 檔案上傳／網址載入／貼上／拖放
+         ============================================================ */
+      // ==================== 【功能 01｜編輯器初始化／字數統計／剪貼簿】 ====================
+      const editor = CodeMirror.fromTextArea(document.getElementById("textareaCode"), {
+        mode: "htmlmixed",
+        lineNumbers: true,
+        matchBrackets: true,
+        matchTags: { bothTags: true },
+        indentUnit: 2,
+        tabSize: 2,
+        indentWithTabs: false,
+        autoCloseTags: true,
+        autoCloseBrackets: true,
+        extraKeys: {
+          "Ctrl-Enter": submitTryit,
+          "Cmd-Enter": submitTryit,
+          "Tab": "emmetExpandAbbreviation",
+          "Esc": "emmetResetAbbreviation"
+        }
+      });
+
+      function updateWordCount() {
+        const totalText = editor.getValue();
+        const totalLen = totalText.length;
+        const selectedText = editor.getSelection();
+        const selectedLen = selectedText.length;
+        document.getElementById('wordCountDisplay').textContent = `("${totalLen}字┇${selectedLen}字")`;
+      }
+      editor.on("change", updateWordCount);
+      editor.on("cursorActivity", updateWordCount);
+
+      function copyCodeToClipboard() {
+        const content = editor.getValue();
+        navigator.clipboard.writeText(content).then(() => {
+          showToast("已成功複製全部程式碼！");
+        }).catch(() => {
+          showToast("複製失敗，請檢查權限");
+        });
+      }
+      async function pasteCodeFromClipboard() {
+        try {
+          const text = await navigator.clipboard.readText();
+          if (text) {
+            editor.setValue(text);
+            showToast("已成功貼上剪貼簿內容！");
+          } else {
+            showToast("剪貼簿為空");
+          }
+        } catch (err) {
+          showToast("貼上失敗，請使用鍵盤 Ctrl+V 貼上");
+        }
+      }
+      // ==================== 【功能 02｜預覽裝置尺寸／主題切換】 ====================
+      function changeDeviceMode(val) {
+        const selectBox = document.getElementById('deviceSelect');
+        if (val === 'desktop') {
+          document.body.classList.remove('device-emulation-mode');
+          selectBox.style.background = 'var(--btn-bg)';
+          selectBox.style.color = 'var(--btn-text)';
+          showToast("已切換至電腦全寬預覽模式");
+        } else {
+          const [w, h] = val.split(',');
+          document.body.style.setProperty('--device-w', w + 'px');
+          document.body.style.setProperty('--device-h', h + 'px');
+          document.body.classList.add('device-emulation-mode');
+          selectBox.style.background = 'var(--green)';
+          selectBox.style.color = '#fff';
+          showToast(`已切換至模擬尺寸: ${w} × ${h}`);
+        }
+        setTimeout(() => {
+          editor.refresh();
+          showFrameSize();
+        }, 50);
+      }
+      const themes = [
+        { name: 'light', label: '主題: 淺色', cmTheme: 'default' },
+        { name: 'dark', label: '主題: 深色', cmTheme: 'material-darker' },
+        { name: 'dev', label: '主題: 工程師', cmTheme: 'dracula' }
+      ];
+      let currentThemeIdx = 0;
+
+      function cycleTheme() {
+        currentThemeIdx = (currentThemeIdx + 1) % themes.length;
+        applyTheme(themes[currentThemeIdx]);
+      }
+
+      function applyTheme(themeObj) {
+        const isEmu = document.body.classList.contains('device-emulation-mode');
+        document.body.className = '';
+        if (isEmu) document.body.classList.add('device-emulation-mode');
+        if (themeObj.name !== 'light') document.body.classList.add(`theme-${themeObj.name}`);
+        document.getElementById('themeLabel').textContent = themeObj.label;
+        editor.setOption('theme', themeObj.cmTheme);
+        localStorage.setItem('preferred_theme_idx', currentThemeIdx);
+      }
+      const savedIdx = localStorage.getItem('preferred_theme_idx');
+      if (savedIdx !== null) {
+        currentThemeIdx = parseInt(savedIdx, 10) || 0;
+        applyTheme(themes[currentThemeIdx]);
+      }
+      Split(['#split-0', '#split-1'], {
+        sizes: [50, 50],
+        minSize: 200,
+        gutterSize: 8,
+        onDrag: () => editor.refresh(),
+        onDragEnd: () => {
+          editor.refresh();
+          showFrameSize();
+        }
+      });
+      // ==================== 【功能 03｜元素檢查器／元素選取／預覽執行】 ====================
+      let rightSplit = null;
+      let isInspectorOpen = false;
+      let isPickingElement = false;
+      const inspectorScript = `
+    <script>
+      (function(){
+        let activeOverlay = null;
+
+        window.addEventListener('message', function(e) {
+          if (e.data && e.data.type === 'TOGGLE_PICKER') {
+            if (e.data.active) {
+              enablePicker();
+            } else {
+              disablePicker();
+            }
+          }
+        });
+
+        function enablePicker() {
+          document.addEventListener('mouseover', onMouseOver, true);
+          document.addEventListener('mouseout', onMouseOut, true);
+          document.addEventListener('click', onClick, true);
+        }
+
+        function disablePicker() {
+          document.removeEventListener('mouseover', onMouseOver, true);
+          document.removeEventListener('mouseout', onMouseOut, true);
+          document.removeEventListener('click', onClick, true);
+          removeOverlay();
+        }
+
+        function onMouseOver(e) {
+          e.stopPropagation();
+          highlightElement(e.target);
+        }
+
+        function onMouseOut(e) {
+          e.stopPropagation();
+          removeOverlay();
+        }
+
+        function onClick(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          const el = e.target;
+          const computed = window.getComputedStyle(el);
+          const rect = el.getBoundingClientRect();
+
+          const info = {
+            tagName: el.tagName.toLowerCase(),
+            id: el.id ? '#' + el.id : '',
+            className: el.className ? '.' + String(el.className).trim().split(/\\s+/).join('.') : '',
+            outerHTML: el.outerHTML,
+            innerHTML: el.innerHTML,
+            textContent: el.textContent ? el.textContent.trim() : '',
+            value: el.value !== undefined ? el.value : null,
+            rect: {
+              top: Math.round(rect.top),
+              left: Math.round(rect.left),
+              width: Math.round(rect.width),
+              height: Math.round(rect.height)
+            },
+            styles: {
+              color: computed.color,
+              backgroundColor: computed.backgroundColor,
+              fontSize: computed.fontSize,
+              fontFamily: computed.fontFamily,
+              display: computed.display,
+              padding: computed.padding,
+              margin: computed.margin
+            }
+          };
+
+          window.parent.postMessage({
+            type: 'ELEMENT_SELECTED',
+            elementInfo: info
+          }, '*');
+
+          disablePicker();
+        }
+
+        function highlightElement(el) {
+          removeOverlay();
+          const rect = el.getBoundingClientRect();
+          activeOverlay = document.createElement('div');
+          activeOverlay.style.position = 'absolute';
+          activeOverlay.style.top = (rect.top + window.scrollY) + 'px';
+          activeOverlay.style.left = (rect.left + window.scrollX) + 'px';
+          activeOverlay.style.width = rect.width + 'px';
+          activeOverlay.style.height = rect.height + 'px';
+          activeOverlay.style.backgroundColor = 'rgba(72, 130, 89, 0.35)';
+          activeOverlay.style.border = '2px dashed #488259';
+          activeOverlay.style.zIndex = '999999';
+          activeOverlay.style.pointerEvents = 'none';
+          document.body.appendChild(activeOverlay);
+        }
+
+        function removeOverlay() {
+          if (activeOverlay && activeOverlay.parentNode) {
+            activeOverlay.parentNode.removeChild(activeOverlay);
+            activeOverlay = null;
+          }
+        }
+      })();
+    <\/script>
+  `;
+      window.addEventListener('message', (e) => {
+        if (!e.data) return;
+        if (e.data.type === 'ELEMENT_SELECTED') {
+          const info = e.data.elementInfo;
+          const container = document.getElementById('inspector-content');
+          if (container.querySelector('div') && (container.textContent.includes('請點擊') || container.textContent.includes('檢查結果已清空'))) {
+            container.innerHTML = '';
+          }
+          // 精準找出這個元素在編輯器中的起始行號
+          let startLineNum = 0;
+          const firstLineSnippet = `<${info.tagName}`;
+          // 1. 優先策略：如果該元素有文字內容，嘗試在編輯器中尋找包含該文字的行
+          if (info.textContent && info.textContent.length > 0) {
+            let textCursor = editor.getSearchCursor(info.textContent, { line: 0, ch: 0 });
+            while (textCursor.findNext()) {
+              const pos = textCursor.from();
+              const lineContent = editor.getLine(pos.line);
+              // 確保這行同時也包含該標籤或相關屬性，避免抓錯地方
+              if (lineContent.includes(firstLineSnippet) || (info.className && lineContent.includes(info.className.split('.')[1]))) {
+                startLineNum = pos.line;
+                break;
+              }
+            }
+          }
+          // 2. 第二策略：如果剛好沒文字或沒找到，改用原本的 ID / Class 尋找
+          if (startLineNum === 0) {
+            let searchCursor = editor.getSearchCursor(firstLineSnippet, { line: 0, ch: 0 });
+            while (searchCursor.findNext()) {
+              const pos = searchCursor.from();
+              const lineContent = editor.getLine(pos.line);
+              if ((info.id && lineContent.includes(info.id)) || (info.className && lineContent.includes(info.className.split('.')[1])) || (!info.id && !info.className)) {
+                startLineNum = pos.line;
+                break;
+              }
+            }
+          }
+          // 3. 最後防線
+          if (startLineNum === 0) {
+            let fallbackCursor = editor.getSearchCursor(firstLineSnippet, { line: 0, ch: 0 });
+            if (fallbackCursor.findNext()) startLineNum = fallbackCursor.from().line;
+          }
+          const item = document.createElement('div');
+          item.className = 'inspector-item';
+          let extraDetails = '';
+          if (info.value !== null && info.value !== '') {
+            extraDetails += `<div><span class="label">表單 Value：</span>${escapeHtml(String(info.value))}</div>`;
+          }
+          extraDetails += `<div><span class="label">尺寸/位置：</span>W: ${info.rect.width}px, H: ${info.rect.height}px (Top: ${info.rect.top}, Left: ${info.rect.left})</div>`;
+          extraDetails += `<div><span class="label">計算樣式：</span>color: ${info.styles.color}, bg: ${info.styles.backgroundColor}, font: ${info.styles.fontSize} ${info.styles.fontFamily}</div>`;
+          // 帶入起始行號進行排版
+          const formattedHtmlSegments = formatOuterHTMLToSegments(info.outerHTML, startLineNum);
+          item.innerHTML = `
+            <div><span class="label">元素標籤：</span>&lt;${info.tagName}${info.id}${info.className}&gt; (約第 ${startLineNum + 1} 行起)</div>
+            <div><span class="label">文字內容：</span>${escapeHtml(info.textContent || '(無)')}</div>
+            ${extraDetails}
+            <div><span class="label">完整 HTML：</span><div style="margin-top: 4px; padding-left: 4px; border-left: 2px solid #555;">${formattedHtmlSegments}</div></div>
+            <div style="color: #666; margin-top: 6px; border-bottom: 1px dashed #444; padding-bottom: 2px;">────────</div>
+          `;
+          container.appendChild(item);
+          container.scrollTop = container.scrollHeight;
+          isPickingElement = false;
+          updatePickerBtnState();
+          showToast("已取得完整元素資訊！");
+        }
+      });
+
+      function formatOuterHTMLToSegments(outerHTML, baseLineNum = 0) {
+        let pretty = outerHTML;
+        if (typeof html_beautify === "function") {
+          pretty = html_beautify(outerHTML, {
+            indent_size: 2,
+            indent_char: " ",
+            wrap_line_length: 0,
+            preserve_newlines: true
+          });
+        }
+        const lines = pretty.split('\n');
+        return lines.map((line, index) => {
+          const trimmed = line.trim();
+          // 如果是完全空白的行，直接略過或給予極小的緊湊空隙，避免撐開上下間距
+          if (!trimmed) return '';
+          const currentLineNum = baseLineNum + index + 1;
+          const lineNumText = `第 ${currentLineNum} 行`;
+          const escaped = escapeHtml(line);
+          const encodedSnippet = encodeURIComponent(trimmed);
+          // 💡 將 margin 從 2px 改為 0 或 1px，並調整 line-height 讓每一行更緊湊
+          return `
+            <div style="margin: 1px 0; display: flex; align-items: center; gap: 8px; font-family: monospace; line-height: 1.2;">
+              <span style="font-size: 11px; color: #888; background: rgba(255,255,255,0.05); padding: 0 4px; border-radius: 3px; min-width: 55px; text-align: right; white-space: nowrap; user-select: none;">${lineNumText}</span>
+              <code class="clickable-code" style="flex: 1;" title="點擊跳轉至原始碼第 ${currentLineNum} 行" onclick="jumpToCodeSnippetByLine('${encodedSnippet}', ${currentLineNum - 1})">${escaped}</code>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function jumpToCodeSnippet(encodedSnippet) {
+        const snippet = decodeURIComponent(encodedSnippet);
+        if (!snippet) return;
+        let cursor = editor.getSearchCursor(snippet, { line: 0, ch: 0 });
+        if (cursor.findNext()) {
+          editor.setSelection(cursor.from(), cursor.to());
+          editor.scrollIntoView({ from: cursor.from(), to: cursor.to() }, 100);
+          showToast("已跳轉至原始碼位置！");
+          return;
+        }
+        // 寬鬆比對：若找不到該行，嘗試提取標籤或核心關鍵字
+        const cleanSnippet = snippet.replace(/<[^>]*>/g, "").trim();
+        if (cleanSnippet.length > 2) {
+          cursor = editor.getSearchCursor(cleanSnippet, { line: 0, ch: 0 });
+          if (cursor.findNext()) {
+            editor.setSelection(cursor.from(), cursor.to());
+            editor.scrollIntoView({ from: cursor.from(), to: cursor.to() }, 100);
+            showToast("已透過關鍵字跳轉至原始碼位置！");
+            return;
+          }
+        }
+        showToast("在原始碼中找不到對應的片段");
+      }
+
+      function jumpToCodeSnippetByLine(encodedQuery, targetLine) {
+        const query = decodeURIComponent(encodedQuery);
+        // 1. 如果指定的行號範圍內剛好包含該文字，直接鎖定該行！
+        const lineContent = editor.getLine(targetLine);
+        if (lineContent && lineContent.includes(query)) {
+          const ch = lineContent.indexOf(query);
+          const from = { line: targetLine, ch: ch };
+          const to = { line: targetLine, ch: ch + query.length };
+          editor.setSelection(from, to);
+          editor.scrollIntoView({ from: from, to: to }, 100);
+          editor.focus();
+          showToast(`已跳轉至第 ${targetLine + 1} 行`);
+          return;
+        }
+        // 2. 備用方案：如果該行稍微有排版差異，從該行開始附近上下尋找最接近的
+        let found = false;
+        for (let offset = 0; offset <= 3; offset++) {
+          for (let checkLine of [targetLine + offset, targetLine - offset]) {
+            if (checkLine >= 0 && checkLine < editor.lineCount()) {
+              const text = editor.getLine(checkLine);
+              if (text && text.includes(query)) {
+                const ch = text.indexOf(query);
+                const from = { line: checkLine, ch: ch };
+                const to = { line: checkLine, ch: ch + query.length };
+                editor.setSelection(from, to);
+                editor.scrollIntoView({ from: from, to: to }, 100);
+                editor.focus();
+                showToast(`已跳轉至第 ${checkLine + 1} 行`);
+                found = true;
+                break;
+              }
+            }
+          }
+          if (found) break;
+        }
+        if (!found) {
+          // 最後防線：若附近真的找不到，才退回原本的全域搜尋
+          jumpToCodeSnippet(encodedQuery);
+        }
+      }
+
+      function escapeHtml(str) {
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      }
+
+      function clearInspector() {
+        const container = document.getElementById('inspector-content');
+        container.innerHTML = '<div id="clear-msg" style="color: #888; transition: opacity 0.5s ease;">檢查結果已清空。</div>';
+      }
+
+      function toggleInspector() {
+        const pane = document.getElementById('inspector-pane');
+        if (isInspectorOpen) {
+          if (rightSplit) rightSplit.destroy();
+          pane.style.display = 'none';
+          pane.style.height = '0%';
+          document.getElementById('split-iframe').style.height = '100%';
+          if (isPickingElement) toggleElementPicker();
+        } else {
+          pane.style.display = 'flex';
+          rightSplit = Split(['#split-iframe', '#inspector-pane'], {
+            direction: 'vertical',
+            sizes: [70, 30],
+            minSize: [100, 30],
+            gutterSize: 6
+          });
+        }
+        isInspectorOpen = !isInspectorOpen;
+      }
+
+      function toggleElementPicker() {
+        if (!isInspectorOpen) {
+          toggleInspector();
+        }
+        isPickingElement = !isPickingElement;
+        updatePickerBtnState();
+        const iframe = document.getElementById('iframeResult');
+        if (iframe && iframe.contentWindow) {
+          iframe.contentWindow.postMessage({
+            type: 'TOGGLE_PICKER',
+            active: isPickingElement
+          }, '*');
+        }
+      }
+
+      function updatePickerBtnState() {
+        const btn = document.getElementById('pickElementBtn');
+        const status = document.getElementById('inspector-status');
+        if (isPickingElement) {
+          btn.style.background = '#e74c3c';
+          btn.textContent = '取消選取';
+          status.textContent = '元素檢查模式：請在右側預覽畫面中點擊要檢查的元素...';
+        } else {
+          btn.style.background = 'var(--green)';
+          btn.textContent = '選取元素';
+          status.textContent = '元素檢查模式：就緒';
+        }
+      }
+
+      function submitTryit() {
+        if (isPickingElement) {
+          isPickingElement = false;
+          updatePickerBtnState();
+        }
+        clearInspector();
+        let text = editor.getValue();
+        // 僅針對真正的資源屬性與 CSS url() 做安全的靜態處理；
+        // JavaScript 動態資源則交由 iframe 內的 interceptor 攔截。
+        text = rewriteLocalResourceReferences(text);
+        const localInterceptor = createLocalResourceInterceptorScript();
+        if (text.includes('<head>')) {
+          text = text.replace(
+            '<head>',
+            '<head>' + localInterceptor + inspectorScript
+          );
+        } else {
+          text = localInterceptor + inspectorScript + text;
+        }
+        const wrapper = document.getElementById("iframewrapper");
+        wrapper.innerHTML = "";
+        const ifr = document.createElement("iframe");
+        ifr.setAttribute("frameborder", "0");
+        ifr.setAttribute("allow", "autoplay; fullscreen; picture-in-picture");
+        ifr.setAttribute("id", "iframeResult");
+        wrapper.appendChild(ifr);
+        ifr.addEventListener('load', showFrameSize, { once: true });
+        const ifrw = ifr.contentWindow || ifr.contentDocument;
+        ifrw.document.open();
+        // ==========================================
+        // 🐛 DEBUG：檢查真正送進 iframe 的 HTML
+        // ==========================================
+        console.log('========== [DEBUG IFRAME HTML] ==========');
+        console.log(text);
+        console.log('========== [DEBUG IFRAME HTML END] ==========');
+        ifrw.document.write(text);
+        ifrw.document.close();
+        // 保留 parent → iframe 的同步機制；
+        // 初始資源也已內嵌，避免訊息延遲造成首屏資源載入失敗。
+        setTimeout(() => syncLocalResourcesToIframe(ifr), 0);
+      }
+      // ==================== 【功能 03A｜本地資源暫存與 iframe 資源攔截】 ====================
+      const localResourceMap = new Map();
+
+      function formatLocalFileSize(bytes) {
+        if (!Number.isFinite(bytes) || bytes < 0) return '0 B';
+        if (bytes < 1024) return `${bytes} B`;
+        const units = ['KB', 'MB', 'GB'];
+        let value = bytes / 1024;
+        let unitIndex = 0;
+        while (value >= 1024 && unitIndex < units.length - 1) {
+          value /= 1024;
+          unitIndex++;
+        }
+        return `${value < 10 ? value.toFixed(2) : value < 100 ? value.toFixed(1) : value.toFixed(0)} ${units[unitIndex]}`;
+      }
+
+      function getLocalFileIcon(file) {
+        const type = (file && file.type) || '';
+        const ext = (file && file.name ? file.name.split('.').pop() : '').toLowerCase();
+        if (type.startsWith('image/') || ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico'].includes(ext)) return '🖼️';
+        if (type.startsWith('audio/') || ['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac'].includes(ext)) return '🎵';
+        if (type.startsWith('video/') || ['mp4', 'webm', 'mov', 'mkv', 'avi'].includes(ext)) return '🎬';
+        if (['html', 'htm', 'css', 'js', 'json', 'txt', 'xml', 'md'].includes(ext)) return '📄';
+        if (['woff', 'woff2', 'ttf', 'otf', 'eot'].includes(ext)) return '🔤';
+        return '📦';
+      }
+
+      function escapeLocalHtml(value) {
+        return String(value == null ? '' : value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function normalizeLocalResourceKey(value) {
+        if (value == null) return '';
+        let key = String(value).trim();
+        if (!key) return '';
+        try { key = decodeURIComponent(key); } catch (_) {}
+        key = key.split('#')[0].split('?')[0].replace(/\\/g, '/');
+        while (key.startsWith('./')) key = key.slice(2);
+        key = key.replace(/^\.\//, '');
+        key = key.replace(/^\/+/, '');
+        const parts = [];
+        key.split('/').forEach(part => {
+          if (!part || part === '.') return;
+          if (part === '..') { if (parts.length) parts.pop(); return; }
+          parts.push(part);
+        });
+        return parts.join('/');
+      }
+
+      function isLocalResourceReference(value) {
+        if (typeof value !== 'string') return false;
+        const v = value.trim();
+        if (!v || v.startsWith('#')) return false;
+        if (/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(v)) return false;
+        return true;
+      }
+
+      function resolveLocalResourceUrl(value) {
+        if (!isLocalResourceReference(value)) return null;
+        const key = normalizeLocalResourceKey(value);
+        if (!key) return null;
+        const item = localResourceMap.get(key) || localResourceMap.get(String(value).trim());
+        return item ? item.url : null;
+      }
+
+      function rewriteLocalResourceReferences(html) {
+        if (!localResourceMap.size || typeof html !== 'string') return html;
+        const attrPattern = /(<(?:img|audio|video|source|script|link|iframe|object|embed)\b[^>]*?\s(?:src|href|data)\s*=\s*)(["'])([^"']+)(\2)/gi;
+        html = html.replace(attrPattern, (full, prefix, quote, value, endQuote) => {
+          const url = resolveLocalResourceUrl(value);
+          return url ? prefix + quote + url + endQuote : full;
+        });
+        const stylePattern = /(url\(\s*)(["']?)([^)"']+?)(\2\s*\))/gi;
+        html = html.replace(stylePattern, (full, prefix, quote, value, suffix) => {
+          const url = resolveLocalResourceUrl(value.trim());
+          return url ? prefix + quote + url + suffix : full;
+        });
+        return html;
+      }
+
+      function createLocalResourceInterceptorScript() {
+        const resources = {};
+        localResourceMap.forEach((item, key) => { resources[key] = item.url; });
+        const safeJson = JSON.stringify(resources)
+          .replace(/</g, '\\u003C')
+          .replace(/>/g, '\\u003E')
+          .replace(/&/g, '\\u0026');
+        return `<script>\n(function(){\n  const LOCAL_RESOURCE_MAP = ${safeJson};\n  const map = new Map(Object.entries(LOCAL_RESOURCE_MAP));\n  function norm(v){\n    if(typeof v !== 'string') return '';\n    let k=v.trim(); try{k=decodeURIComponent(k);}catch(e){}\n    k=k.split('#')[0].split('?')[0].replace(/\\\\/g,'/');\n    while(k.indexOf('./')===0) k=k.slice(2);\n    k=k.replace(/^\\/+/, '');\n    const a=[]; k.split('/').forEach(function(p){if(!p||p==='.')return;if(p==='..'){if(a.length)a.pop();return;}a.push(p);});\n    return a.join('/');\n  }\n  function resolve(v){\n    if(typeof v!=='string') return null;\n    const x=v.trim();\n    if(!x || /^(?:[a-z][a-z0-9+.-]*:|\\/\\/)/i.test(x)) return null;\n    return map.get(norm(x)) || null;\n  }\n  function rewriteElement(el){\n    if(!el || el.nodeType!==1) return;\n    ['src','href','data'].forEach(function(attr){\n      if(!el.hasAttribute || !el.hasAttribute(attr)) return;\n      const old=el.getAttribute(attr), url=resolve(old);\n      if(url && old!==url) el.setAttribute(attr,url);\n    });\n    if(el.hasAttribute && el.hasAttribute('style')){\n      el.style.cssText=el.getAttribute('style').replace(/url\\(\\s*(["']?)([^)"']+?)\\1\\s*\\)/gi,function(all,q,v){const u=resolve(v.trim());return u?'url('+q+u+q+')':all;});\n    }\n  }\n  function scan(root){\n    if(!root||!root.querySelectorAll) return;\n    rewriteElement(root);\n    root.querySelectorAll('[src],[href],[data],[style]').forEach(rewriteElement);\n  }\n  const originalSetAttribute=Element.prototype.setAttribute;\n  Element.prototype.setAttribute=function(name,value){\n    if((name==='src'||name==='href'||name==='data') && typeof value==='string'){const u=resolve(value); if(u)value=u;}\n    return originalSetAttribute.call(this,name,value);\n  };\n  const descriptors=[['HTMLImageElement','src'],['HTMLMediaElement','src'],['HTMLScriptElement','src'],['HTMLIFrameElement','src'],['HTMLSourceElement','src'],['HTMLLinkElement','href'],['HTMLObjectElement','data'],['HTMLEmbedElement','src']];\n  descriptors.forEach(function(pair){try{const proto=window[pair[0]]&&window[pair[0]].prototype; if(!proto)return; const d=Object.getOwnPropertyDescriptor(proto,pair[1]); if(!d||!d.set)return; Object.defineProperty(proto,pair[1],{configurable:d.configurable,enumerable:d.enumerable,get:d.get,set:function(v){const u=resolve(v); return d.set.call(this,u||v);}});}catch(e){}});\n  const OriginalImage=window.Image;\n  if(OriginalImage){window.Image=function(){const img=new OriginalImage(...arguments); const d=Object.getOwnPropertyDescriptor(HTMLImageElement.prototype,'src'); if(d&&d.set)Object.defineProperty(img,'src',{configurable:true,get:d.get.bind(img),set:function(v){d.set.call(img,resolve(v)||v);}}); return img;}; window.Image.prototype=OriginalImage.prototype;}\n  const originalFetch=window.fetch;\n  if(originalFetch) window.fetch=function(input,init){if(typeof input==='string'){const u=resolve(input);if(u)input=u;}else if(input&&typeof Request!=='undefined'&&input instanceof Request){const u=resolve(input.url);if(u)input=new Request(u,input);}return originalFetch.call(this,input,init);};\n  const OriginalXHR=window.XMLHttpRequest;\n  if(OriginalXHR){const open=OriginalXHR.prototype.open; OriginalXHR.prototype.open=function(method,url){const args=[].slice.call(arguments);if(typeof url==='string'){const u=resolve(url);if(u)args[1]=u;}return open.apply(this,args);};}\n  if(window.Audio){
+    const OriginalAudio=window.Audio;
+    window.Audio=function(src){
+      const audio=new OriginalAudio();
+      if(typeof src==='string') audio.src=resolve(src)||src;
+      return audio;
+    };
+    window.Audio.prototype=OriginalAudio.prototype;
+  }\n  window.addEventListener('message',function(e){\n    if(!e.data || e.data.type!=='LOCAL_RESOURCE_MAP') return;\n    map.clear(); Object.entries(e.data.resources||{}).forEach(function(entry){map.set(norm(entry[0]),entry[1]);}); scan(document.documentElement);\n  });\n  const observer=new MutationObserver(function(mutations){mutations.forEach(function(m){m.addedNodes.forEach(function(n){if(n.nodeType===1)scan(n);});m.forEach(function(){if(m.target&&m.target.nodeType===1)rewriteElement(m.target);});});});\n  if(document.documentElement) observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['src','href','data','style']});\n  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){scan(document.documentElement);}); else scan(document.documentElement);\n  window.__LOCAL_RESOURCE_READY__=true;\n})();\n<\\/script>`;
+      }
+
+      function syncLocalResourcesToIframe(iframe) {
+        if (!iframe || !iframe.contentWindow) return;
+        const resources = {};
+        localResourceMap.forEach((item, key) => { resources[key] = item.url; });
+        try {
+          iframe.contentWindow.postMessage({ type: 'LOCAL_RESOURCE_MAP', resources: resources }, '*');
+        } catch (err) {
+          console.warn('本地資源同步失敗：', err);
+        }
+      }
+
+      function openLocalFilesModal() {
+        closeToolbox();
+        const modal = document.getElementById('localFilesModal');
+        if (!modal) return;
+        renderLocalFilesList();
+        modal.classList.add('active');
+        bindLocalFilesDropZone();
+      }
+
+      function closeLocalFilesModal(event) {
+        if (event && event.target && event.currentTarget && event.target !== event.currentTarget) return;
+        const modal = document.getElementById('localFilesModal');
+        if (modal) modal.classList.remove('active');
+      }
+
+      function renderLocalFilesList() {
+        const list = document.getElementById('localFilesList');
+        const count = document.getElementById('localFileCount');
+        if (!list) return;
+        if (count) count.textContent = String(localResourceMap.size);
+        if (!localResourceMap.size) {
+          list.innerHTML = '<div style="text-align:center;color:var(--text-secondary);padding:16px;">目前尚無暫存檔案</div>';
+          return;
+        }
+        list.innerHTML = Array.from(localResourceMap.entries()).map(([key, item]) => `
+          <div class="local-file-row">
+            <div class="local-file-icon">${getLocalFileIcon(item.file)}</div>
+            <div class="local-file-info">
+              <div class="local-file-name" title="${escapeLocalHtml(key)}">${escapeLocalHtml(key)}</div>
+              <div class="local-file-meta">${formatLocalFileSize(item.size)}${item.type ? ' · ' + escapeLocalHtml(item.type) : ''}</div>
+            </div>
+            <button class="local-file-delete" onclick="deleteLocalFile(${JSON.stringify(key).replace(/</g,'\\u003C')})">🗑</button>
+          </div>`).join('');
+      }
+
+      function handleLocalFilesSelect(event) {
+        const files = event && event.target ? event.target.files : null;
+        addLocalFiles(files);
+        if (event && event.target) event.target.value = '';
+      }
+
+      function handleLocalFilesDrop(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const zone = document.getElementById('localFileDropZone');
+        if (zone) zone.classList.remove('local-files-dragover');
+        addLocalFiles(event.dataTransfer ? event.dataTransfer.files : null);
+      }
+
+      function addLocalFiles(fileList) {
+        if (!fileList || !fileList.length) return;
+        let added = 0,
+          updated = 0;
+        Array.from(fileList).forEach(file => {
+          if (!file || !file.name) return;
+          const key = normalizeLocalResourceKey(file.name);
+          if (!key) return;
+          const old = localResourceMap.get(key);
+          if (old && old.url) URL.revokeObjectURL(old.url);
+          const url = URL.createObjectURL(file);
+          localResourceMap.set(key, { file, url, size: file.size, type: file.type || '', name: file.name });
+          if (old) updated++;
+          else added++;
+        });
+        renderLocalFilesList();
+        if (added && updated) showToast(`已加入 ${added} 個、更新 ${updated} 個本地資源`);
+        else if (updated) showToast(`已更新 ${updated} 個本地資源`);
+        else if (added) showToast(`已加入 ${added} 個本地資源`);
+      }
+
+      function deleteLocalFile(name) {
+        const key = normalizeLocalResourceKey(name);
+        const item = localResourceMap.get(key);
+        if (!item) { showToast('找不到要刪除的資源'); return; }
+        if (item.url) URL.revokeObjectURL(item.url);
+        localResourceMap.delete(key);
+        renderLocalFilesList();
+        showToast(`已刪除：${item.name}`);
+      }
+
+      function clearAllLocalFiles() {
+        if (!localResourceMap.size) { showToast('目前沒有可清除的資源'); return; }
+        localResourceMap.forEach(item => { if (item.url) URL.revokeObjectURL(item.url); });
+        localResourceMap.clear();
+        renderLocalFilesList();
+        showToast('已清空所有本地暫存資源');
+      }
+
+      function applyAndRunLocalFiles() {
+        closeLocalFilesModal();
+        submitTryit();
+        showToast('本地資源已套用至預覽');
+      }
+
+      function bindLocalFilesDropZone() {
+        const zone = document.getElementById('localFileDropZone');
+        const input = document.getElementById('localFilesInput');
+        if (!zone || zone.dataset.localBound === '1') return;
+        zone.dataset.localBound = '1';
+        zone.addEventListener('click', function(e) {
+          if (e.target !== input) input.click();
+        });
+        ['dragenter', 'dragover'].forEach(type => zone.addEventListener(type, function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          zone.classList.add('local-files-dragover');
+        }));
+        ['dragleave', 'drop'].forEach(type => zone.addEventListener(type, function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          zone.classList.remove('local-files-dragover');
+        }));
+        zone.addEventListener('drop', handleLocalFilesDrop);
+      }
+      // ==================== 【功能 04｜快速搜尋／程式碼美化／字體／重置／預覽尺寸】 ====================
+      let lastSearchCursor = null;
+      let lastSearchQuery = "";
+
+      function handleQuickSearch(query) {
+        if (!query) {
+          lastSearchCursor = null;
+          lastSearchQuery = "";
+          return;
+        }
+        if (lastSearchQuery !== query) {
+          lastSearchQuery = query;
+          lastSearchCursor = editor.getSearchCursor(query, { line: 0, ch: 0 });
+        }
+        if (lastSearchCursor.findNext()) {
+          editor.setSelection(lastSearchCursor.from(), lastSearchCursor.to());
+          editor.scrollIntoView({ from: lastSearchCursor.from(), to: lastSearchCursor.to() }, 100);
+        } else {
+          lastSearchCursor = editor.getSearchCursor(query, { line: 0, ch: 0 });
+          if (lastSearchCursor.findNext()) {
+            editor.setSelection(lastSearchCursor.from(), lastSearchCursor.to());
+            editor.scrollIntoView({ from: lastSearchCursor.from(), to: lastSearchCursor.to() }, 100);
+          }
+        }
+      }
+
+      function handleQuickSearchKey(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const query = e.target.value;
+          if (query) handleQuickSearch(query);
+        }
+      }
+
+      function formatCode() {
+        const val = editor.getValue();
+        if (!val.trim()) return;
+        if (typeof html_beautify === "function") {
+          const formatted = html_beautify(val, {
+            indent_size: 2,
+            indent_char: " ",
+            max_preserve_newlines: 1,
+            preserve_newlines: true,
+            keep_array_indentation: false,
+            break_chained_methods: false,
+            indent_scripts: "normal",
+            brace_style: "collapse,preserve-inline",
+            space_before_conditional: true,
+            unescape_strings: false,
+            jslint_happy: false,
+            end_with_newline: false,
+            wrap_line_length: 0,
+            indent_inner_html: true,
+            comma_first: false,
+            extra_liners: []
+          });
+          editor.setValue(formatted);
+          showToast("程式碼已成功美化排版！");
+        } else {
+          showToast("美化元件載入失敗");
+        }
+      }
+      let currentFontSize = 14;
+
+      function changeFontSize(delta) {
+        currentFontSize = Math.max(10, Math.min(26, currentFontSize + delta));
+        document.querySelector('.CodeMirror').style.fontSize = `${currentFontSize}px`;
+        editor.refresh();
+      }
+
+      function resetCode() {
+        editor.setValue('');
+        submitTryit();
+      }
+
+      function showFrameSize() {
+        const iframe = document.getElementById("iframeResult");
+        if (!iframe) return;
+        const w = iframe.offsetWidth;
+        const h = iframe.offsetHeight;
+        if (w && h) document.getElementById("framesize").textContent = ` (${w} × ${h})`;
+      }
+      async function downloadCode() {
+        const content = editor.getValue();
+        if (window.showSaveFilePicker) {
+          try {
+            const options = {
+              suggestedName: 'index.html',
+              types: [{ description: 'HTML 檔案', accept: { 'text/html': ['.html', '.htm'] } }],
+            };
+            const handle = await window.showSaveFilePicker(options);
+            const writable = await handle.createWritable();
+            await writable.write(content);
+            await writable.close();
+            showToast("檔案儲存成功！");
+            return;
+          } catch (err) {
+            if (err.name === 'AbortError') return;
+          }
+        }
+        const filename = prompt("請輸入要儲存的檔案名稱：", "index.html");
+        if (!filename) return;
+        const blob = new Blob([content], { type: "text/html;charset=utf-8" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        showToast("檔案下載成功！");
+      }
+      // ==================== 【功能 05｜Toast／自動執行／全螢幕／調色盤】 ====================
+      function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+      }
+      let autoTimer;
+      editor.on("change", () => {
+        if (document.getElementById("autoRunCheck").checked) {
+          clearTimeout(autoTimer);
+          autoTimer = setTimeout(submitTryit, 500);
+        }
+      });
+      let isFullscreen = false;
+
+      function toggleFullscreen() {
+        const pane = document.getElementById('split-1');
+        isFullscreen = !isFullscreen;
+        if (isFullscreen) pane.classList.add('fullscreen');
+        else pane.classList.remove('fullscreen');
+        setTimeout(() => {
+          editor.refresh();
+          showFrameSize();
+        }, 50);
+      }
+
+      function openPaletteModal() {
+        const selectedText = editor.getSelection().trim();
+        const hexRegex = /^(#)?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+        let targetColor = "#5F7F4F";
+        if (hexRegex.test(selectedText)) {
+          targetColor = selectedText.startsWith('#') ? selectedText : '#' + selectedText;
+          targetColor = targetColor.toUpperCase();
+        }
+        document.getElementById('colorPickerInput').value = targetColor;
+        document.getElementById('colorHexDisplay').textContent = targetColor;
+        document.getElementById('paletteModal').classList.add('active');
+      }
+
+      function closePaletteModal(e) {
+        if (e) e.preventDefault();
+        document.getElementById('paletteModal').classList.remove('active');
+      }
+
+      function updateColorHex(val) {
+        document.getElementById('colorHexDisplay').textContent = val.toUpperCase();
+      }
+
+      function copyColorHex() {
+        const hex = document.getElementById('colorHexDisplay').textContent;
+        navigator.clipboard.writeText(hex).then(() => {
+          showToast(`已複製色碼: ${hex}`);
+        });
+      }
+
+      function insertColorCode() {
+        const hex = document.getElementById('colorHexDisplay').textContent;
+        editor.replaceSelection(hex);
+        closePaletteModal();
+        editor.focus();
+        showToast(`已插入色碼: ${hex}`);
+      }
+      // ==================== 【功能 06｜智能分段／分段合併】 ====================
+      // 開啟合併器 Modal
+      function openMergeModal() {
+        document.getElementById('mergeModal').classList.add('active');
+        setTimeout(() => document.getElementById('mergeInputArea').focus(), 80);
+      }
+      // 關閉合併器 Modal
+      function closeMergeModal(e) {
+        if (e) e.preventDefault();
+        document.getElementById('mergeModal').classList.remove('active');
+      }
+      // 核心合併邏輯
+      function processMergeCode() {
+        const rawText = document.getElementById('mergeInputArea').value;
+        if (!rawText.trim()) {
+          showToast("請先貼上要合併的程式碼片段！");
+          return;
+        }
+        try {
+          let cleaned = rawText;
+          // 1. 強效清除「先不要回覆我，請等待後續分段。」（包含可能的換行與空白）
+          cleaned = cleaned.replace(/先不要回覆我，請等待後續分段。[\r\n]*/g, '');
+          // 2. 清除所有 [CODE_START: x/y] 標記
+          cleaned = cleaned.replace(/\[CODE_START:\s*\d+\/\d+\][\r\n]*/g, '');
+          // 3. 清除 [CODE_MORE] 與 [CODE_END] 標記
+          cleaned = cleaned.replace(/\[CODE_MORE\][\r\n]*/g, '');
+          cleaned = cleaned.replace(/\[CODE_END\][\r\n]*/g, '');
+          // 4. 將乾淨的程式碼寫入編輯器
+          editor.setValue(cleaned.trim());
+          // 5. 自動執行與收尾
+          submitTryit();
+          closeMergeModal();
+          showToast("程式碼已成功合併並還原！");
+        } catch (err) {
+          console.error(err);
+          showToast("合併解析失敗，請確認格式是否正確");
+        }
+      }
+
+      function openChunkModal() {
+        document.getElementById('chunkModal').classList.add('active');
+        // 💡 計算並更新總字數
+        const code = editor.getValue();
+        const totalCharsInput = document.getElementById('totalCodeChars');
+        if (totalCharsInput) {
+          totalCharsInput.textContent = code.length.toLocaleString();
+        }
+        generateChunkButtons();
+      }
+
+      function closeChunkModal(e) {
+        if (e) e.preventDefault();
+        document.getElementById('chunkModal').classList.remove('active');
+      }
+
+      function generateChunkButtons() {
+        const code = editor.getValue();
+        const totalChars = code.length;
+        // 同步更新總字數
+        const totalCharsInput = document.getElementById('totalCodeChars');
+        if (totalCharsInput) {
+          totalCharsInput.textContent = totalChars.toLocaleString();
+        }
+        const totalChunks = parseInt(document.getElementById('chunkCountInput').value, 10);
+        const container = document.getElementById('chunkResultContainer');
+        if (!code.trim()) {
+          container.innerHTML = '<div style="text-align: center; color: var(--text-secondary); font-size: 13px; padding: 10px;">目前沒有程式碼可分段！</div>';
+          return;
+        }
+        if (isNaN(totalChunks) || totalChunks < 2) {
+          showToast("請輸入至少 2 段以上的數字");
+          return;
+        }
+        const targetChunkSize = Math.ceil(totalChars / totalChunks);
+        container.innerHTML = '';
+        let currentIndex = 0;
+        for (let i = 0; i < totalChunks; i++) {
+          let startIdx = currentIndex;
+          let endIdx;
+          if (i === totalChunks - 1) {
+            endIdx = totalChars;
+          } else {
+            let idealEnd = startIdx + targetChunkSize;
+            if (idealEnd < totalChars) {
+              // 💡 策略：優先尋找 idealEnd 附近的「空行」(\n\n) 作為完美切點，避免破壞程式碼結構
+              let bestSplitIdx = -1;
+              let searchWindow = 1500; // 容許前後搜尋空行的最大字元範圍
+              let forwardSearch = code.indexOf('\n\n', idealEnd);
+              let backwardSearch = code.lastIndexOf('\n\n', idealEnd);
+              let nextNewline = (forwardSearch !== -1 && forwardSearch - idealEnd <= searchWindow) ? forwardSearch : -1;
+              let prevNewline = (backwardSearch !== -1 && idealEnd - backwardSearch <= searchWindow) ? backwardSearch : -1;
+              if (nextNewline !== -1 && prevNewline !== -1) {
+                // 選擇距離理想切點最近的空行
+                bestSplitIdx = (nextNewline - idealEnd < idealEnd - prevNewline) ? nextNewline : prevNewline;
+              } else if (nextNewline !== -1) {
+                bestSplitIdx = nextNewline;
+              } else if (prevNewline !== -1) {
+                bestSplitIdx = prevNewline;
+              }
+              if (bestSplitIdx !== -1 && bestSplitIdx > startIdx) {
+                endIdx = bestSplitIdx + 2; // 包含空行本身的換行符號
+              } else {
+                // 備用方案：如果附近真的找不到空行，退回普通的單行換行 (\n)
+                let fallbackNext = code.indexOf('\n', idealEnd);
+                let fallbackPrev = code.lastIndexOf('\n', idealEnd);
+                if (fallbackNext !== -1 && (fallbackNext - idealEnd < idealEnd - fallbackPrev)) {
+                  endIdx = fallbackNext + 1;
+                } else if (fallbackPrev !== -1 && fallbackPrev > startIdx) {
+                  endIdx = fallbackPrev + 1;
+                } else {
+                  endIdx = idealEnd;
+                }
+              }
+            } else {
+              endIdx = totalChars;
+            }
+          }
+          const chunkText = code.substring(startIdx, endIdx);
+          currentIndex = endIdx;
+          const chunkCharCount = chunkText.length;
+          const isFirst = (i === 0);
+          const isLast = (i === totalChunks - 1);
+          const markerHeader = isFirst ?
+            `先不要回覆我，請等待後續分段。\n[CODE_START: ${i + 1}/${totalChunks}]\n` :
+            `[CODE_START: ${i + 1}/${totalChunks}]\n`;
+          const markerFooter = isLast ? `\n[CODE_END]` : `\n[CODE_MORE]`;
+          const finalPayload = markerHeader + chunkText + markerFooter;
+          const btnItem = document.createElement('div');
+          btnItem.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: var(--header-bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);";
+          const infoText = document.createElement('span');
+          infoText.style.cssText = "font-size: 13px; font-weight: 500;";
+          infoText.textContent = `第 ${i + 1} 段 (共 ${totalChunks} 段) (${chunkCharCount.toLocaleString()} 字)`;
+          const copyBtn = document.createElement('button');
+          copyBtn.className = "btn-primary";
+          copyBtn.style.cssText = "padding: 5px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; border: none;";
+          copyBtn.textContent = `複製第 ${i + 1} 段`;
+          copyBtn.onclick = () => {
+            navigator.clipboard.writeText(finalPayload).then(() => {
+              showToast(`已複製第 ${i + 1}/${totalChunks} 段 (${chunkCharCount.toLocaleString()} 字)！`);
+              copyBtn.textContent = "✅ 已複製";
+              setTimeout(() => copyBtn.textContent = `複製第 ${i + 1} 段`, 2000);
+            });
+          };
+          btnItem.appendChild(infoText);
+          btnItem.appendChild(copyBtn);
+          container.appendChild(btnItem);
+        }
+      }
+      // ==================== 【功能 07｜CDN 外部函式庫】 ====================
+      let searchTimeout;
+      const cdnSearchInput = document.getElementById('cdnSearchInput');
+      const cdnResults = document.getElementById('cdnResults');
+
+      function openCDNModal() {
+        document.getElementById('cdnModal').classList.add('active');
+        setTimeout(() => cdnSearchInput.focus(), 80);
+      }
+
+      function closeCDNModal(e) {
+        if (e) e.preventDefault();
+        document.getElementById('cdnModal').classList.remove('active');
+      }
+      cdnSearchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        const query = e.target.value.trim();
+        if (!query) {
+          cdnResults.innerHTML = '<div style="padding:24px; text-align:center; color:var(--text-secondary); font-size:14px;">輸入庫名進行檢索</div>';
+          return;
+        }
+        cdnResults.innerHTML = '<div style="padding:24px; text-align:center; font-size:14px; color:var(--text-secondary);">搜尋中…</div>';
+        searchTimeout = setTimeout(async () => {
+          try {
+            const res = await fetch(`https://api.cdnjs.com/libraries?search=${encodeURIComponent(query)}&fields=version,description&limit=10`);
+            const data = await res.json();
+            renderCDNResults(data.results || []);
+          } catch {
+            cdnResults.innerHTML = '<div style="padding:24px; text-align:center; color:#e74c3c; font-size:13px;">搜尋失敗，請檢查網路連線</div>';
+          }
+        }, 400);
+      });
+
+      function renderCDNResults(results) {
+        if (!results.length) {
+          cdnResults.innerHTML = '<div style="padding:24px; text-align:center; color:var(--text-secondary); font-size:13px;">未找到相關庫</div>';
+          return;
+        }
+        cdnResults.innerHTML = results.map(lib => `
+          <div class="lib-item" onclick="insertCDN('${lib.name}', '${lib.version}')">
+            <div class="lib-name">${lib.name} <span style="font-size:12px;color:#aaa;font-weight:400;">v${lib.version}</span></div>
+            <div class="lib-desc">${lib.description || '暫無描述'}</div>
+          </div>
+        `).join('');
+      }
+
+      function insertCDN(name, version) {
+        fetch(`https://api.cdnjs.com/libraries/${name}/${version}?fields=files`)
+          .then(r => r.json())
+          .then(data => {
+            const mainFile = data.files.find(f => f.endsWith('.min.js')) || data.files.find(f => f.endsWith('.min.css')) || data.files[0];
+            const url = `https://cdnjs.cloudflare.com/ajax/libs/${name}/${version}/${mainFile}`;
+            const tag = url.endsWith('.css') ? `<link rel="stylesheet" href="${url}">` : `<script src="${url}"><\/script>`;
+            let content = editor.getValue();
+            if (content.includes('</head>')) {
+              content = content.replace('</head>', `  ${tag}\n</head>`);
+            } else {
+              content = `${tag}\n${content}`;
+            }
+            editor.setValue(content);
+            submitTryit();
+            closeCDNModal();
+            showToast(`已成功引入 ${name}`);
+          });
+      }
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          if (isFullscreen) toggleFullscreen();
+          if (isPickingElement) {
+            isPickingElement = false;
+            updatePickerBtnState();
+            const iframe = document.getElementById('iframeResult');
+            if (iframe && iframe.contentWindow) {
+              iframe.contentWindow.postMessage({ type: 'TOGGLE_PICKER', active: false }, '*');
+            }
+          }
+          if (document.getElementById('cdnModal').classList.contains('active')) closeCDNModal();
+          if (document.getElementById('paletteModal').classList.contains('active')) closePaletteModal();
+          if (document.getElementById('chunkModal').classList.contains('active')) closeChunkModal();
+          const localModal = document.getElementById('localFilesModal');
+          if (localModal && localModal.classList.contains('active')) closeLocalFilesModal();
+        }
+      });
+      // ==================== 【功能 08｜範圍選取】 ====================
+      let isRangeSelectMode = false;
+      let rangeClickStep = 0;
+      let tempStartLine = null;
+
+      function toggleRangeMode() {
+        const btnText = document.getElementById('rangeBtnText');
+        if (!isRangeSelectMode) {
+          isRangeSelectMode = true;
+          rangeClickStep = 0;
+          tempStartLine = null;
+          if (btnText) btnText.innerText = '📍 選起始行';
+          showToast("請在編輯器中點擊或點選「起始行」");
+        } else {
+          resetRangeModeState();
+          showToast("已取消範圍選取");
+        }
+      }
+
+      function resetRangeModeState() {
+        isRangeSelectMode = false;
+        rangeClickStep = 0;
+        tempStartLine = null;
+        const btnText = document.getElementById('rangeBtnText');
+        if (btnText) btnText.innerText = '📍 範圍選取';
+      }
+      // 統一處理點擊行號後的邏輯
+      function handleRangeLineClick(clickedLine) {
+        const btnText = document.getElementById('rangeBtnText');
+        if (rangeClickStep === 0) {
+          tempStartLine = clickedLine;
+          rangeClickStep = 1;
+          // 💡 點擊起始行時，直接用預設選取色將該行框起來
+          const lineText = editor.getLine(tempStartLine);
+          const from = { line: tempStartLine, ch: 0 };
+          const to = { line: tempStartLine, ch: lineText ? lineText.length : 0 };
+          editor.setSelection(from, to);
+          editor.scrollIntoView({ from: from, to: to }, 100);
+          editor.focus();
+          if (btnText) btnText.innerText = '📍 選結束行';
+          showToast(`已記錄起始行 (第 ${tempStartLine + 1} 行)，請點擊「結束行」`);
+        } else if (rangeClickStep === 1) {
+          let startLine = tempStartLine;
+          let endLine = clickedLine;
+          if (startLine > endLine) {
+            [startLine, endLine] = [endLine, startLine];
+          }
+          const from = { line: startLine, ch: 0 };
+          const lastLineText = editor.getLine(endLine);
+          const to = { line: endLine, ch: lastLineText ? lastLineText.length : 0 };
+          editor.setSelection(from, to);
+          editor.scrollIntoView({ from: from, to: to }, 100);
+          editor.focus();
+          showToast(`成功選取第 ${startLine + 1} 行至第 ${endLine + 1} 行`);
+          resetRangeModeState();
+        }
+      }
+      if (typeof editor !== 'undefined') {
+        // 1. 監聽點擊編輯器內文
+        editor.on('click', (cm, event) => {
+          if (!isRangeSelectMode) return;
+          const pos = cm.coordsChar({ left: event.clientX, top: event.clientY });
+          handleRangeLineClick(pos.line);
+        });
+        // 2. 專門監聽點擊最左側的行號 (Gutter) 區域
+        editor.on('gutterClick', (cm, line, gutter, event) => {
+          if (!isRangeSelectMode) return;
+          handleRangeLineClick(line);
+        });
+      }
+      // ==================== 【功能 09｜工具箱】 ====================
+      function toggleToolbox() {
+        const panel = document.getElementById('toolboxPanel');
+        if (!panel) return;
+        const isOpen = panel.style.display === 'flex';
+        panel.style.display = isOpen ? 'none' : 'flex';
+      }
+
+      function closeToolbox() {
+        const panel = document.getElementById('toolboxPanel');
+        if (panel) {
+          panel.style.display = 'none';
+        }
+      }
+      // 點擊畫面其他地方時，自動關閉工具箱面板
+      document.addEventListener('click', (e) => {
+        const panel = document.getElementById('toolboxPanel');
+        const toolboxBtn = e.target.closest('button[onclick="toggleToolbox()"]');
+        if (panel && panel.style.display === 'flex' && !panel.contains(e.target) && !toolboxBtn) {
+          closeToolbox();
+        }
+      });
+      // ==================== 【功能 10｜檔案上傳／網址載入／貼上／拖放】 ====================
+      let uploadedCodeBuffer = "";
+
+      function openUploadModal() {
+        const modal = document.getElementById('uploadModal');
+        if (modal) modal.classList.add('active');
+        uploadedCodeBuffer = "";
+        const dropZone = document.getElementById('uploadDropZone');
+        if (dropZone) dropZone.innerHTML = "在此點擊後按下 Ctrl+V 貼上程式碼，或拖曳檔案至此";
+        const fileInput = document.getElementById('localFileInput');
+        if (fileInput) fileInput.value = "";
+        const urlInput = document.getElementById('urlInput');
+        if (urlInput) urlInput.value = "";
+      }
+
+      function closeUploadModal(e) {
+        if (e && e.target !== e.currentTarget && !e.target.classList.contains('close-btn') && !e.target.innerText.includes('取消')) {
+          // 允許點擊內部元素不關閉
+        }
+        const modal = document.getElementById('uploadModal');
+        if (modal) modal.classList.remove('active');
+      }
+      // 1. 處理本機檔案選擇
+      //    修正重點：讀取成功後先放入緩衝區；真正套用時直接使用 CodeMirror 的 editor.setValue()。
+      function handleFileSelect(event) {
+        const fileInput = event && event.target ? event.target : document.getElementById('localFileInput');
+        const file = fileInput && fileInput.files ? fileInput.files[0] : null;
+        if (!file) {
+          showToast('尚未選擇檔案！');
+          return;
+        }
+        // 允許常見程式碼檔案；若使用者直接選了其他文字檔，也仍嘗試讀取。
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const result = typeof e.target.result === 'string' ? e.target.result : '';
+          if (!result) {
+            uploadedCodeBuffer = '';
+            showToast('檔案內容是空的！');
+            return;
+          }
+          uploadedCodeBuffer = result;
+          const dropZone = document.getElementById('uploadDropZone');
+          if (dropZone) {
+            dropZone.innerHTML =
+              `<span style="color:var(--green); font-weight:600;">✅ 已讀取：${escapeHtml(file.name)}</span>` +
+              `<span style="display:block; margin-top:4px; color:var(--text-secondary);">${result.length.toLocaleString()} 字，請按「載入到編輯器」</span>`;
+          }
+          showToast(`檔案讀取成功！共 ${result.length.toLocaleString()} 字`);
+        };
+        reader.onerror = function(err) {
+          uploadedCodeBuffer = '';
+          console.error('FileReader error:', err);
+          showToast('檔案讀取失敗，請重新選擇檔案');
+        };
+        reader.onabort = function() {
+          uploadedCodeBuffer = '';
+          showToast('檔案讀取已取消');
+        };
+        try {
+          reader.readAsText(file, 'UTF-8');
+        } catch (err) {
+          console.error('readAsText error:', err);
+          uploadedCodeBuffer = '';
+          showToast('無法讀取此檔案');
+        }
+      }
+      // 2. 透過 URL 抓取程式碼
+      async function fetchCodeFromUrl() {
+        const urlInput = document.getElementById('urlInput');
+        const url = urlInput ? urlInput.value.trim() : "";
+        if (!url) {
+          showToast('請輸入有效的網址');
+          return;
+        }
+        try {
+          showToast('正在抓取網址內容...');
+          const response = await fetch(url);
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          const text = await response.text();
+          uploadedCodeBuffer = text;
+          const dropZone = document.getElementById('uploadDropZone');
+          if (dropZone) {
+            dropZone.innerHTML =
+              `<span style="color:var(--green); font-weight:600;">✅ 已成功抓取網址內容</span>` +
+              `<span style="display:block; margin-top:4px; color:var(--text-secondary);">${text.length.toLocaleString()} 字，請按「載入到編輯器」</span>`;
+          }
+          showToast('網址內容載入成功！');
+        } catch (err) {
+          showToast('抓取失敗，可能受跨域(CORS)限制或網址無效');
+          console.error('fetchCodeFromUrl error:', err);
+        }
+      }
+      // 3. 監聽貼上 (Ctrl+V) 與拖曳事件
+      document.addEventListener('DOMContentLoaded', () => {
+        const dropZone = document.getElementById('uploadDropZone');
+        if (!dropZone) return;
+        dropZone.addEventListener('paste', (e) => {
+          e.preventDefault();
+          const text = e.clipboardData ? e.clipboardData.getData('text') : '';
+          if (text) {
+            uploadedCodeBuffer = text;
+            dropZone.innerHTML =
+              `<span style="color:var(--green); font-weight:600;">✅ 已透過剪貼簿貼上</span>` +
+              `<span style="display:block; margin-top:4px; color:var(--text-secondary);">${text.length.toLocaleString()} 字，請按「載入到編輯器」</span>`;
+            showToast('已接收貼上內容！');
+          }
+        });
+        dropZone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          dropZone.style.borderColor = 'var(--green)';
+        });
+        dropZone.addEventListener('dragleave', () => {
+          dropZone.style.borderColor = 'var(--border-color)';
+        });
+        dropZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          dropZone.style.borderColor = 'var(--border-color)';
+          const file = e.dataTransfer && e.dataTransfer.files ?
+            e.dataTransfer.files[0] :
+            null;
+          if (!file) {
+            showToast('沒有取得拖放檔案');
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+            const result = typeof evt.target.result === 'string' ? evt.target.result : '';
+            if (!result) {
+              uploadedCodeBuffer = '';
+              showToast('拖放的檔案內容是空的！');
+              return;
+            }
+            uploadedCodeBuffer = result;
+            dropZone.innerHTML =
+              `<span style="color:var(--green); font-weight:600;">✅ 已拖放：${escapeHtml(file.name)}</span>` +
+              `<span style="display:block; margin-top:4px; color:var(--text-secondary);">${result.length.toLocaleString()} 字，請按「載入到編輯器」</span>`;
+            showToast('檔案拖放成功！');
+          };
+          reader.onerror = function(err) {
+            uploadedCodeBuffer = '';
+            console.error('Drop FileReader error:', err);
+            showToast('拖放檔案讀取失敗');
+          };
+          reader.readAsText(file, 'UTF-8');
+        });
+      });
+      // 4. 套用程式碼到 CodeMirror 編輯器
+      //    重要修正：
+      //    原本使用 window.editor，但本檔案是「const editor」，不會自動掛到 window.editor。
+      //    因此原本的程式會退回修改隱藏 textarea，畫面上的 CodeMirror 卻不會更新。
+      function applyUploadedCode() {
+        if (typeof uploadedCodeBuffer !== 'string' || uploadedCodeBuffer.length === 0) {
+          showToast('尚未取得任何程式碼內容！請先選擇、貼上或拖放檔案');
+          return;
+        }
+        try {
+          // 直接更新 CodeMirror，確保編輯器畫面、內容與 change 事件同步。
+          editor.setValue(uploadedCodeBuffer);
+          editor.clearHistory();
+          editor.refresh();
+          editor.focus();
+          // 更新字數與預覽
+          updateWordCount();
+          submitTryit();
+          closeUploadModal();
+          showToast(`已成功載入編輯器！共 ${uploadedCodeBuffer.length.toLocaleString()} 字`);
+        } catch (err) {
+          console.error('applyUploadedCode error:', err);
+          showToast('載入編輯器失敗，請重新選擇檔案');
+        }
+      }
+      bindLocalFilesDropZone();
+      submitTryit();
+      updateWordCount();
+    </script>
+
+  </body>
+</html>
