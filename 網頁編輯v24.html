@@ -1883,39 +1883,66 @@
       };
   }
 
-  // 🎵 Audio 本地資源攔截
-  if(window.Audio){
+// ==========================================
+// 🎵 Audio 本地資源攔截
+// ==========================================
+if (window.Audio) {
 
-    const OriginalAudio =
-      window.Audio;
+  const OriginalAudio = window.Audio;
 
-    window.Audio = function(src){
+  window.Audio = function(src) {
 
-      const audio =
-        new OriginalAudio();
+    const audio = new OriginalAudio();
 
-      if(typeof src === 'string'){
+    if (typeof src === 'string') {
 
-        const resolved =
-          resolve(src);
+      const originalSrc = src;
+      const resolvedSrc = resolve(src);
 
-        audio.src =
-          resolved || src;
+      if (resolvedSrc) {
+
+        audio.src = resolvedSrc;
 
         console.log(
-          '[Local Audio]',
-          src,
+          '🎵 [Local Audio] 本地資源已解析:',
+          originalSrc,
           '=>',
-          audio.src
+          resolvedSrc
         );
+
+      } else {
+
+        audio.src = src;
+
+        console.warn(
+          '⚠️ [Local Audio] 找不到本地資源:',
+          originalSrc
+        );
+
       }
+    }
 
-      return audio;
-    };
+    // 額外記錄 Audio 建立狀態
+    audio.addEventListener('error', function() {
+      console.error(
+        '❌ [Local Audio] 載入失敗:',
+        audio.src,
+        audio.error
+      );
+    });
 
-    window.Audio.prototype =
-      OriginalAudio.prototype;
-  }
+    audio.addEventListener('canplaythrough', function() {
+      console.log(
+        '✅ [Local Audio] 可以播放:',
+        audio.src
+      );
+    });
+
+    return audio;
+  };
+
+  window.Audio.prototype = OriginalAudio.prototype;
+}
 
   window.addEventListener(
     'message',
