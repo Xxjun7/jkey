@@ -1,0 +1,19 @@
+建議使用的提示詞範本
+「我的網頁應用程式在點擊『運行』按鈕將程式碼載入到 iframe 時，頁面會直接卡死、無響應或變白（疑似陷入無限迴圈或主執行緒被佔滿）。
+
+經檢查，可能的問題包含：
+
+iframe 內部的 MutationObserver 監聽了屬性變動（如 src、href）並動態修改屬性，導致 修改屬性 ➡️ 觸發 Observer 的無窮迴圈。
+
+主頁面的 rewriteLocalResourceReferences() 在用正規表達式掃描 HTML 替換字串時，可能存在效能陷阱或未處理好邊界條件。
+
+請幫我檢查以下程式碼，移除會造成死循環的機制，並加上安全的防呆與異常捕捉（try-catch），確保執行時不會卡死。」
+
+🔑 核心關鍵字（讓 AI 一看就懂）
+Infinite Loop / Deadlock（無限迴圈 / 死鎖）
+
+MutationObserver attribute loop（屬性觀察器回圈）
+
+Main thread blocking / Freezing（主執行緒阻塞 / 卡死）
+
+Regex performance / safe replacement（正規表達式效能 / 安全替換）
