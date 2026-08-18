@@ -1447,47 +1447,53 @@
         }
       }
 
-      function submitTryit() {
+function submitTryit() {
         if (isPickingElement) {
           isPickingElement = false;
           updatePickerBtnState();
         }
         clearInspector();
         let text = editor.getValue();
-        // 僅針對真正的資源屬性與 CSS url() 做安全的靜態處理；
-        // JavaScript 動態資源則交由 iframe 內的 interceptor 攔截。
-        text = rewriteLocalResourceReferences(text);
+        
+        // 安全地進行本地資源靜態替換
+        try {
+          text = rewriteLocalResourceReferences(text);
+        } catch (e) {
+          console.warn('本地資源靜態替換發生異常:', e);
+        }
+
         const localInterceptor = createLocalResourceInterceptorScript();
-        if (text.includes('<head>')) {
+        if (text && text.includes('<head>')) {
           text = text.replace(
             '<head>',
             '<head>' + localInterceptor + inspectorScript
           );
         } else {
-          text = localInterceptor + inspectorScript + text;
+          text = localInterceptor + inspectorScript + (text || '');
         }
+
         const wrapper = document.getElementById("iframewrapper");
+        if (!wrapper) return;
         wrapper.innerHTML = "";
+        
         const ifr = document.createElement("iframe");
         ifr.setAttribute("frameborder", "0");
         ifr.setAttribute("allow", "autoplay; fullscreen; picture-in-picture");
         ifr.setAttribute("id", "iframeResult");
         wrapper.appendChild(ifr);
+        
         ifr.addEventListener('load', showFrameSize, { once: true });
+        
         const ifrw = ifr.contentWindow || ifr.contentDocument;
+        if (!ifrw || !ifrw.document) return;
+
         ifrw.document.open();
-        // ==========================================
-        // 🐛 DEBUG：檢查真正送進 iframe 的 HTML
-        // ==========================================
-        console.log('========== [DEBUG IFRAME HTML] ==========');
-        console.log(text);
-        console.log('========== [DEBUG IFRAME HTML END] ==========');
         ifrw.document.write(text);
         ifrw.document.close();
-        // 保留 parent → iframe 的同步機制；
-        // 初始資源也已內嵌，避免訊息延遲造成首屏資源載入失敗。
+        
         setTimeout(() => syncLocalResourcesToIframe(ifr), 0);
       }
+
       // ==================== 【功能 03A｜本地資源暫存與 iframe 資源攔截】 ====================
       const localResourceMap = new Map();
 
@@ -1545,7 +1551,7 @@
       function isLocalResourceReference(value) {
         if (typeof value !== 'string') return false;
         const v = value.trim();
-        if (!v || v.startsWith('#')) return false;
+        if (!v || v.startsWith('#') || v.startsWith('data:') || v.startsWith('blob:')) return false;
         if (/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(v)) return false;
         return true;
       }
@@ -1560,20 +1566,27 @@
 
       function rewriteLocalResourceReferences(html) {
         if (!localResourceMap.size || typeof html !== 'string') return html;
-        const attrPattern = /(<(?:img|audio|video|source|script|link|iframe|object|embed)\b[^>]*?\s(?:src|href|data)\s*=\s*)(["'])([^"']+)(\2)/gi;
-        html = html.replace(attrPattern, (full, prefix, quote, value, endQuote) => {
-          const url = resolveLocalResourceUrl(value);
-          return url ? prefix + quote + url + endQuote : full;
-        });
-        const stylePattern = /(url\(\s*)(["']?)([^)"']+?)(\2\s*\))/gi;
-        html = html.replace(stylePattern, (full, prefix, quote, value, suffix) => {
-          const url = resolveLocalResourceUrl(value.trim());
-          return url ? prefix + quote + url + suffix : full;
-        });
+        
+        // 安全的正則替換，避免無限迴圈
+        try {
+          const attrPattern = /(<(?:img|audio|video|source|script|link|iframe|object|embed)\b[^>]*?\s(?:src|href|data)\s*=\s*)(["'])([^"']+)(\2)/gi;
+          html = html.replace(attrPattern, (full, prefix, quote, value, endQuote) => {
+            const url = resolveLocalResourceUrl(value);
+            return url ? prefix + quote + url + endQuote : full;
+          });
+
+          const stylePattern = /(url\(\s*)(["']?)([^)"']+?)(\2\s*\))/gi;
+          html = html.replace(stylePattern, (full, prefix, quote, value, suffix) => {
+            const url = resolveLocalResourceUrl(value.trim());
+            return url ? prefix + quote + url + suffix : full;
+          });
+        } catch (e) {
+          console.error('rewriteLocalResourceReferences 執行錯誤:', e);
+        }
         return html;
       }
 
-function createLocalResourceInterceptorScript() {
+      function createLocalResourceInterceptorScript() {
         const resources = {};
         localResourceMap.forEach((item, key) => {
           resources[key] = item.url;
@@ -1610,13 +1623,12 @@ function createLocalResourceInterceptorScript() {
   function resolve(v){
     if(typeof v !== 'string') return null;
     const x = v.trim();
-    if(!x || /^(?:[a-z][a-z0-9+.-]*:|\\/\\/)/i.test(x)) {
+    if(!x || x.indexOf('data:') === 0 || x.indexOf('blob:') === 0 || /^(?:[a-z][a-z0-9+.-]*:|\\/\\/)/i.test(x)) {
       return null;
     }
     return map.get(norm(x)) || null;
   }
 
-  // 僅保留 Fetch / XHR / Audio 靜態攔截，移除危險的 MutationObserver 避免卡死
   const originalFetch = window.fetch;
   if(originalFetch){
     window.fetch = function(input, init){
@@ -1668,7 +1680,7 @@ function createLocalResourceInterceptorScript() {
   window.__LOCAL_RESOURCE_READY__ = true;
 })();
 ${closingScriptTag}`;
-}
+      }
 
       function syncLocalResourcesToIframe(iframe) {
         if (!iframe || !iframe.contentWindow) return;
