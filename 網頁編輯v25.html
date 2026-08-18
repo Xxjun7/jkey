@@ -1471,32 +1471,22 @@
         const ifr = document.createElement("iframe");
         ifr.setAttribute("frameborder", "0");
         ifr.setAttribute("allow", "autoplay; fullscreen; picture-in-picture");
-        ifr.setAttribute("referrerpolicy", "no-referrer");
-        // ★ 重要：預覽程式必須與編輯器本身完全隔離。
-        // 不使用 allow-same-origin，避免使用者貼上的 HTML/JS 取得父層編輯器
-        // 的同源權限；即使預覽內有無限迴圈、遞迴建立 iframe 或大量 DOM 操作，
-        // 也不應直接破壞外層編輯器。
-        ifr.setAttribute("sandbox", "allow-scripts allow-forms allow-modals");
         ifr.setAttribute("id", "iframeResult");
         wrapper.appendChild(ifr);
-        ifr.addEventListener('load', function() {
-          showFrameSize();
-          // 等預覽文件真正建立完成後再同步本地資源，避免訊息早於
-          // interceptor 的 message listener 而遺失。
-          syncLocalResourcesToIframe(ifr);
-        }, { once: true });
-
-        // 使用 srcdoc 取代 parent → iframe 的 document.write()。
-        // 這樣預覽內容始終留在 sandbox iframe 內，不會因貼入完整編輯器
-        // 或其他自我嵌入型 HTML 而污染外層文件。
-        try {
-          ifr.srcdoc = text;
-        } catch (err) {
-          console.error('預覽建立失敗：', err);
-          wrapper.innerHTML = '<div style="padding:16px;color:#e74c3c;">預覽建立失敗，請檢查程式碼。</div>';
-          showToast('預覽建立失敗，編輯器仍可繼續使用');
-          return;
-        }
+        ifr.addEventListener('load', showFrameSize, { once: true });
+        const ifrw = ifr.contentWindow || ifr.contentDocument;
+        ifrw.document.open();
+        // ==========================================
+        // 🐛 DEBUG：檢查真正送進 iframe 的 HTML
+        // ==========================================
+        console.log('========== [DEBUG IFRAME HTML] ==========');
+        console.log(text);
+        console.log('========== [DEBUG IFRAME HTML END] ==========');
+        ifrw.document.write(text);
+        ifrw.document.close();
+        // 保留 parent → iframe 的同步機制；
+        // 初始資源也已內嵌，避免訊息延遲造成首屏資源載入失敗。
+        setTimeout(() => syncLocalResourcesToIframe(ifr), 0);
       }
       // ==================== 【功能 03A｜本地資源暫存與 iframe 資源攔截】 ====================
       const localResourceMap = new Map();
@@ -1969,7 +1959,7 @@ if (window.Audio) {
   }
 }
 
-  window.addEventListener(
+window.addEventListener(
     'message',
     function(e){
 
@@ -1997,28 +1987,37 @@ if (window.Audio) {
     }
   );
 
+  // 建立防護鎖變數，防止屬性修改觸發 Observer 造成無窮迴圈
+  let isScanning = false;
+
   const observer =
     new MutationObserver(
       function(mutations){
+        if (isScanning) return;
+        isScanning = true;
 
-        mutations.forEach(function(m){
+        try {
+          mutations.forEach(function(m){
 
-          m.addedNodes.forEach(function(n){
+            m.addedNodes.forEach(function(n){
 
-            if(n.nodeType === 1){
-              scan(n);
+              if(n.nodeType === 1){
+                scan(n);
+              }
+
+            });
+
+            if(
+              m.target &&
+              m.target.nodeType === 1
+            ){
+              rewriteElement(m.target);
             }
 
           });
-
-          if(
-            m.target &&
-            m.target.nodeType === 1
-          ){
-            rewriteElement(m.target);
-          }
-
-        });
+        } finally {
+          isScanning = false;
+        }
       }
     );
 
@@ -2303,16 +2302,10 @@ ${closingScriptTag}`;
         setTimeout(() => toast.classList.remove('show'), 2000);
       }
       let autoTimer;
-      let isPreviewRunning = false;
-      let previewRunToken = 0;
       editor.on("change", () => {
         if (document.getElementById("autoRunCheck").checked) {
           clearTimeout(autoTimer);
-          const token = ++previewRunToken;
-          autoTimer = setTimeout(() => {
-            if (token !== previewRunToken) return;
-            submitTryit();
-          }, 500);
+          autoTimer = setTimeout(submitTryit, 500);
         }
       });
       let isFullscreen = false;
