@@ -120,6 +120,28 @@
         -webkit-transform: rotate(90deg) translateY(-100%);
       }
 
+      /*
+       * 【純 CSS 方向反向補償】
+       * 手機維持直立時：將頁面視覺旋轉 90deg，形成橫向畫面。
+       * 手機實際橫放時：瀏覽器 viewport 已經是 landscape，
+       * 不再對頁面追加旋轉，避免「系統旋轉 + CSS 旋轉」造成二次翻轉。
+       * 這裡只由 CSS media query 決定版面，不使用 JS 方向偵測。
+       */
+      @media (orientation: landscape) {
+        html.landscape-lock body {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          overflow-x: hidden;
+          overflow-y: auto;
+          transform-origin: top left;
+          transform: none;
+          -webkit-transform: none;
+        }
+      }
+
       .header-container {
         display: flex;
         flex-direction: column;
