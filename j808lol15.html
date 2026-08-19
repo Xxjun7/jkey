@@ -112,10 +112,11 @@
         margin: 0;
         overflow: auto;
         transform-origin: top left;
-        transform: rotate(90deg) translateY(-100%);
-        -webkit-transform: rotate(90deg) translateY(-100%);
+        transform: rotate(var(--landscape-rotate, 90deg)) translateY(-100%);
+        -webkit-transform: rotate(var(--landscape-rotate, 90deg)) translateY(-100%);
         overflow-x: hidden;
         overflow-y: auto;
+        overscroll-behavior: none;
       }
 
       .header-container {
@@ -1226,12 +1227,62 @@
       // 【橫向鎖定】視覺旋轉，不依賴系統直立鎖定
       // ==========================================
       const LANDSCAPE_LOCK_KEY = 'j808_landscape_lock';
+      const LANDSCAPE_ANGLE_KEY = 'j808_landscape_angle';
+
+      function getCurrentOrientationAngle() {
+        if (screen.orientation && Number.isFinite(screen.orientation.angle)) {
+          return ((screen.orientation.angle % 360) + 360) % 360;
+        }
+        if (typeof window.orientation === 'number') {
+          return ((window.orientation % 360) + 360) % 360;
+        }
+        return window.innerWidth >= window.innerHeight ? 90 : 0;
+      }
+
+      function normalizeAngle(angle) {
+        return ((angle % 360) + 360) % 360;
+      }
+
+      function updateLandscapeVisualRotation() {
+        if (!document.documentElement.classList.contains('landscape-lock')) return;
+
+        const lockedAngle = Number(localStorage.getItem(LANDSCAPE_ANGLE_KEY));
+        const currentAngle = getCurrentOrientationAngle();
+        const baseAngle = Number.isFinite(lockedAngle) ? lockedAngle : currentAngle;
+
+        /*
+         * 不阻止手機的感應器/系統方向事件，而是「忽略它造成的畫面翻面」。
+         * 例如鎖定在 90° 後手機突然變成 270°，就補回 180°，
+         * 讓網頁內容仍維持原本的橫向朝向。
+         */
+        const compensation = normalizeAngle(baseAngle - currentAngle);
+        const rotation = normalizeAngle(90 + compensation);
+
+        document.documentElement.style.setProperty('--landscape-rotate', rotation + 'deg');
+      }
+
+      function rememberLandscapeAngle() {
+        const angle = getCurrentOrientationAngle();
+        localStorage.setItem(LANDSCAPE_ANGLE_KEY, String(angle));
+        updateLandscapeVisualRotation();
+      }
 
       function applyLandscapeLock(enabled, showMessage = false) {
         const html = document.documentElement;
         const btn = document.getElementById('landscapeBtn');
 
         html.classList.toggle('landscape-lock', enabled);
+
+        if (enabled) {
+          if (!localStorage.getItem(LANDSCAPE_ANGLE_KEY)) {
+            rememberLandscapeAngle();
+          } else {
+            updateLandscapeVisualRotation();
+          }
+        } else {
+          html.style.removeProperty('--landscape-rotate');
+          localStorage.removeItem(LANDSCAPE_ANGLE_KEY);
+        }
 
         if (btn) {
           btn.classList.toggle('active', enabled);
@@ -1261,8 +1312,28 @@
       function toggleLandscapeLock() {
         if (!isAdmin) return;
         const enabled = !document.documentElement.classList.contains('landscape-lock');
+        if (enabled) {
+          // 以按下按鈕當下的方向作為「真正鎖定方向」。
+          localStorage.setItem(LANDSCAPE_ANGLE_KEY, String(getCurrentOrientationAngle()));
+        }
         applyLandscapeLock(enabled, true);
       }
+
+      // 手機即使允許自動旋轉，也會送出 orientationchange。
+      // 這裡不跟著系統翻面，而是立即補償 180°/方向差。
+      window.addEventListener('orientationchange', () => {
+        if (document.documentElement.classList.contains('landscape-lock')) {
+          requestAnimationFrame(updateLandscapeVisualRotation);
+          setTimeout(updateLandscapeVisualRotation, 80);
+          setTimeout(updateLandscapeVisualRotation, 250);
+        }
+      }, { passive: true });
+
+      window.addEventListener('resize', () => {
+        if (document.documentElement.classList.contains('landscape-lock')) {
+          requestAnimationFrame(updateLandscapeVisualRotation);
+        }
+      }, { passive: true });
 
       // ==========================================
       // 您原本的 DOMContentLoaded 程式碼
