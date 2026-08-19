@@ -90,10 +90,10 @@
       }
 
       /* ==========================================================
-       * 【橫向鎖定】
-       * 使用 CSS 視覺旋轉，不依賴系統「直立鎖定」設定。
-       * 因此即使瀏覽器不支援 Screen Orientation Lock，
-       * 頁面仍會固定以橫向方式顯示。
+       * 【純視覺橫向鎖定】
+       * 不使用 Screen Orientation API、不偵測系統方向。
+       * 僅透過 html.landscape-lock class 啟用 CSS 視覺旋轉。
+       * 手機系統仍維持直立 viewport，網頁內容本身視覺轉為橫向。
        * ========================================================== */
       html.landscape-lock {
         width: 100%;
@@ -107,15 +107,17 @@
         left: 0;
         width: 100vh;
         height: 100vw;
+        min-width: 0;
         min-height: 0;
         max-width: none;
         margin: 0;
-        overflow: auto;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: none;
         transform-origin: top left;
         transform: rotate(90deg) translateY(-100%);
         -webkit-transform: rotate(90deg) translateY(-100%);
-        overflow-x: hidden;
-        overflow-y: auto;
       }
 
       .header-container {
@@ -1223,7 +1225,9 @@
         }, 1800);
       }
       // ==========================================
-      // 【橫向鎖定】視覺旋轉，不依賴系統直立鎖定
+      // 【純視覺橫向鎖定】
+      // 不偵測系統方向、不使用 Screen Orientation API。
+      // 僅以 localStorage 記住使用者是否啟用橫向視覺模式。
       // ==========================================
       const LANDSCAPE_LOCK_KEY = 'j808_landscape_lock';
 
@@ -1231,6 +1235,7 @@
         const html = document.documentElement;
         const btn = document.getElementById('landscapeBtn');
 
+        // 唯一的視覺旋轉開關：CSS class。
         html.classList.toggle('landscape-lock', enabled);
 
         if (btn) {
@@ -1238,20 +1243,8 @@
           btn.innerText = enabled ? '解除橫向鎖定' : '橫向鎖定';
         }
 
+        // 僅記住使用者設定，不儲存或偵測任何系統方向資訊。
         localStorage.setItem(LANDSCAPE_LOCK_KEY, enabled ? 'true' : 'false');
-
-        /*
-         * 若瀏覽器支援 Screen Orientation API，順便嘗試鎖定真正的
-         * landscape；iOS Safari 等不支援時會直接略過，仍由上面的
-         * CSS 視覺旋轉維持橫向顯示。
-         */
-        if (enabled && screen.orientation && typeof screen.orientation.lock === 'function') {
-          screen.orientation.lock('landscape').catch(() => {});
-        } else if (!enabled && screen.orientation && typeof screen.orientation.unlock === 'function') {
-          try {
-            screen.orientation.unlock();
-          } catch (e) {}
-        }
 
         if (showMessage) {
           showToast(enabled ? '已啟用橫向鎖定' : '已解除橫向鎖定');
