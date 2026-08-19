@@ -733,14 +733,12 @@
               <input type="checkbox" id="autoRunCheck" checked>
               <span>自動運行</span>
             </label>
-            <button class="mini-btn" onclick="pasteCodeFromClipboard()" title="貼上剪貼簿內容">貼上</button>
-            <button class="mini-btn" onclick="copyCodeToClipboard()" title="複製編輯器全部程式碼">複製</button>
+              
           </div>
           <div class="actions">
             <input type="text" id="quickSearchInput" placeholder="🔍 快速搜尋" title="輸入關鍵字即自動跳轉到找到的地方" oninput="handleQuickSearch(this.value)" onkeydown="handleQuickSearchKey(event)">
-
-            <button onclick="changeFontSize(-1)" title="縮小字體">A-</button>
-            <button onclick="changeFontSize(1)" title="放大字體">A+</button>
+            <button class="mini-btn" onclick="pasteCodeFromClipboard()" title="貼上剪貼簿內容">貼上</button>
+            <button class="mini-btn" onclick="copyCodeToClipboard()" title="複製編輯器全部程式碼">複製</button>
             <button onclick="toggleRangeMode()" title="點擊後，在編輯器中點兩行來決定範圍"><span id="rangeBtnText">📍 範圍選取</span></button>
 
             <!-- 🧰 工具箱按鈕與下拉面板容器 -->
@@ -751,6 +749,13 @@
 
               <!-- 工具箱下拉面板 (已修正：改為 left: 0 或向內對齊避免超出邊界) -->
               <div id="toolboxPanel" style="display: none; position: absolute; top: 100%; left: 0; margin-top: 6px; background: var(--header-bg, #2d2d2d); border: 1px solid var(--border-color, #444); border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; min-width: 140px; padding: 6px; flex-direction: column; gap: 4px;">
+                
+                                                <!-- 💡 將 A- 與 A+ 放在同一排 -->
+                <div style="display: flex; gap: 4px;">
+                  <button class="toolbox-item" onclick="changeFontSize(-1);" title="縮小字體" style="flex: 1; text-align: center;">A-</button>
+                  <button class="toolbox-item" onclick="changeFontSize(1);" title="放大字體" style="flex: 1; text-align: center;">A+</button>
+                </div>
+                
                 <button class="toolbox-item" onclick="formatCode(); closeToolbox();">🧹 美化排版</button>
                 <button class="toolbox-item" onclick="openChunkModal(); closeToolbox();">✂️ 智能分段</button>
                 <button class="toolbox-item" onclick="openMergeModal(); closeToolbox();">📦 合併分段</button>
