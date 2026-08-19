@@ -1,0 +1,1942 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>j808 管理面板 - 英雄聯盟風格</title>
+    <!-- 引入LOL風格英文字體與符文風字體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --lol-gold-1: #f0e6d2;
+        --lol-gold-2: #c8aa6e;
+        --lol-gold-3: #785a28;
+        --lol-gold-4: #463714;
+        --lol-hextech-blue: #0ac8b9;
+        --lol-hextech-glow: rgba(10, 200, 185, 0.4);
+        --lol-purple-dark: #090614;
+        --lol-purple-panel: rgba(20, 16, 38, 0.75);
+        --lol-purple-border: rgba(120, 90, 40, 0.6);
+        --lol-purple-glow: rgba(147, 51, 234, 0.25);
+        --lol-red: #e84057;
+        --lol-green: #20c997;
+        /* ========================================================== */
+        /* 【欄位寬度與高度集中設定區】在此直接修改各欄位與高度！ */
+        /* ========================================================== */
+        --w-no: 55px;
+        /* 編號 */
+        --w-level: 70px;
+        /* 等級 */
+        --w-name: 180px;
+        /* 名稱 (含勾選框) */
+        --w-receive: 65px;
+        /* 領1~5 (單一欄位) */
+        --w-coin: 85px;
+        /* 幣量 */
+        --w-friend: 85px;
+        /* 好友1~5 (單一欄位) */
+        --w-phone: 85px;
+        /* 電話 */
+        --w-action: 120px;
+        /* 操作 / 隱藏控制 */
+        --row-height: 40px;
+        /* 【新增】統一整張表格的列高（可自由修改此數值，如 36px, 42px） */
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: rgba(5, 3, 10, 0.9);
+        border-left: 1px solid rgba(120, 90, 40, 0.3);
+        border-right: 1px solid rgba(120, 90, 40, 0.3);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, #785a28 0%, #463714 100%);
+        border: 1px solid var(--lol-gold-2);
+        border-radius: 2px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, #c8aa6e 0%, #785a28 100%);
+        border-color: var(--lol-gold-1);
+      }
+
+      html,
+      body {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        overflow-x: clip;
+        overscroll-behavior-x: none;
+      }
+
+      body {
+        font-family: 'Noto Sans TC', 'Cinzel', Arial, sans-serif;
+        padding: 20px;
+        background: #05030a radial-gradient(circle at 50% 20%, #1a0f35 0%, #06040d 70%);
+        color: var(--lol-gold-1);
+        min-height: 100vh;
+        background-attachment: fixed;
+      }
+
+      /* ==========================================================
+       * 【橫向鎖定】
+       * 使用 CSS 視覺旋轉，不依賴系統「直立鎖定」設定。
+       * 因此即使瀏覽器不支援 Screen Orientation Lock，
+       * 頁面仍會固定以橫向方式顯示。
+       * ========================================================== */
+      html.landscape-lock {
+        width: 100%;
+        height: 100%;
+        overflow: hidden !important;
+      }
+
+      html.landscape-lock body {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vh;
+        height: 100vw;
+        min-height: 0;
+        max-width: none;
+        margin: 0;
+        overflow: auto;
+        transform-origin: top left;
+        transform: rotate(90deg) translateY(-100%);
+        -webkit-transform: rotate(90deg) translateY(-100%);
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
+
+      .header-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        border-bottom: 2px solid var(--lol-gold-3);
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+        position: relative;
+        background: var(--lol-purple-panel);
+        backdrop-filter: blur(10px);
+        padding: 20px;
+        border-radius: 4px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.7), inset 0 0 15px var(--lol-purple-glow);
+        border: 1px solid var(--lol-gold-3);
+      }
+
+      h2 {
+        margin: 0;
+        font-family: 'Cinzel', 'Noto Sans TC', serif;
+        font-size: 26px;
+        text-align: center;
+        color: var(--lol-gold-1);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: 0 0 10px rgba(200, 170, 110, 0.5), 0 0 20px rgba(120, 90, 40, 0.8);
+        font-weight: 700;
+      }
+
+      .login-box {
+        background: rgba(10, 8, 20, 0.8);
+        padding: 12px 16px;
+        border-radius: 2px;
+        border: 1px solid var(--lol-gold-3);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+        font-size: 15px;
+        width: 100%;
+        box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.8);
+      }
+
+      .login-form-inner {
+        display: flex;
+        gap: 8px;
+        width: 100%;
+      }
+
+      input[type="text"],
+      input[type="password"],
+      input[type="number"] {
+        background: rgba(5, 3, 10, 0.7);
+        color: var(--lol-gold-1);
+        padding: 8px 10px;
+        border: 1px solid var(--lol-gold-3);
+        border-radius: 2px;
+        font-size: 14px;
+        box-sizing: border-box;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        outline: none;
+        width: auto;
+        min-width: 60px;
+        max-width: 300px;
+      }
+
+      input[type="text"]:focus,
+      input[type="password"]:focus,
+      input[type="number"]:focus {
+        border-color: var(--lol-hextech-blue);
+        box-shadow: 0 0 8px var(--lol-hextech-glow);
+        background: rgba(10, 15, 25, 0.9);
+      }
+
+      input:read-only {
+        background: rgba(15, 12, 25, 0.3);
+        border-color: rgba(120, 90, 40, 0.2);
+        color: var(--lol-gold-1);
+        cursor: pointer;
+      }
+
+      input:read-only:hover {
+        border-color: var(--lol-hextech-blue);
+        background: rgba(10, 200, 185, 0.1);
+      }
+
+      .user-status {
+        font-weight: bold;
+        color: var(--lol-gold-2);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        width: 100%;
+      }
+
+      .btn-container {
+        margin-bottom: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+      }
+
+      button {
+        padding: 10px 20px;
+        cursor: pointer;
+        border-radius: 2px;
+        border: 1px solid var(--lol-gold-2);
+        background: linear-gradient(180deg, #1e2328 0%, #111318 100%);
+        color: var(--lol-gold-2);
+        font-size: 14px;
+        font-weight: 700;
+        font-family: 'Cinzel', 'Noto Sans TC', serif;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        transition: all 0.2s ease;
+        position: relative;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+      }
+
+      button:hover {
+        color: var(--lol-gold-1);
+        border-color: var(--lol-gold-1);
+        background: linear-gradient(180deg, #2b3138 0%, #1a1d24 100%);
+        box-shadow: 0 0 10px rgba(200, 170, 110, 0.4);
+      }
+
+      button:active {
+        transform: translateY(1px);
+      }
+
+      .btn-add {
+        border-color: #1e7e34;
+        color: #5cdb95;
+        background: linear-gradient(180deg, #122b1c 0%, #08140d 100%);
+        flex: 1;
+        min-width: 110px;
+      }
+
+      .btn-add:hover {
+        border-color: #28a745;
+        color: #fff;
+        box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+        background: linear-gradient(180deg, #193d27 0%, #0d2115 100%);
+      }
+
+      .btn-unlock {
+        border-color: #b8860b;
+        color: #ffd700;
+        background: linear-gradient(180deg, #3d3014 0%, #181206 100%);
+        flex: 1;
+        min-width: 130px;
+      }
+
+      .btn-unlock:hover {
+        border-color: #ffd700;
+        color: #fff;
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        background: linear-gradient(180deg, #57441d 0%, #241a09 100%);
+      }
+
+      .btn-unlock.unlocked {
+        border-color: var(--lol-hextech-blue);
+        color: var(--lol-hextech-blue);
+        background: linear-gradient(180deg, #092830 0%, #031015 100%);
+        box-shadow: 0 0 8px var(--lol-hextech-glow);
+      }
+
+      .btn-unlock.unlocked:hover {
+        border-color: #00ffff;
+        color: #fff;
+        box-shadow: 0 0 12px var(--lol-hextech-glow);
+        background: linear-gradient(180deg, #0d3b47 0%, #061f26 100%);
+      }
+
+      .btn-reset {
+        border-color: #a71d2a;
+        color: #ff6b6b;
+        background: linear-gradient(180deg, #381216 0%, #1a080a 100%);
+        flex: 1;
+        min-width: 130px;
+      }
+
+      .btn-reset:hover {
+        border-color: var(--lol-red);
+        color: #fff;
+        box-shadow: 0 0 10px rgba(232, 64, 87, 0.5);
+        background: linear-gradient(180deg, #521a20 0%, #290d10 100%);
+      }
+
+      .btn-landscape {
+        border-color: #7b68ee;
+        color: #b8a9ff;
+        background: linear-gradient(180deg, #21183f 0%, #100b20 100%);
+        flex: 1;
+        min-width: 130px;
+      }
+
+      .btn-landscape:hover {
+        border-color: #a894ff;
+        color: #fff;
+        box-shadow: 0 0 10px rgba(123, 104, 238, 0.55);
+        background: linear-gradient(180deg, #30245c 0%, #17102d 100%);
+      }
+
+      .btn-landscape.active {
+        border-color: var(--lol-hextech-blue);
+        color: var(--lol-hextech-blue);
+        background: linear-gradient(180deg, #092830 0%, #031015 100%);
+        box-shadow: 0 0 10px var(--lol-hextech-glow);
+      }
+
+      .btn-landscape.active:hover {
+        border-color: #00ffff;
+        color: #fff;
+        box-shadow: 0 0 12px var(--lol-hextech-glow);
+      }
+
+      .btn-save {
+        border-color: var(--lol-hextech-blue);
+        color: var(--lol-hextech-blue);
+        background: linear-gradient(180deg, #092830 0%, #031015 100%);
+        flex: 1;
+        min-width: 150px;
+      }
+
+      .btn-save:hover {
+        border-color: #00ffff;
+        color: #fff;
+        box-shadow: 0 0 12px var(--lol-hextech-glow);
+        background: linear-gradient(180deg, #0d3b47 0%, #061f26 100%);
+      }
+
+      .btn-load {
+        border-color: var(--lol-gold-2);
+        color: var(--lol-gold-2);
+        background: linear-gradient(180deg, #3d3014 0%, #181206 100%);
+        flex: 1;
+        min-width: 150px;
+      }
+
+      .btn-load:hover {
+        border-color: var(--lol-gold-1);
+        color: #fff;
+        box-shadow: 0 0 12px rgba(200, 170, 110, 0.5);
+        background: linear-gradient(180deg, #57441d 0%, #241a09 100%);
+      }
+
+      .btn-login {
+        border-color: var(--lol-gold-3);
+        color: var(--lol-gold-2);
+        white-space: nowrap;
+        padding: 8px 16px;
+      }
+
+      /*
+       * ==========================================================
+       * 【iOS Safari 表格水平佈局隔離】
+       * .table-responsive 是整頁唯一的水平滾動容器。
+       * table 可以超出 viewport，但超出的寬度只能存在於本容器內。
+       * ==========================================================
+       */
+      .table-responsive {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+        overscroll-behavior-y: auto;
+        isolation: isolate;
+        contain: layout paint;
+        position: relative;
+        border: 1px solid var(--lol-gold-3);
+        border-radius: 4px;
+        background: var(--lol-purple-panel);
+        backdrop-filter: blur(10px);
+        margin-top: 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+      }
+
+      .table-responsive > table {
+        /*
+         * max-content 讓展開欄位時由 table 產生真正的內容寬度；
+         * min-width:100% 確保欄位收合後仍填滿容器。
+         */
+        width: max-content;
+        min-width: 100%;
+        max-width: none;
+        table-layout: fixed;
+        border-collapse: collapse;
+        margin: 0;
+      }
+
+      /* 【統一控制整張表格高度】套用自訂變數到 tr 與 td */
+      tbody tr {
+        height: var(--row-height);
+        transition: background 0.2s ease;
+      }
+
+      th,
+      td {
+        height: var(--row-height);
+        border: 1px solid rgba(120, 90, 40, 0.3);
+        padding: 0 6px;
+        /* 調整上下內距為 0，完全由高度變數控制垂直置中 */
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        box-sizing: border-box;
+      }
+
+      th {
+        background: rgba(15, 11, 25, 0.9);
+        color: var(--lol-gold-2);
+        font-family: 'Cinzel', 'Noto Sans TC', serif;
+        font-size: 14px;
+        letter-spacing: 1px;
+        border-bottom: 2px solid var(--lol-gold-3);
+      }
+
+      /* ========================================================== */
+      /* 【連動綁定套用區】使用上方定義的 CSS 變數，完美同步 th 與 td 寬度！ */
+      /* ========================================================== */
+      th:nth-child(1),
+      td:nth-child(1) {
+        width: var(--w-no);
+        min-width: var(--w-no);
+      }
+
+      th:nth-child(2),
+      td:nth-child(2) {
+        width: var(--w-level);
+        min-width: var(--w-level);
+      }
+
+      th:nth-child(3),
+      td:nth-child(3) {
+        width: var(--w-name);
+        min-width: var(--w-name);
+      }
+
+      th.col-collapsible-r,
+      td.col-collapsible-r {
+        width: var(--w-receive);
+        min-width: var(--w-receive);
+      }
+
+      th:nth-child(9),
+      td:nth-child(9) {
+        width: var(--w-coin);
+        min-width: var(--w-coin);
+      }
+
+      th.col-collapsible-f,
+      td.col-collapsible-f {
+        width: var(--w-friend);
+        min-width: var(--w-friend);
+      }
+
+      /* 電話欄位特別獨立對應 */
+      th.col-phone-th,
+      td.col-phone-td {
+        width: var(--w-phone);
+        min-width: var(--w-phone);
+      }
+
+      th.user-only,
+      td.user-only {
+        width: var(--w-action);
+        min-width: var(--w-action);
+      }
+
+      th.admin-only,
+      td.admin-only {
+        width: var(--w-action);
+        min-width: var(--w-action);
+      }
+
+      /* 名稱儲存格排版樣式（勾選框 + 輸入框） */
+      .name-cell-container {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* 表格內的 input 填滿儲存格高度 */
+      /*
+       * table 本身可以是超過 viewport 的 layout island，
+       * 但任何內容都不得把 overflow 傳遞到 body。
+       */
+      .table-responsive table,
+      .table-responsive th,
+      .table-responsive td {
+        box-sizing: border-box;
+      }
+
+      .table-responsive table {
+        flex: 0 0 auto;
+      }
+
+      table input[type="text"] {
+        width: 100% !important;
+        height: calc(var(--row-height) - 6px) !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        font-size: 14px !important;
+        padding: 0 4px !important;
+        text-align: center;
+        box-sizing: border-box !important;
+      }
+
+      /* 可互動點擊觸發收合的標題樣式 */
+      th.toggle-trigger {
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      th.toggle-trigger:hover {
+        color: var(--lol-hextech-blue);
+        background: rgba(10, 200, 185, 0.12);
+        text-shadow: 0 0 8px var(--lol-hextech-glow);
+      }
+
+      /*
+       * 收合欄位不要使用 transition: all。
+       * display:none / display:table-cell 會觸發 table layout，
+       * iOS Safari 快速切換時若再疊加 transition，容易留下暫時性錯誤寬度。
+       */
+      .col-collapsible-r,
+      .col-collapsible-f {
+        transition: none !important;
+      }
+
+      .collapsed-r .col-collapsible-r,
+      .collapsed-f .col-collapsible-f {
+        display: none !important;
+      }
+
+      tbody tr:hover {
+        background: rgba(147, 51, 234, 0.08);
+      }
+
+      tbody tr.row-hidden {
+        display: none !important;
+      }
+
+      tbody tr.dragging {
+        opacity: 0.4;
+        background: rgba(10, 200, 185, 0.15) !important;
+      }
+
+      .action-buttons-group {
+        display: flex;
+        gap: 4px;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .drag-handle {
+        cursor: grab;
+        padding: 2px 8px;
+        color: var(--lol-gold-2);
+        border: 1px solid var(--lol-gold-3);
+        background: linear-gradient(180deg, #1e2328 0%, #111318 100%);
+        border-radius: 2px;
+        font-weight: bold;
+        user-select: none;
+        touch-action: none;
+      }
+
+      .drag-handle:active {
+        cursor: grabbing;
+        border-color: var(--lol-hextech-blue);
+        color: var(--lol-hextech-blue);
+      }
+
+      .cell-coin {
+        color: #ffeb7b;
+        font-weight: bold;
+      }
+
+      .chk-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        width: 100%;
+        height: 100%;
+      }
+
+      @keyframes breathing {
+        0% {
+          box-shadow: 0 0 2px var(--lol-hextech-glow);
+          border-color: var(--lol-gold-3);
+          transform: scale(1);
+        }
+
+        50% {
+          box-shadow: 0 0 12px var(--lol-hextech-blue);
+          border-color: var(--lol-hextech-blue);
+          transform: scale(1.08);
+        }
+
+        100% {
+          box-shadow: 0 0 2px var(--lol-hextech-glow);
+          border-color: var(--lol-gold-3);
+          transform: scale(1);
+        }
+      }
+
+      input[type="checkbox"] {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        border: 1px solid var(--lol-gold-3);
+        background: rgba(5, 3, 10, 0.8);
+        cursor: pointer;
+        position: relative;
+        transition: all 0.2s ease;
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+
+      input[type="checkbox"].breathing {
+        animation: breathing 1.8s infinite ease-in-out;
+      }
+
+      input[type="checkbox"]:checked {
+        border-color: var(--lol-hextech-blue);
+        background: rgba(10, 200, 185, 0.2);
+        box-shadow: 0 0 8px var(--lol-hextech-glow);
+      }
+
+      input[type="checkbox"]:checked::after {
+        content: '◆';
+        font-size: 10px;
+        color: var(--lol-hextech-blue);
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-shadow: 0 0 5px var(--lol-hextech-blue);
+      }
+
+      .timer-label {
+        font-size: 11px;
+        color: #888;
+        font-family: monospace;
+        letter-spacing: 1px;
+        line-height: 1;
+      }
+
+      .countdown-running {
+        color: var(--lol-red);
+        font-weight: bold;
+        text-shadow: 0 0 6px rgba(232, 64, 87, 0.6);
+      }
+
+      .countdown-done {
+        color: var(--lol-hextech-blue);
+        font-weight: bold;
+        text-shadow: 0 0 6px var(--lol-hextech-glow);
+      }
+
+      .hide-control-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .btn-restore-all {
+        padding: 2px 8px;
+        font-size: 11px;
+        border-color: var(--lol-gold-3);
+        color: var(--lol-gold-2);
+        background: rgba(10, 8, 20, 0.9);
+      }
+
+      .btn-restore-all:hover {
+        border-color: var(--lol-hextech-blue);
+        color: var(--lol-hextech-blue);
+      }
+
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(5, 3, 10, 0.35);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+      }
+
+      .modal-box {
+        background: rgba(18, 13, 33, 0.85);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        border: 1.5px solid rgba(200, 170, 110, 0.6);
+        border-radius: 6px;
+        padding: 25px;
+        width: 320px;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(147, 51, 234, 0.2);
+      }
+
+      .modal-title {
+        font-family: 'Cinzel', 'Noto Sans TC', serif;
+        font-size: 18px;
+        color: var(--lol-gold-1);
+        margin-bottom: 15px;
+        letter-spacing: 1px;
+        text-shadow: 0 0 8px rgba(200, 170, 110, 0.4);
+      }
+
+      .modal-content {
+        font-size: 15px;
+        color: var(--lol-gold-2);
+        margin-bottom: 25px;
+        word-break: break-all;
+      }
+
+      .modal-buttons {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+      }
+
+      .modal-btn-cancel {
+        border-color: var(--lol-gold-3);
+        color: var(--lol-gold-2);
+        background: rgba(30, 23, 40, 0.5);
+        flex: 1;
+      }
+
+      .modal-btn-confirm {
+        border-color: var(--lol-red);
+        color: #ff6b6b;
+        background: linear-gradient(180deg, rgba(56, 18, 22, 0.8) 0%, rgba(26, 8, 10, 0.8) 100%);
+        flex: 1;
+      }
+
+      .modal-btn-confirm:hover {
+        border-color: var(--lol-red);
+        color: #fff;
+        background: linear-gradient(180deg, #521a20 0%, #290d10 100%);
+        box-shadow: 0 0 10px rgba(232, 64, 87, 0.5);
+      }
+
+      #copyToast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: rgba(15, 11, 25, 0.95);
+        color: var(--lol-gold-1);
+        border: 1px solid var(--lol-gold-2);
+        padding: 10px 24px;
+        border-radius: 4px;
+        font-weight: bold;
+        font-family: 'Cinzel', 'Noto Sans TC', serif;
+        letter-spacing: 1px;
+        box-shadow: 0 0 15px var(--lol-purple-glow), inset 0 0 8px rgba(200, 170, 110, 0.2);
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.3s ease;
+        z-index: 10000;
+        text-align: center;
+        max-width: 90%;
+        word-break: break-all;
+      }
+
+      #copyToast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .admin-only {
+        display: none !important;
+      }
+
+      .user-only {
+        display: table-cell;
+      }
+
+      @media (min-width: 576px) {
+        .header-container {
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        h2 {
+          text-align: left;
+        }
+
+        .login-box {
+          width: auto;
+          flex-direction: row;
+        }
+
+        .login-box input {
+          width: 110px;
+          flex: none;
+        }
+
+        .btn-add,
+        .btn-unlock,
+        .btn-reset,
+        .btn-landscape,
+        .btn-save,
+        .btn-load {
+          flex: none;
+        }
+
+        .user-status {
+          width: auto;
+          justify-content: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="header-container">
+      <h2>j808 管理控制台</h2>
+      <div class="login-box" id="loginBox">
+        <div id="loginForm" class="login-form-inner">
+          <input type="text" id="customUser" placeholder="帳號">
+          <input type="password" id="customPass" placeholder="密碼">
+          <button class="btn-login" onclick="handleLogin()">管理員登入</button>
+        </div>
+        <div id="userInfo" class="user-status" style="display: none;">
+          <span>✦ 管理員權限已驗證</span>
+          <button onclick="handleLogout()" style="padding: 4px 10px; font-size: 12px;">登出</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-container">
+      <button class="btn-add admin-only" onclick="addRow()">+ 新增紀錄</button>
+      <button class="btn-unlock admin-only" id="unlockBtn" onclick="toggleUnlock()">解除鎖定</button>
+      <button class="btn-reset admin-only" onclick="resetCheckboxes()">重置勾選框</button>
+      <button class="btn-landscape admin-only" id="landscapeBtn" onclick="toggleLandscapeLock()">橫向鎖定</button>
+      <button class="btn-save admin-only" onclick="confirmSaveToGitHub()">保存雲端 (GitHub)</button>
+      <button class="btn-load admin-only" onclick="confirmLoadFromGitHub()">讀取雲端 (GitHub)</button>
+    </div>
+
+    <div class="table-responsive">
+      <table id="dataTable" class="collapsed-r collapsed-f">
+        <thead>
+          <tr>
+            <th>編號</th>
+            <th>等級</th>
+            <th class="toggle-trigger" onclick="toggleNameColumns()" title="點擊展開/收合 領1~5 欄位">名稱</th>
+            <th class="col-collapsible-r">領1</th>
+            <th class="col-collapsible-r">領2</th>
+            <th class="col-collapsible-r">領3</th>
+            <th class="col-collapsible-r">領4</th>
+            <th class="col-collapsible-r">領5</th>
+            <th class="toggle-trigger" onclick="toggleCoinColumns()" title="點擊展開/收合 好友與電話欄位">幣量</th>
+            <th class="col-collapsible-f">好友1</th>
+            <th class="col-collapsible-f">好友2</th>
+            <th class="col-collapsible-f">好友3</th>
+            <th class="col-collapsible-f">好友4</th>
+            <th class="col-collapsible-f">好友5</th>
+            <th class="col-collapsible-f col-phone-th">電話</th>
+            <th class="user-only">
+              <div class="hide-control-header">
+                <button class="btn-restore-all" onclick="restoreAllHiddenRows()">恢復</button>
+              </div>
+            </th>
+            <th class="admin-only">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- 自定義確認 UI 彈窗 (共用) -->
+    <div class="modal-overlay" id="confirmModal">
+      <div class="modal-box">
+        <div class="modal-title" id="modalTitle">確認刪除</div>
+        <div class="modal-content" id="modalText">確定要刪除「」嗎？</div>
+        <div class="modal-buttons">
+          <button class="modal-btn-cancel" onclick="closeConfirmModal()">取消</button>
+          <button class="modal-btn-confirm" id="modalConfirmBtn">刪除</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 統一通用 Toast 提示元件 -->
+    <div id="copyToast">已複製內容</div>
+
+    <script>
+      const T_PART1 = "2ajJg1LkRQh0Cz";
+      const T_PART2 = "twHr9WgAby6rM6";
+      const T_PART3 = "EY1ywTH9";
+      const G_ID = "a3f8fa6f452b98b777440a5c0558c190";
+      const _0x112a = "ajgwOA=="; // "808"
+      const _0x889f = "ajEwMg=="; // "102"
+      let rowCounter = 0;
+      const timers = {};
+      const endTimes = {};
+      let isAdmin = false;
+      let isUnlocked = false;
+      let pendingDeleteId = null;
+      // ==========================================
+      // 在這裡加入防抖工具函式
+      // ==========================================
+      function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+      }
+      const debouncedSaveTableToLocal = debounce(() => {
+        saveTableToLocal();
+      }, 400);
+
+      function _getD(str) { return atob(str); }
+
+      function _getK() { return "gh" + "p_" + T_PART1 + T_PART2 + T_PART3; }
+      const LOCAL_STATE_KEY = 'j808_user_timers';
+      const LOCAL_DATA_KEY = 'j808_local_table_data';
+      const LOCAL_HIDDEN_KEY = 'j808_hidden_rows_state';
+      const LOCAL_COL_R_STATE_KEY = 'j808_columns_collapsed_r';
+      const LOCAL_COL_F_STATE_KEY = 'j808_columns_collapsed_f';
+      const LOCAL_NAME_CHK_KEY = 'j808_name_checkbox_states';
+      // 初始化表格欄位收合狀態（預設為 true / 隱藏）
+      function initColumnState() {
+        const table = document.getElementById('dataTable');
+        // 領1~5 狀態
+        const isCollapsedR = localStorage.getItem(LOCAL_COL_R_STATE_KEY);
+        if (isCollapsedR === null || isCollapsedR === 'true') {
+          table.classList.add('collapsed-r');
+          localStorage.setItem(LOCAL_COL_R_STATE_KEY, 'true');
+        } else {
+          table.classList.remove('collapsed-r');
+        }
+        // 好友與電話 狀態
+        const isCollapsedF = localStorage.getItem(LOCAL_COL_F_STATE_KEY);
+        if (isCollapsedF === null || isCollapsedF === 'true') {
+          table.classList.add('collapsed-f');
+          localStorage.setItem(LOCAL_COL_F_STATE_KEY, 'true');
+        } else {
+          table.classList.remove('collapsed-f');
+        }
+      }
+      /*
+       * ==========================================================
+       * 【iOS Safari 快速展開／收合防抖 + Layout Lock】
+       *
+       * 目的：
+       * 1. 每一幀最多只真正修改一次 table class。
+       * 2. 快速連點 10~20 次時，最後狀態仍依點擊次數正確落定。
+       * 3. 切換前記錄 table-responsive.scrollLeft。
+       * 4. 切換後在同一個 frame 的下一個 RAF 恢復 scrollLeft。
+       * 5. 同時記錄 window scrollX / scrollY，避免頁面上下位置跳動。
+       * 6. 強制 table 在 wrapper 內重新計算，而不是讓 body 參與寬度計算。
+       * ==========================================================
+       */
+      let columnLayoutRAF = 0;
+      let columnLayoutLocked = false;
+      let pendingCollapsedR = null;
+      let pendingCollapsedF = null;
+      let pendingColumnToast = '';
+
+      function getTableScrollState() {
+        const wrapper = document.querySelector('.table-responsive');
+        return {
+          wrapper,
+          scrollLeft: wrapper ? wrapper.scrollLeft : 0,
+          scrollTop: wrapper ? wrapper.scrollTop : 0,
+          windowX: window.scrollX || window.pageXOffset || 0,
+          windowY: window.scrollY || window.pageYOffset || 0
+        };
+      }
+
+      function restoreTableScrollState(state) {
+        if (!state) return;
+
+        const wrapper = state.wrapper;
+        if (wrapper) {
+          wrapper.scrollLeft = state.scrollLeft;
+          wrapper.scrollTop = state.scrollTop;
+        }
+
+        /*
+         * iOS Safari 在 table layout 完成後偶爾會重新校正 viewport。
+         * 這裡只恢復原本的 window 座標，不改 viewport meta，也不禁止縮放。
+         */
+        if (
+          Math.abs((window.scrollX || window.pageXOffset || 0) - state.windowX) > 0 ||
+          Math.abs((window.scrollY || window.pageYOffset || 0) - state.windowY) > 0
+        ) {
+          window.scrollTo(state.windowX, state.windowY);
+        }
+      }
+
+      function requestColumnLayout(type) {
+        const table = document.getElementById('dataTable');
+        if (!table) return;
+
+        /*
+         * 在 RAF 尚未執行前，所有快速點擊只修改 pending state。
+         * 因此不會在同一個 frame 內連續觸發多次 table layout。
+         */
+        if (type === 'r') {
+          const current = pendingCollapsedR !== null
+            ? pendingCollapsedR
+            : table.classList.contains('collapsed-r');
+          pendingCollapsedR = !current;
+          pendingColumnToast = pendingCollapsedR
+            ? '已收合 領1~5 欄位'
+            : '已展開 領1~5 欄位';
+        } else {
+          const current = pendingCollapsedF !== null
+            ? pendingCollapsedF
+            : table.classList.contains('collapsed-f');
+          pendingCollapsedF = !current;
+          pendingColumnToast = pendingCollapsedF
+            ? '已收合好友與電話欄位'
+            : '已展開好友與電話欄位';
+        }
+
+        if (columnLayoutRAF) return;
+
+        const state = getTableScrollState();
+        columnLayoutLocked = true;
+
+        columnLayoutRAF = requestAnimationFrame(() => {
+          columnLayoutRAF = 0;
+
+          /*
+           * 一次性套用目前這一幀累積的最終狀態。
+           */
+          if (pendingCollapsedR !== null) {
+            table.classList.toggle('collapsed-r', pendingCollapsedR);
+            localStorage.setItem(
+              LOCAL_COL_R_STATE_KEY,
+              pendingCollapsedR ? 'true' : 'false'
+            );
+            pendingCollapsedR = null;
+          }
+
+          if (pendingCollapsedF !== null) {
+            table.classList.toggle('collapsed-f', pendingCollapsedF);
+            localStorage.setItem(
+              LOCAL_COL_F_STATE_KEY,
+              pendingCollapsedF ? 'true' : 'false'
+            );
+            pendingCollapsedF = null;
+          }
+
+          /*
+           * 讓 Safari 完成一次 table intrinsic width / scrollWidth reflow，
+           * 再於下一個 frame 恢復水平位置。
+           */
+          void table.offsetWidth;
+
+          requestAnimationFrame(() => {
+            restoreTableScrollState(state);
+            columnLayoutLocked = false;
+
+            if (pendingColumnToast) {
+              showToast(pendingColumnToast);
+              pendingColumnToast = '';
+            }
+
+            /*
+             * 若在本次 layout lock 期間又有新的點擊，
+             * 再安排下一個 frame，不讓多次 layout 疊在一起。
+             */
+            if (pendingCollapsedR !== null || pendingCollapsedF !== null) {
+              requestColumnLayout('r');
+            }
+          });
+        });
+      }
+
+      // 切換 領1~5 欄位收合狀態 (點擊名稱)
+      function toggleNameColumns() {
+        requestColumnLayout('r');
+      }
+
+      // 切換 好友與電話欄位收合狀態 (點擊幣量)
+      function toggleCoinColumns() {
+        requestColumnLayout('f');
+      }
+      // ==========================================
+      // 新增在這裡：共用的 Modal 確認視窗函式
+      // ==========================================
+      function showConfirmModal(title, text, confirmText, isDanger = false, onConfirm) {
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('modalText').innerText = text;
+        const confirmBtn = document.getElementById('modalConfirmBtn');
+        confirmBtn.innerText = confirmText;
+        confirmBtn.className = 'modal-btn-confirm';
+        if (isDanger) {
+          confirmBtn.removeAttribute('style');
+        } else {
+          confirmBtn.style.borderColor = 'var(--lol-hextech-blue)';
+          confirmBtn.style.color = 'var(--lol-hextech-blue)';
+          confirmBtn.style.background = 'linear-gradient(180deg, rgba(9, 40, 48, 0.9) 0%, rgba(3, 16, 21, 0.9) 100%)';
+        }
+        confirmBtn.onclick = function() {
+          onConfirm();
+          closeConfirmModal();
+        };
+        document.getElementById('confirmModal').style.display = 'flex';
+      }
+
+      function getLocalStates() {
+        try { return JSON.parse(localStorage.getItem(LOCAL_STATE_KEY)) || {}; } catch (e) { return {}; }
+      }
+
+      function saveLocalState(uniqueKey, checked, endTime) {
+        const data = getLocalStates();
+        if (checked) {
+          data[uniqueKey] = { checked: true, endTime: endTime };
+        } else {
+          delete data[uniqueKey];
+        }
+        localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify(data));
+      }
+
+      function clearAllLocalTimers() {
+        localStorage.removeItem(LOCAL_STATE_KEY);
+      }
+      // 名稱前方勾選框狀態儲存
+      function getNameChkStates() {
+        try { return JSON.parse(localStorage.getItem(LOCAL_NAME_CHK_KEY)) || {}; } catch (e) { return {}; }
+      }
+
+      function saveNameChkState(uid, checked) {
+        const data = getNameChkStates();
+        if (checked) {
+          data[uid] = true;
+        } else {
+          delete data[uid];
+        }
+        localStorage.setItem(LOCAL_NAME_CHK_KEY, JSON.stringify(data));
+      }
+
+      function getHiddenRowsState() {
+        try { return JSON.parse(localStorage.getItem(LOCAL_HIDDEN_KEY)) || {}; } catch (e) { return {}; }
+      }
+
+      function saveHiddenRowState(uid, isHidden) {
+        const data = getHiddenRowsState();
+        if (isHidden) {
+          data[uid] = true;
+        } else {
+          delete data[uid];
+        }
+        localStorage.setItem(LOCAL_HIDDEN_KEY, JSON.stringify(data));
+      }
+
+      function restoreAllHiddenRows() {
+        localStorage.removeItem(LOCAL_HIDDEN_KEY);
+        document.querySelectorAll('#tableBody tr').forEach(tr => {
+          tr.classList.remove('row-hidden');
+          const chkHide = tr.querySelector('.chk-hide-row');
+          if (chkHide) chkHide.checked = false;
+        });
+        showToast('已全部恢復顯示');
+      }
+
+      function saveTableToLocal() {
+        const tableData = getTableData();
+        if (tableData.length === 0) {
+          localStorage.removeItem(LOCAL_DATA_KEY);
+        } else {
+          localStorage.setItem(LOCAL_DATA_KEY, JSON.stringify(tableData));
+        }
+      }
+      let toastTimer = null;
+
+      function showToast(message) {
+        const toast = document.getElementById('copyToast');
+        toast.innerText = message;
+        toast.classList.add('show');
+        if (toastTimer) {
+          clearTimeout(toastTimer);
+        }
+        toastTimer = setTimeout(() => {
+          toast.classList.remove('show');
+        }, 1800);
+      }
+      // ==========================================
+      // 【橫向鎖定】視覺旋轉，不依賴系統直立鎖定
+      // ==========================================
+      const LANDSCAPE_LOCK_KEY = 'j808_landscape_lock';
+
+      function applyLandscapeLock(enabled, showMessage = false) {
+        const html = document.documentElement;
+        const btn = document.getElementById('landscapeBtn');
+
+        html.classList.toggle('landscape-lock', enabled);
+
+        if (btn) {
+          btn.classList.toggle('active', enabled);
+          btn.innerText = enabled ? '解除橫向鎖定' : '橫向鎖定';
+        }
+
+        localStorage.setItem(LANDSCAPE_LOCK_KEY, enabled ? 'true' : 'false');
+
+        /*
+         * 若瀏覽器支援 Screen Orientation API，順便嘗試鎖定真正的
+         * landscape；iOS Safari 等不支援時會直接略過，仍由上面的
+         * CSS 視覺旋轉維持橫向顯示。
+         */
+        if (enabled && screen.orientation && typeof screen.orientation.lock === 'function') {
+          screen.orientation.lock('landscape').catch(() => {});
+        } else if (!enabled && screen.orientation && typeof screen.orientation.unlock === 'function') {
+          try {
+            screen.orientation.unlock();
+          } catch (e) {}
+        }
+
+        if (showMessage) {
+          showToast(enabled ? '已啟用橫向鎖定' : '已解除橫向鎖定');
+        }
+      }
+
+      function toggleLandscapeLock() {
+        if (!isAdmin) return;
+        const enabled = !document.documentElement.classList.contains('landscape-lock');
+        applyLandscapeLock(enabled, true);
+      }
+
+      // ==========================================
+      // 您原本的 DOMContentLoaded 程式碼
+      // ==========================================
+      window.addEventListener('DOMContentLoaded', () => {
+        initColumnState();
+        applyLandscapeLock(localStorage.getItem(LANDSCAPE_LOCK_KEY) === 'true');
+        if (localStorage.getItem('j808_is_admin') === 'true') {
+          setAdminMode(true);
+        }
+        try {
+          const localSavedData = localStorage.getItem(LOCAL_DATA_KEY);
+          if (localSavedData !== null) {
+            const data = JSON.parse(localSavedData);
+            document.getElementById('tableBody').innerHTML = '';
+            rowCounter = 0;
+            if (data && data.length > 0) {
+              data.forEach(item => addRow(item, true));
+            }
+          }
+        } catch (e) {
+          console.error("載入本地暫存失敗", e);
+        }
+      });
+      // ==========================================
+      // 【建議新增】跨分頁同步監聽（加在這裡最適合）
+      // ==========================================
+      window.addEventListener('storage', (e) => {
+        if ([LOCAL_STATE_KEY, LOCAL_DATA_KEY, LOCAL_NAME_CHK_KEY, LOCAL_HIDDEN_KEY].includes(e.key)) {
+          const localSavedData = localStorage.getItem(LOCAL_DATA_KEY);
+          if (localSavedData !== null) {
+            try {
+              const data = JSON.parse(localSavedData);
+              const tbody = document.getElementById('tableBody');
+              if (tbody) {
+                tbody.innerHTML = '';
+                rowCounter = 0;
+                if (data && data.length > 0) {
+                  data.forEach(item => addRow(item, true));
+                }
+              }
+            } catch (err) {
+              console.error("跨分頁同步載入失敗", err);
+            }
+          }
+        }
+      });
+      // 【建議新增】切換回分頁時自動校正倒數計時
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+          // 當分頁重新變為「可見」時，重新校正所有打勾中的倒數計時
+          document.querySelectorAll('.chk-receive:checked').forEach(chk => {
+            const uid = chk.getAttribute('data-uid');
+            const idx = chk.getAttribute('data-idx');
+            const uniqueKey = `${uid}_${idx}`;
+            if (endTimes[uniqueKey]) {
+              initTimerWithEndTime(chk, endTimes[uniqueKey]);
+            }
+          });
+        }
+      });
+
+      function handleLogin() {
+        const userIn = document.getElementById('customUser').value;
+        const passIn = document.getElementById('customPass').value;
+        if (userIn === _getD(_0x112a) && passIn === _getD(_0x889f)) {
+          localStorage.setItem('j808_is_admin', 'true');
+          setAdminMode(true);
+          reloadTableFromLocal();
+          showToast('管理員登入成功');
+        } else {
+          showToast('帳號或密碼錯誤！');
+        }
+      }
+
+      function handleLogout() {
+        localStorage.removeItem('j808_is_admin');
+        setAdminMode(false);
+        reloadTableFromLocal();
+        showToast('已登出管理員');
+      }
+
+      function reloadTableFromLocal() {
+        try {
+          const localSavedData = localStorage.getItem(LOCAL_DATA_KEY);
+          document.getElementById('tableBody').innerHTML = '';
+          rowCounter = 0;
+          if (localSavedData) {
+            const data = JSON.parse(localSavedData);
+            if (data && data.length > 0) {
+              data.forEach(item => addRow(item, true));
+            }
+          }
+        } catch (e) {
+          console.error("重新渲染表格失敗", e);
+        }
+      }
+
+      function setAdminMode(status) {
+        isAdmin = status;
+        isUnlocked = false;
+        updateUnlockUI();
+        const adminElements = document.querySelectorAll('.admin-only');
+        const userElements = document.querySelectorAll('.user-only');
+        if (isAdmin) {
+          document.getElementById('loginForm').style.setProperty('display', 'none', 'important');
+          document.getElementById('userInfo').style.setProperty('display', 'flex', 'important');
+          adminElements.forEach(el => el.style.setProperty('display', 'block', 'important'));
+          userElements.forEach(el => el.style.setProperty('display', 'none', 'important'));
+          const thOps = document.querySelectorAll('th.admin-only');
+          thOps.forEach(th => th.style.setProperty('display', 'table-cell', 'important'));
+        } else {
+          document.getElementById('loginForm').style.setProperty('display', 'flex', 'important');
+          document.getElementById('userInfo').style.setProperty('display', 'none', 'important');
+          document.getElementById('customUser').value = '';
+          document.getElementById('customPass').value = '';
+          adminElements.forEach(el => el.style.setProperty('display', 'none', 'important'));
+          userElements.forEach(el => el.style.setProperty('display', 'table-cell', 'important'));
+        }
+        updateInputsState();
+      }
+
+      function toggleUnlock() {
+        if (!isAdmin) return;
+        isUnlocked = !isUnlocked;
+        updateUnlockUI();
+        updateInputsState();
+      }
+
+      function updateUnlockUI() {
+        const unlockBtn = document.getElementById('unlockBtn');
+        if (isUnlocked) {
+          unlockBtn.innerText = "已解除鎖定";
+          unlockBtn.classList.add('unlocked');
+        } else {
+          unlockBtn.innerText = "解除鎖定";
+          unlockBtn.classList.remove('unlocked');
+        }
+      }
+
+      function updateInputsState() {
+        const inputs = document.querySelectorAll('#tableBody input[type="text"]');
+        const shouldReadOnly = !(isAdmin && isUnlocked);
+        inputs.forEach(input => {
+          input.readOnly = shouldReadOnly;
+        });
+      }
+
+      function addRow(data = {}, isInitializing = false) {
+        rowCounter++;
+        const uid = data.uid || ('row_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5));
+        const currentId = rowCounter;
+        const tbody = document.getElementById('tableBody');
+        const tr = document.createElement('tr');
+        tr.id = `row-${currentId}`;
+        tr.dataset.uid = uid;
+        tr.setAttribute('draggable', 'false');
+        const hiddenStates = getHiddenRowsState();
+        const isRowHidden = !!hiddenStates[uid];
+        if (isRowHidden) {
+          tr.classList.add('row-hidden');
+        }
+        const localStates = getLocalStates();
+        let receiveColsHtml = '';
+        for (let i = 1; i <= 5; i++) {
+          const uniqueKey = `${uid}_${i}`;
+          const local = localStates[uniqueKey];
+          let isChecked = false;
+          if (local !== undefined) {
+            isChecked = local.checked;
+          } else {
+            isChecked = !!data[`r${i}`];
+          }
+          const chkAttribute = isChecked ? 'checked' : '';
+          receiveColsHtml += `
+            <td class="col-collapsible-r">
+                <div class="chk-container">
+                    <input type="checkbox" class="chk-receive" data-uid="${uid}" data-idx="${i}" ${chkAttribute} onchange="toggleTimer(this, true)">
+                    <div class="timer-label" id="timer-${uid}-${i}">00:00</div>
+                </div>
+            </td>
+          `;
+        }
+        // 名稱前方勾選框狀態
+        const nameChkStates = getNameChkStates();
+        let isNameChkChecked = false;
+        if (nameChkStates[uid] !== undefined) {
+          isNameChkChecked = nameChkStates[uid];
+        } else {
+          isNameChkChecked = !!data.nameChk;
+        }
+        const nameChkAttr = isNameChkChecked ? 'checked' : '';
+        const isReadOnly = (isAdmin && isUnlocked) ? '' : 'readonly';
+        const hideChkChecked = isRowHidden ? 'checked' : '';
+        const userCellHtml = `
+            <td class="user-only" style="${isAdmin ? 'display:none !important;' : ''}">
+                <div class="chk-container">
+                    <input type="checkbox" class="chk-hide-row" data-uid="${uid}" ${hideChkChecked} onchange="toggleHideRow(this)">
+                </div>
+            </td>
+        `;
+        const actionHtml = isAdmin ? `
+            <td>
+                <div class="action-buttons-group">
+                    <button onclick="confirmDelete('${uid}')" style="color:var(--lol-red); border-color:var(--lol-red); padding: 4px 10px;">刪除</button>
+                    <span class="drag-handle" title="按住拖曳排序">≡</span>
+                </div>
+            </td>
+        ` : `<td class="admin-only"></td>`;
+        tr.innerHTML = `
+            <td><input type="text" class="cell-no" value="${data.no || currentId}" ${isReadOnly}></td>
+            <td><input type="text" class="cell-level" value="${data.level || ''}" ${isReadOnly}></td>
+            <td>
+              <div class="name-cell-container">
+                <input type="checkbox" class="chk-name-prefix" data-uid="${uid}" ${nameChkAttr} onchange="saveNameCheckboxState(this)">
+                <input type="text" class="cell-name" value="${data.name || ''}" ${isReadOnly}>
+              </div>
+            </td>
+            ${receiveColsHtml}
+            <td><input type="text" class="cell-coin" value="${data.coin || ''}" ${isReadOnly}></td>
+            <td class="col-collapsible-f"><input type="text" class="cell-f1" value="${data.f1 || ''}" ${isReadOnly}></td>
+            <td class="col-collapsible-f"><input type="text" class="cell-f2" value="${data.f2 || ''}" ${isReadOnly}></td>
+            <td class="col-collapsible-f"><input type="text" class="cell-f3" value="${data.f3 || ''}" ${isReadOnly}></td>
+            <td class="col-collapsible-f"><input type="text" class="cell-f4" value="${data.f4 || ''}" ${isReadOnly}></td>
+            <td class="col-collapsible-f"><input type="text" class="cell-f5" value="${data.f5 || ''}" ${isReadOnly}></td>
+            <td class="col-collapsible-f col-phone-td"><input type="text" class="cell-phone" value="${data.phone || ''}" ${isReadOnly}></td>
+            ${userCellHtml}
+            ${actionHtml}
+        `;
+        tbody.appendChild(tr);
+        const handle = tr.querySelector('.drag-handle');
+        if (handle) {
+          bindDragAndDropEvents(tr, handle);
+        }
+        const inputs = tr.querySelectorAll('input[type="text"]');
+        inputs.forEach(input => {
+          input.addEventListener('input', function() {
+            debouncedSaveTableToLocal();
+          });
+          input.addEventListener('click', function() {
+            if (this.readOnly && this.value) {
+              const textToCopy = this.value;
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                  showToast(`已複製：${textToCopy}`);
+                }).catch(err => {
+                  fallbackCopyText(textToCopy);
+                });
+              } else {
+                fallbackCopyText(textToCopy);
+              }
+            }
+          });
+        });
+        for (let i = 1; i <= 5; i++) {
+          const uniqueKey = `${uid}_${i}`;
+          const chk = tr.querySelector(`.chk-receive[data-idx="${i}"]`);
+          const local = localStates[uniqueKey];
+          let targetEndTime = (local && local.endTime) ? local.endTime : data[`r${i}_time`];
+          if (chk.checked) {
+            if (targetEndTime) {
+              endTimes[uniqueKey] = targetEndTime;
+              initTimerWithEndTime(chk, targetEndTime);
+            } else {
+              const defaultEndTime = Date.now() + 600 * 1000;
+              endTimes[uniqueKey] = defaultEndTime;
+              saveLocalState(uniqueKey, true, defaultEndTime);
+              initTimerWithEndTime(chk, defaultEndTime);
+            }
+          }
+        }
+        if (!isInitializing) {
+          saveTableToLocal();
+        }
+      }
+
+      function saveNameCheckboxState(checkbox) {
+        const uid = checkbox.getAttribute('data-uid');
+        saveNameChkState(uid, checkbox.checked);
+        saveTableToLocal();
+      }
+
+      function toggleHideRow(checkbox) {
+        const uid = checkbox.getAttribute('data-uid');
+        const tr = document.querySelector(`tr[data-uid="${uid}"]`);
+        if (!tr) return;
+        if (checkbox.checked) {
+          tr.classList.add('row-hidden');
+          saveHiddenRowState(uid, true);
+        } else {
+          tr.classList.remove('row-hidden');
+          saveHiddenRowState(uid, false);
+        }
+      }
+
+      function bindDragAndDropEvents(tr, handle) {
+        let isDragging = false;
+        let currentTargetRow = null;
+        handle.addEventListener('mousedown', (e) => {
+          if (!isAdmin) return;
+          isDragging = true;
+          currentTargetRow = tr;
+          tr.classList.add('dragging');
+          e.preventDefault();
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+        });
+
+        function onMouseMove(e) {
+          if (!isDragging) return;
+          const tbody = document.getElementById('tableBody');
+          const rows = Array.from(tbody.querySelectorAll('tr'));
+          const mouseY = e.clientY;
+          let targetRow = null;
+          for (let r of rows) {
+            const rect = r.getBoundingClientRect();
+            if (mouseY >= rect.top && mouseY <= rect.bottom) {
+              targetRow = r;
+              break;
+            }
+          }
+          if (targetRow && targetRow !== currentTargetRow) {
+            const rect = targetRow.getBoundingClientRect();
+            const midpoint = rect.top + rect.height / 2;
+            if (mouseY < midpoint) {
+              tbody.insertBefore(currentTargetRow, targetRow);
+            } else {
+              tbody.insertBefore(currentTargetRow, targetRow.nextSibling);
+            }
+          }
+        }
+
+        function onMouseUp(e) {
+          if (!isDragging) return;
+          isDragging = false;
+          tr.classList.remove('dragging');
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+          saveTableToLocal();
+          showToast('排序已更新');
+        }
+        handle.addEventListener('touchstart', (e) => {
+          if (!isAdmin) return;
+          isDragging = true;
+          currentTargetRow = tr;
+          tr.classList.add('dragging');
+        }, { passive: false }); // <-- 改為 false
+        handle.addEventListener('touchmove', (e) => {
+          if (!isDragging) return;
+          e.preventDefault(); // <-- 加上這行，防止手機滑動時整頁跟著滾動
+          const tbody = document.getElementById('tableBody');
+          const rows = Array.from(tbody.querySelectorAll('tr'));
+          const touchY = e.touches[0].clientY;
+          let targetRow = null;
+          for (let r of rows) {
+            const rect = r.getBoundingClientRect();
+            if (touchY >= rect.top && touchY <= rect.bottom) {
+              targetRow = r;
+              break;
+            }
+          }
+          if (targetRow && targetRow !== currentTargetRow) {
+            const rect = targetRow.getBoundingClientRect();
+            const midpoint = rect.top + rect.height / 2;
+            if (touchY < midpoint) {
+              tbody.insertBefore(currentTargetRow, targetRow);
+            } else {
+              tbody.insertBefore(currentTargetRow, targetRow.nextSibling);
+            }
+          }
+        }, { passive: false }); // <-- 改為 false
+        handle.addEventListener('touchend', (e) => {
+          if (!isDragging) return;
+          isDragging = false;
+          tr.classList.remove('dragging');
+          saveTableToLocal();
+          showToast('排序已更新');
+        });
+      }
+
+      function fallbackCopyText(text) {
+        try {
+          const textarea = document.createElement('textarea');
+          textarea.value = text;
+          textarea.style.position = 'fixed';
+          textarea.style.opacity = '0';
+          document.body.appendChild(textarea);
+          textarea.focus();
+          textarea.select();
+          const successful = document.execCommand('copy');
+          document.body.removeChild(textarea);
+          if (successful) {
+            showToast(`已複製：${text}`);
+          }
+        } catch (err) {
+          console.error('備援複製發生錯誤', err);
+        }
+      }
+
+      function initTimerWithEndTime(checkbox, endTime) {
+        const uid = checkbox.getAttribute('data-uid');
+        const idx = checkbox.getAttribute('data-idx');
+        const uniqueKey = `${uid}_${idx}`;
+        const label = document.getElementById(`timer-${uid}-${idx}`);
+        if (!label) return;
+        if (timers[uniqueKey]) {
+          clearInterval(timers[uniqueKey].interval);
+          delete timers[uniqueKey];
+        }
+        label.classList.remove('countdown-running', 'countdown-done');
+        checkbox.classList.remove('breathing');
+        const now = Date.now();
+        let remainingSeconds = Math.floor((endTime - now) / 1000);
+        if (remainingSeconds <= 0) {
+          label.innerText = "00:00";
+          label.classList.add('countdown-done');
+          return;
+        }
+        label.classList.add('countdown-running');
+        checkbox.classList.add('breathing');
+        const updateDisplay = (secs) => {
+          const mins = String(Math.floor(secs / 60)).padStart(2, '0');
+          const s = String(secs % 60).padStart(2, '0');
+          label.innerText = `${mins}:${s}`;
+        };
+        updateDisplay(remainingSeconds);
+        const interval = setInterval(() => {
+          const currentRemaining = Math.floor((endTime - Date.now()) / 1000);
+          if (currentRemaining <= 0) {
+            clearInterval(interval);
+            label.innerText = "00:00";
+            label.classList.remove('countdown-running');
+            label.classList.add('countdown-done');
+            checkbox.classList.remove('breathing');
+            delete timers[uniqueKey];
+          } else {
+            updateDisplay(currentRemaining);
+          }
+        }, 1000);
+        timers[uniqueKey] = { interval: interval };
+      }
+
+      function toggleTimer(checkbox, isUserClick = true) {
+        const uid = checkbox.getAttribute('data-uid');
+        const idx = checkbox.getAttribute('data-idx');
+        const uniqueKey = `${uid}_${idx}`;
+        const label = document.getElementById(`timer-${uid}-${idx}`);
+        if (timers[uniqueKey]) {
+          clearInterval(timers[uniqueKey].interval);
+          delete timers[uniqueKey];
+        }
+        label.classList.remove('countdown-running', 'countdown-done');
+        checkbox.classList.remove('breathing');
+        if (checkbox.checked) {
+          const endTime = Date.now() + 600 * 1000;
+          endTimes[uniqueKey] = endTime;
+          saveLocalState(uniqueKey, true, endTime);
+          initTimerWithEndTime(checkbox, endTime);
+        } else {
+          label.innerText = "00:00";
+          delete endTimes[uniqueKey];
+          saveLocalState(uniqueKey, false, 0);
+        }
+        saveTableToLocal();
+      }
+
+      function confirmDelete(uid) {
+        if (!isAdmin) return;
+        pendingDeleteId = uid;
+        const row = document.querySelector(`tr[data-uid="${uid}"]`);
+        let nameVal = '';
+        if (row) {
+          const nameInput = row.querySelector('.cell-name');
+          if (nameInput) {
+            nameVal = nameInput.value.trim();
+          }
+        }
+        const displayName = nameVal ? `「${nameVal}」` : `此筆紀錄`;
+        document.getElementById('modalTitle').innerText = '確認刪除';
+        document.getElementById('modalText').innerText = `確定要刪除 ${displayName} 嗎？`;
+        const confirmBtn = document.getElementById('modalConfirmBtn');
+        confirmBtn.innerText = '刪除';
+        confirmBtn.className = 'modal-btn-confirm';
+        confirmBtn.removeAttribute('style');
+        confirmBtn.onclick = function() {
+          executeDelete(pendingDeleteId);
+          closeConfirmModal();
+        };
+        document.getElementById('confirmModal').style.display = 'flex';
+      }
+
+      function closeConfirmModal() {
+        document.getElementById('confirmModal').style.display = 'none';
+        pendingDeleteId = null;
+      }
+
+      function executeDelete(uid) {
+        const row = document.querySelector(`tr[data-uid="${uid}"]`);
+        if (row) {
+          for (let i = 1; i <= 5; i++) {
+            const uniqueKey = `${uid}_${i}`;
+            if (timers[uniqueKey]) {
+              clearInterval(timers[uniqueKey].interval);
+              delete timers[uniqueKey];
+            }
+            delete endTimes[uniqueKey];
+            saveLocalState(uniqueKey, false, 0);
+          }
+          // 【修改這裡】只刪除該 uid 的名稱勾選狀態，不再整把清空
+          const nameStates = JSON.parse(localStorage.getItem(LOCAL_NAME_CHK_KEY) || '{}');
+          delete nameStates[uid];
+          localStorage.setItem(LOCAL_NAME_CHK_KEY, JSON.stringify(nameStates));
+          saveHiddenRowState(uid, false);
+          row.remove();
+          saveTableToLocal();
+          showToast('已刪除紀錄');
+        }
+      }
+
+      function resetCheckboxes() {
+        if (!isAdmin) return;
+        clearAllLocalTimers();
+        localStorage.removeItem(LOCAL_NAME_CHK_KEY);
+        document.querySelectorAll('.chk-receive').forEach(chk => {
+          chk.checked = false;
+          toggleTimer(chk, false);
+        });
+        document.querySelectorAll('.chk-name-prefix').forEach(chk => {
+          chk.checked = false;
+        });
+        // 【新增這行】將重置後的表格資料存回 LocalStorage，確保連動與儲存
+        saveTableToLocal();
+        showToast('已重置所有勾選框與倒數計時！');
+      }
+
+      function getTableData() {
+        const rows = document.querySelectorAll('#tableBody tr');
+        const data = [];
+        const localStates = getLocalStates(); // 讀取本地的計時與勾選狀態
+        rows.forEach((row, rowIndex) => {
+          const uid = row.dataset.uid;
+          const chks = row.querySelectorAll('.chk-receive');
+          const nameChk = row.querySelector('.chk-name-prefix');
+          // 收集該 row 的 1~5 領取狀態與計時
+          const rData = {};
+          for (let i = 1; i <= 5; i++) {
+            const uniqueKey = `${uid}_${i}`;
+            const local = localStates[uniqueKey] || {};
+            rData[`r${i}`] = chks[i - 1].checked;
+            rData[`r${i}_time`] = chks[i - 1].checked ? (endTimes[uniqueKey] || local.endTime || 0) : 0;
+          }
+          data.push({
+            uid: uid,
+            no: row.querySelector('.cell-no').value,
+            level: row.querySelector('.cell-level').value,
+            nameChk: nameChk ? nameChk.checked : false,
+            name: row.querySelector('.cell-name').value,
+            coin: row.querySelector('.cell-coin').value,
+            r1: rData.r1,
+            r1_time: rData.r1_time,
+            r2: rData.r2,
+            r2_time: rData.r2_time,
+            r3: rData.r3,
+            r3_time: rData.r3_time,
+            r4: rData.r4,
+            r4_time: rData.r4_time,
+            r5: rData.r5,
+            r5_time: rData.r5_time,
+            f1: row.querySelector('.cell-f1').value,
+            f2: row.querySelector('.cell-f2').value,
+            f3: row.querySelector('.cell-f3').value,
+            f4: row.querySelector('.cell-f4').value,
+            f5: row.querySelector('.cell-f5').value,
+            phone: row.querySelector('.cell-phone').value,
+          });
+        });
+        return data;
+      }
+      // ==========================================
+      // 接著放您原本簡化後的 confirmSaveToGitHub 等函式
+      // ==========================================
+      function confirmSaveToGitHub() {
+        if (!isAdmin) { showToast('請先登入管理員權限！'); return; }
+        showConfirmModal(
+          '確認保存',
+          '確定要將目前資料保存至雲端 (GitHub) 嗎？',
+          '保存',
+          false,
+          () => executeSaveToGitHub()
+        );
+      }
+
+      function confirmLoadFromGitHub() {
+        if (!isAdmin) { showToast('請先登入管理員權限！'); return; }
+        showConfirmModal(
+          '確認讀取',
+          '確定要從雲端 (GitHub) 讀取資料嗎？（這將會覆寫目前的本地資料）',
+          '讀取',
+          false,
+          () => executeLoadFromGitHub()
+        );
+      }
+      async function executeSaveToGitHub() {
+        const tableData = getTableData();
+        const payload = {
+          description: "Grid Data Storage with Timers",
+          files: { "grid_data.json": { content: JSON.stringify(tableData, null, 2) } }
+        };
+        try {
+          const response = await fetch(`https://api.github.com/gists/${G_ID}`, {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${_getK()}`,
+              'Accept': 'application/vnd.github.v3+json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+          if (response.ok) {
+            showToast('管理員修改成功，已成功保存至雲端！');
+          } else {
+            const errRes = await response.json();
+            showToast('保存失敗：' + (errRes.message || '請確認密鑰是否有權限。'));
+          }
+        } catch (error) {
+          showToast('網路連線失敗，請稍後再試。');
+        }
+      }
+      async function executeLoadFromGitHub() {
+        try {
+          const response = await fetch(`https://api.github.com/gists/${G_ID}`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${_getK()}`,
+              'Accept': 'application/vnd.github.v3+json'
+            }
+          });
+          if (response.ok) {
+            const resData = await response.json();
+            if (resData.files && resData.files["grid_data.json"]) {
+              const data = JSON.parse(resData.files["grid_data.json"].content);
+              // 同步更新本地的計時與名稱勾選狀態
+              const newLocalStates = {};
+              const newNameChkStates = {};
+              data.forEach(item => {
+                const uid = item.uid;
+                if (item.nameChk) newNameChkStates[uid] = true;
+                for (let i = 1; i <= 5; i++) {
+                  if (item[`r${i}`]) {
+                    const uniqueKey = `${uid}_${i}`;
+                    newLocalStates[uniqueKey] = {
+                      checked: true,
+                      endTime: item[`r${i}_time`] || (Date.now() + 600 * 1000)
+                    };
+                  }
+                }
+              });
+              // 寫回手機本地 localStorage
+              localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify(newLocalStates));
+              localStorage.setItem(LOCAL_NAME_CHK_KEY, JSON.stringify(newNameChkStates));
+              // 重新渲染表格
+              document.getElementById('tableBody').innerHTML = ``;
+              rowCounter = 0;
+              data.forEach(item => addRow(item));
+              saveTableToLocal();
+              showToast('成功從雲端讀取資料並同步至本地！');
+            }
+          } else {
+            showToast('讀取雲端失敗，請稍後再試。');
+          }
+        } catch (error) {
+          showToast('網路連線失敗，請稍後再試。');
+        }
+      }
+    </script>
+  </body>
+</html>
