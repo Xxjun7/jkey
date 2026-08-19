@@ -785,6 +785,13 @@
           <div class="pane-title">
             運行結果<span id="framesize"></span>
           </div>
+          
+          <div class="actions">
+              <button id="themeToggleBtn" onclick="cycleTheme()" title="切換 淺色 / 深色 / 工程師模式">
+              <span id="themeLabel">主題: 淺色</span>
+              </button>
+          </div>
+          
           <div class="actions">
             <select id="deviceSelect" onchange="changeDeviceMode(this.value)" title="選擇預覽裝置尺寸">
               <option value="desktop">🖥️ 電腦全寬</option>
@@ -807,9 +814,7 @@
             <button onclick="openPaletteModal()" title="開啟調色盤挑選顏色">🎨 調色盤</button>
             <button id="inspectorToggleBtn" onclick="toggleInspector()" title="開關元素檢查器面板">🔍 檢查元素</button>
             <button id="fullscreenBtn" onclick="toggleFullscreen()" title="全螢幕預覽">全螢幕</button>
-            <button id="themeToggleBtn" onclick="cycleTheme()" title="切換 淺色 / 深色 / 工程師模式">
-              <span id="themeLabel">主題: 淺色</span>
-            </button>
+
           </div>
         </div>
 
