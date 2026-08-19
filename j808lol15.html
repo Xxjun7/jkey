@@ -105,8 +105,8 @@
         position: fixed;
         top: 0;
         left: 0;
-        width: 100vh;
-        height: 100vw;
+        width: var(--landscape-vw, 100vh);
+        height: var(--landscape-vh, 100vw);
         min-height: 0;
         max-width: none;
         margin: 0;
@@ -1245,6 +1245,9 @@
         return ((angle % 360) + 360) % 360;
       }
 
+      // ==========================================
+      // 修正：動態計算相對角度，記憶初始鎖定位置
+      // ==========================================
       function updateLandscapeVisualRotation() {
         if (!document.documentElement.classList.contains('landscape-lock')) return;
         if (landscapeCorrectionBusy) return;
@@ -1253,22 +1256,21 @@
         try {
           const lockedAngle = Number(localStorage.getItem(LANDSCAPE_ANGLE_KEY));
           const currentAngle = getCurrentOrientationAngle();
+          
+          // 預設鎖定基準點（若無設定則取當前）
           const baseAngle = Number.isFinite(lockedAngle) ? lockedAngle : currentAngle;
 
           /*
-           * iOS / Safari 可能先讓整個 viewport 跟著手機自動旋轉，
-           * 網頁無法阻止這個系統動作，所以這裡採「偵測 → 反向補償」：
-           * 只要目前方向和按下按鈕時的方向不同，就重新計算 CSS 旋轉角度。
-           *
-           * 例：按下鎖定時為 0°，系統後來變成 180°，
-           * compensation = 180°，最終會把內容補回原本的視覺方向。
+           * 計算相對旋轉差值 (diff)：
+           * 讓畫面始終以按「橫向鎖定」時的方向 (baseAngle) 為基準對齊。
+           * 就算手機被轉成 180° 或 270°，都能正確導正回記憶的方向，解決變黑與翻轉不對邊的問題。
            */
-          const compensation = normalizeAngle(baseAngle - currentAngle);
-          const rotation = normalizeAngle(90 + compensation);
+          const diff = normalizeAngle(currentAngle - baseAngle);
+          const rotation = normalizeAngle(90 - diff);
 
           document.documentElement.style.setProperty('--landscape-rotate', rotation + 'deg');
 
-          // 讓 viewport 改變後的 body 尺寸立即重新計算。
+          // 即時修正可視區域寬高，防止出現黑色區塊
           document.documentElement.style.setProperty('--landscape-vw', window.innerWidth + 'px');
           document.documentElement.style.setProperty('--landscape-vh', window.innerHeight + 'px');
         } finally {
