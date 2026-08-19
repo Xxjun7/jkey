@@ -105,18 +105,17 @@
         position: fixed;
         top: 0;
         left: 0;
-        width: var(--landscape-vw, 100vh);
-        height: var(--landscape-vh, 100vw);
+        width: 100vh;
+        height: 100vw;
         min-height: 0;
         max-width: none;
         margin: 0;
         overflow: auto;
         transform-origin: top left;
-        transform: rotate(var(--landscape-rotate, 90deg)) translateY(-100%);
-        -webkit-transform: rotate(var(--landscape-rotate, 90deg)) translateY(-100%);
+        transform: rotate(90deg) translateY(-100%);
+        -webkit-transform: rotate(90deg) translateY(-100%);
         overflow-x: hidden;
         overflow-y: auto;
-        overscroll-behavior: none;
       }
 
       .header-container {
@@ -1227,114 +1226,12 @@
       // 【橫向鎖定】視覺旋轉，不依賴系統直立鎖定
       // ==========================================
       const LANDSCAPE_LOCK_KEY = 'j808_landscape_lock';
-      const LANDSCAPE_ANGLE_KEY = 'j808_landscape_angle';
-      let landscapeCorrectionTimer = null;
-      let landscapeCorrectionBusy = false;
-
-      function getCurrentOrientationAngle() {
-        if (screen.orientation && Number.isFinite(screen.orientation.angle)) {
-          return ((screen.orientation.angle % 360) + 360) % 360;
-        }
-        if (typeof window.orientation === 'number') {
-          return ((window.orientation % 360) + 360) % 360;
-        }
-        return window.innerWidth >= window.innerHeight ? 90 : 0;
-      }
-
-      function normalizeAngle(angle) {
-        return ((angle % 360) + 360) % 360;
-      }
-
-      // ==========================================
-      // 修正：動態計算相對角度，記憶初始鎖定位置
-      // ==========================================
-      function updateLandscapeVisualRotation() {
-        if (!document.documentElement.classList.contains('landscape-lock')) return;
-        if (landscapeCorrectionBusy) return;
-
-        landscapeCorrectionBusy = true;
-        try {
-          const lockedAngle = Number(localStorage.getItem(LANDSCAPE_ANGLE_KEY));
-          const currentAngle = getCurrentOrientationAngle();
-          
-          // 預設鎖定基準點（若無設定則取當前）
-          const baseAngle = Number.isFinite(lockedAngle) ? lockedAngle : currentAngle;
-
-          /*
-           * 計算相對旋轉差值 (diff)：
-           * 讓畫面始終以按「橫向鎖定」時的方向 (baseAngle) 為基準對齊。
-           * 就算手機被轉成 180° 或 270°，都能正確導正回記憶的方向，解決變黑與翻轉不對邊的問題。
-           */
-          const diff = normalizeAngle(currentAngle - baseAngle);
-          const rotation = normalizeAngle(90 - diff);
-
-          document.documentElement.style.setProperty('--landscape-rotate', rotation + 'deg');
-
-          // 即時修正可視區域寬高，防止出現黑色區塊
-          document.documentElement.style.setProperty('--landscape-vw', window.innerWidth + 'px');
-          document.documentElement.style.setProperty('--landscape-vh', window.innerHeight + 'px');
-        } finally {
-          landscapeCorrectionBusy = false;
-        }
-      }
-
-      function startLandscapeCorrection() {
-        if (landscapeCorrectionTimer) return;
-
-        // 部分 iOS Safari 不會可靠地連續觸發 orientationchange，
-        // 因此鎖定期間用低頻檢查確認系統是否偷偷改變方向。
-        landscapeCorrectionTimer = setInterval(() => {
-          if (!document.documentElement.classList.contains('landscape-lock')) {
-            stopLandscapeCorrection();
-            return;
-          }
-          updateLandscapeVisualRotation();
-        }, 180);
-      }
-
-      function stopLandscapeCorrection() {
-        if (landscapeCorrectionTimer) {
-          clearInterval(landscapeCorrectionTimer);
-          landscapeCorrectionTimer = null;
-        }
-      }
-
-      function refreshLandscapeCorrection() {
-        if (!document.documentElement.classList.contains('landscape-lock')) return;
-        // 連續排程幾次，涵蓋 iOS 旋轉後 viewport 延遲更新的情況。
-        requestAnimationFrame(updateLandscapeVisualRotation);
-        setTimeout(updateLandscapeVisualRotation, 50);
-        setTimeout(updateLandscapeVisualRotation, 150);
-        setTimeout(updateLandscapeVisualRotation, 350);
-        setTimeout(updateLandscapeVisualRotation, 700);
-      }
-
-      function rememberLandscapeAngle() {
-        const angle = getCurrentOrientationAngle();
-        localStorage.setItem(LANDSCAPE_ANGLE_KEY, String(angle));
-        updateLandscapeVisualRotation();
-      }
 
       function applyLandscapeLock(enabled, showMessage = false) {
         const html = document.documentElement;
         const btn = document.getElementById('landscapeBtn');
 
         html.classList.toggle('landscape-lock', enabled);
-
-        if (enabled) {
-          startLandscapeCorrection();
-          if (!localStorage.getItem(LANDSCAPE_ANGLE_KEY)) {
-            rememberLandscapeAngle();
-          } else {
-            updateLandscapeVisualRotation();
-          }
-        } else {
-          stopLandscapeCorrection();
-          html.style.removeProperty('--landscape-rotate');
-          html.style.removeProperty('--landscape-vw');
-          html.style.removeProperty('--landscape-vh');
-          localStorage.removeItem(LANDSCAPE_ANGLE_KEY);
-        }
 
         if (btn) {
           btn.classList.toggle('active', enabled);
@@ -1364,49 +1261,8 @@
       function toggleLandscapeLock() {
         if (!isAdmin) return;
         const enabled = !document.documentElement.classList.contains('landscape-lock');
-        if (enabled) {
-          // 以按下按鈕當下的方向作為「真正鎖定方向」。
-          localStorage.setItem(LANDSCAPE_ANGLE_KEY, String(getCurrentOrientationAngle()));
-        }
         applyLandscapeLock(enabled, true);
       }
-
-      // 手機即使允許自動旋轉，也會送出 orientationchange。
-      // 這裡不跟著系統翻面，而是立即補償 180°/方向差。
-      window.addEventListener('orientationchange', () => {
-        if (document.documentElement.classList.contains('landscape-lock')) {
-          refreshLandscapeCorrection();
-        }
-      }, { passive: true });
-
-      window.addEventListener('resize', () => {
-        if (document.documentElement.classList.contains('landscape-lock')) {
-          refreshLandscapeCorrection();
-        }
-      }, { passive: true });
-
-      // iOS Safari 的可視區域可能在 resize 後再延遲更新一次。
-      if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', () => {
-          if (document.documentElement.classList.contains('landscape-lock')) {
-            refreshLandscapeCorrection();
-          }
-        }, { passive: true });
-      }
-
-      window.addEventListener('pageshow', () => {
-        if (document.documentElement.classList.contains('landscape-lock')) {
-          refreshLandscapeCorrection();
-          startLandscapeCorrection();
-        }
-      }, { passive: true });
-
-      window.addEventListener('visibilitychange', () => {
-        if (!document.hidden && document.documentElement.classList.contains('landscape-lock')) {
-          refreshLandscapeCorrection();
-          startLandscapeCorrection();
-        }
-      }, { passive: true });
 
       // ==========================================
       // 您原本的 DOMContentLoaded 程式碼
