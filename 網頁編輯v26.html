@@ -787,6 +787,7 @@
           </div>
           
           <div class="actions">
+              <button onclick="openPaletteModal()" title="開啟調色盤挑選顏色">🎨 調色盤</button>
               <button id="themeToggleBtn" onclick="cycleTheme()" title="切換 淺色 / 深色 / 工程師模式">
               <span id="themeLabel">主題: 淺色</span>
               </button>
@@ -810,10 +811,8 @@
                 <option value="1024,768">iPad 平板 (橫 1024×768)</option>
               </optgroup>
             </select>
-
-            <button onclick="openPaletteModal()" title="開啟調色盤挑選顏色">🎨 調色盤</button>
-            <button id="inspectorToggleBtn" onclick="toggleInspector()" title="開關元素檢查器面板">🔍 檢查元素</button>
             <button id="fullscreenBtn" onclick="toggleFullscreen()" title="全螢幕預覽">全螢幕</button>
+            <button id="inspectorToggleBtn" onclick="toggleInspector()" title="開關元素檢查器面板">🔍 檢查元素</button>
 
           </div>
         </div>
