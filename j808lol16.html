@@ -1262,6 +1262,7 @@
       // 【分流修改】區分 iOS 與 Android 的橫向鎖定邏輯
       // ==========================================
       const LANDSCAPE_LOCK_KEY = 'j808_landscape_lock';
+      
       // 簡單檢測是否為 iOS 裝置
       function isiOS() {
         return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
@@ -1271,44 +1272,44 @@
       function applyLandscapeLock(enabled, showMessage = false) {
         const html = document.documentElement;
         const btn = document.getElementById('landscapeBtn');
+        
         // 儲存設定
         localStorage.setItem(LANDSCAPE_LOCK_KEY, enabled ? 'true' : 'false');
+        
         if (isiOS()) {
           // ==========================================
           // 🍎 【iOS 專用程式碼】維持你原本完美的運作邏輯不變
           // ==========================================
           html.classList.toggle('landscape-lock', enabled);
+          html.classList.remove('landscape-lock-android');
         } else {
           // ==========================================
           // 🤖 【Android 專用修正程式碼】
           // 避免 Android 旋轉後畫面卡死、無法正常滑動的問題
           // ==========================================
           if (enabled) {
-            html.classList.add('landscape-lock-android'); // 專屬 Android 的樣式類別
-            // 如果 Android 不需要整頁旋轉，或是需要用別的寬高計算，可在這裡處理
+            html.classList.add('landscape-lock-android');
+            html.classList.remove('landscape-lock');
           } else {
             html.classList.remove('landscape-lock-android');
           }
         }
+        
         if (btn) {
           btn.classList.toggle('active', enabled);
           btn.innerText = enabled ? '解除橫向鎖定' : '橫向鎖定';
         }
-        if (showMessage) {
+        
+        if (showMessage && typeof showToast === 'function') {
           showToast(enabled ? '已啟用橫向鎖定' : '已解除橫向鎖定');
         }
       }
 
       function toggleLandscapeLock() {
-        if (!isAdmin) return;
+        if (typeof isAdmin !== 'undefined' && !isAdmin) return;
+        
         const currentEnabled = localStorage.getItem(LANDSCAPE_LOCK_KEY) === 'true';
         const enabled = !currentEnabled;
-        applyLandscapeLock(enabled, true);
-      }
-
-      function toggleLandscapeLock() {
-        if (!isAdmin) return;
-        const enabled = !document.documentElement.classList.contains('landscape-lock');
         applyLandscapeLock(enabled, true);
       }
       // ==========================================
