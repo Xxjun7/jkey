@@ -94,6 +94,8 @@
        * 不使用 Screen Orientation API、不偵測系統方向。
        * 僅透過 html.landscape-lock class 啟用 CSS 視覺旋轉。
        * 手機系統仍維持直立 viewport，網頁內容本身視覺轉為橫向。
+       * 【純視覺橫向鎖定】
+       * 🍎 iOS 專用：維持原本完美的 CSS 視覺旋轉鎖定
        * ========================================================== */
       html.landscape-lock {
         width: 100%;
@@ -102,8 +104,7 @@
       }
 
       html.landscape-lock body {
-        /* Android：不要使用 fixed body，避免 CSS 旋轉後觸控捲動失效 */
-        position: absolute;
+        position: fixed;
         top: 0;
         left: 0;
         width: 100vh;
@@ -112,65 +113,54 @@
         min-height: 0;
         max-width: none;
         margin: 0;
-        overflow-x: auto;
-        overflow-y: hidden;
+        overflow-x: hidden;
+        overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         overscroll-behavior: none;
-        touch-action: none;
         transform-origin: top left;
         transform: rotate(90deg) translateY(-100%);
         -webkit-transform: rotate(90deg) translateY(-100%);
       }
-
-      /*
+      
+       /*
        * 【純 CSS 方向反向補償】
        * 手機維持直立時：將頁面視覺旋轉 90deg，形成橫向畫面。
        * 手機實際橫放時：瀏覽器 viewport 已經是 landscape，
        * 不再對頁面追加旋轉，避免「系統旋轉 + CSS 旋轉」造成二次翻轉。
        * 這裡只由 CSS media query 決定版面，不使用 JS 方向偵測。
        */
-      @media (orientation: landscape) {
-        html.landscape-lock {
-          width: 100%;
-          height: 100%;
-          overflow: hidden !important;
-          touch-action: pan-y;
-        }
 
+      @media (orientation: landscape) {
         html.landscape-lock body {
-          /* Android Chrome：改用獨立可滾動容器，避免 fixed body + html hidden 導致觸控捲動失效 */
-          position: absolute;
+          position: fixed;
           top: 0;
           left: 0;
           width: 100vw;
           height: 100vh;
-          min-height: 100vh;
-          max-height: 100vh;
-          box-sizing: border-box;
-          overflow-x: auto;
-          overflow-y: hidden;
-          -webkit-overflow-scrolling: touch;
-          overscroll-behavior: none;
-          touch-action: none;
+          overflow-x: hidden;
+          overflow-y: auto;
           transform-origin: top left;
           transform: none;
           -webkit-transform: none;
         }
       }
 
-      /* Android 觸控捲動輔助：橫向視覺旋轉後，將原本垂直內容的高度轉成可水平捲動距離。 */
-      .landscape-scroll-spacer {
-        position: absolute !important;
-        left: 0 !important;
-        top: 0 !important;
-        width: 1px;
-        height: 1px;
-        min-width: 1px;
-        min-height: 1px;
-        padding: 0 !important;
-        margin: 0 !important;
-        pointer-events: none !important;
-        visibility: hidden !important;
+      /* ==========================================================
+       * 🤖 Android 專用：解除畫面強制旋轉造成的滑動卡死
+       * 讓 Android 點擊橫向鎖定時，維持正常捲動與觸控互動
+       * ========================================================== */
+      html.landscape-lock-android {
+        width: 100%;
+        height: 100%;
+        overflow: auto !important;
+      }
+
+      html.landscape-lock-android body {
+        width: 100%;
+        height: 100%;
+        overflow: auto !important;
+        transform: none !important;
+        -webkit-transform: none !important;
       }
 
       .header-container {
@@ -320,32 +310,32 @@
       }
 
       .btn-unlock {
-        border-color: #3b82f6;
-        color: #8fc2ff;
-        background: linear-gradient(180deg, #122b4f 0%, #081426 100%);
+        border-color: #b8860b;
+        color: #ffd700;
+        background: linear-gradient(180deg, #3d3014 0%, #181206 100%);
         flex: 1;
         min-width: 130px;
       }
 
       .btn-unlock:hover {
-        border-color: #60a5fa;
+        border-color: #ffd700;
         color: #fff;
-        box-shadow: 0 0 10px rgba(59, 130, 246, 0.55);
-        background: linear-gradient(180deg, #1b4272 0%, #0d2340 100%);
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        background: linear-gradient(180deg, #57441d 0%, #241a09 100%);
       }
 
       .btn-unlock.unlocked {
-        border-color: #2563eb;
-        color: #93c5fd;
-        background: linear-gradient(180deg, #12356b 0%, #071a36 100%);
-        box-shadow: 0 0 8px rgba(37, 99, 235, 0.5);
+        border-color: var(--lol-hextech-blue);
+        color: var(--lol-hextech-blue);
+        background: linear-gradient(180deg, #092830 0%, #031015 100%);
+        box-shadow: 0 0 8px var(--lol-hextech-glow);
       }
 
       .btn-unlock.unlocked:hover {
-        border-color: #60a5fa;
+        border-color: #00ffff;
         color: #fff;
-        box-shadow: 0 0 12px rgba(37, 99, 235, 0.6);
-        background: linear-gradient(180deg, #1a4b91 0%, #0a244c 100%);
+        box-shadow: 0 0 12px var(--lol-hextech-glow);
+        background: linear-gradient(180deg, #0d3b47 0%, #061f26 100%);
       }
 
       .btn-reset {
@@ -389,36 +379,37 @@
         border-color: #00ffff;
         color: #fff;
         box-shadow: 0 0 12px var(--lol-hextech-glow);
+        background: linear-gradient(180deg, #0d3b47 0%, #061f26 100%);
       }
 
       .btn-save {
-        border-color: #ff6b35;
-        color: #ff9a76;
-        background: linear-gradient(180deg, #3a1b10 0%, #1a0a05 100%);
+        border-color: var(--lol-hextech-blue);
+        color: var(--lol-hextech-blue);
+        background: linear-gradient(180deg, #092830 0%, #031015 100%);
         flex: 1;
         min-width: 150px;
       }
 
       .btn-save:hover {
-        border-color: #ff8a5b;
+        border-color: #00ffff;
         color: #fff;
-        box-shadow: 0 0 12px rgba(255, 107, 53, 0.55);
-        background: linear-gradient(180deg, #542516 0%, #281008 100%);
+        box-shadow: 0 0 12px var(--lol-hextech-glow);
+        background: linear-gradient(180deg, #0d3b47 0%, #061f26 100%);
       }
 
       .btn-load {
-        border-color: #eab308;
-        color: #fde68a;
-        background: linear-gradient(180deg, #3b2f0b 0%, #1c1504 100%);
+        border-color: var(--lol-gold-2);
+        color: var(--lol-gold-2);
+        background: linear-gradient(180deg, #3d3014 0%, #181206 100%);
         flex: 1;
         min-width: 150px;
       }
 
       .btn-load:hover {
-        border-color: #facc15;
+        border-color: var(--lol-gold-1);
         color: #fff;
-        box-shadow: 0 0 12px rgba(234, 179, 8, 0.55);
-        background: linear-gradient(180deg, #5a470e 0%, #2a2005 100%);
+        box-shadow: 0 0 12px rgba(200, 170, 110, 0.5);
+        background: linear-gradient(180deg, #57441d 0%, #241a09 100%);
       }
 
       .btn-login {
@@ -456,7 +447,7 @@
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
       }
 
-      .table-responsive > table {
+      .table-responsive>table {
         /*
          * max-content 讓展開欄位時由 table 產生真正的內容寬度；
          * min-width:100% 確保欄位收合後仍填滿容器。
@@ -1068,13 +1059,11 @@
 
       function restoreTableScrollState(state) {
         if (!state) return;
-
         const wrapper = state.wrapper;
         if (wrapper) {
           wrapper.scrollLeft = state.scrollLeft;
           wrapper.scrollTop = state.scrollTop;
         }
-
         /*
          * iOS Safari 在 table layout 完成後偶爾會重新校正 viewport。
          * 這裡只恢復原本的 window 座標，不改 viewport meta，也不禁止縮放。
@@ -1090,37 +1079,32 @@
       function requestColumnLayout(type) {
         const table = document.getElementById('dataTable');
         if (!table) return;
-
         /*
          * 在 RAF 尚未執行前，所有快速點擊只修改 pending state。
          * 因此不會在同一個 frame 內連續觸發多次 table layout。
          */
         if (type === 'r') {
-          const current = pendingCollapsedR !== null
-            ? pendingCollapsedR
-            : table.classList.contains('collapsed-r');
+          const current = pendingCollapsedR !== null ?
+            pendingCollapsedR :
+            table.classList.contains('collapsed-r');
           pendingCollapsedR = !current;
-          pendingColumnToast = pendingCollapsedR
-            ? '已收合 領1~5 欄位'
-            : '已展開 領1~5 欄位';
+          pendingColumnToast = pendingCollapsedR ?
+            '已收合 領1~5 欄位' :
+            '已展開 領1~5 欄位';
         } else {
-          const current = pendingCollapsedF !== null
-            ? pendingCollapsedF
-            : table.classList.contains('collapsed-f');
+          const current = pendingCollapsedF !== null ?
+            pendingCollapsedF :
+            table.classList.contains('collapsed-f');
           pendingCollapsedF = !current;
-          pendingColumnToast = pendingCollapsedF
-            ? '已收合好友與電話欄位'
-            : '已展開好友與電話欄位';
+          pendingColumnToast = pendingCollapsedF ?
+            '已收合好友與電話欄位' :
+            '已展開好友與電話欄位';
         }
-
         if (columnLayoutRAF) return;
-
         const state = getTableScrollState();
         columnLayoutLocked = true;
-
         columnLayoutRAF = requestAnimationFrame(() => {
           columnLayoutRAF = 0;
-
           /*
            * 一次性套用目前這一幀累積的最終狀態。
            */
@@ -1132,7 +1116,6 @@
             );
             pendingCollapsedR = null;
           }
-
           if (pendingCollapsedF !== null) {
             table.classList.toggle('collapsed-f', pendingCollapsedF);
             localStorage.setItem(
@@ -1141,22 +1124,18 @@
             );
             pendingCollapsedF = null;
           }
-
           /*
            * 讓 Safari 完成一次 table intrinsic width / scrollWidth reflow，
            * 再於下一個 frame 恢復水平位置。
            */
           void table.offsetWidth;
-
           requestAnimationFrame(() => {
             restoreTableScrollState(state);
             columnLayoutLocked = false;
-
             if (pendingColumnToast) {
               showToast(pendingColumnToast);
               pendingColumnToast = '';
             }
-
             /*
              * 若在本次 layout lock 期間又有新的點擊，
              * 再安排下一個 frame，不讓多次 layout 疊在一起。
@@ -1167,12 +1146,10 @@
           });
         });
       }
-
       // 切換 領1~5 欄位收合狀態 (點擊名稱)
       function toggleNameColumns() {
         requestColumnLayout('r');
       }
-
       // 切換 好友與電話欄位收合狀態 (點擊幣量)
       function toggleCoinColumns() {
         requestColumnLayout('f');
@@ -1282,29 +1259,41 @@
       // 不偵測系統方向、不使用 Screen Orientation API。
       // 僅以 localStorage 記住使用者是否啟用橫向視覺模式。
       // ==========================================
+      // 【分流修改】區分 iOS 與 Android 的橫向鎖定邏輯
+      // ==========================================
       const LANDSCAPE_LOCK_KEY = 'j808_landscape_lock';
+      // 簡單檢測是否為 iOS 裝置
+      function isiOS() {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      }
 
       function applyLandscapeLock(enabled, showMessage = false) {
         const html = document.documentElement;
         const btn = document.getElementById('landscapeBtn');
-
-        // 唯一的視覺旋轉開關：CSS class。
-        html.classList.toggle('landscape-lock', enabled);
-
-        if (enabled) {
-          ensureLandscapeScrollSupport();
-        } else if (document.body) {
-          document.body.scrollLeft = 0;
+        // 儲存設定
+        localStorage.setItem(LANDSCAPE_LOCK_KEY, enabled ? 'true' : 'false');
+        if (isiOS()) {
+          // ==========================================
+          // 🍎 【iOS 專用程式碼】維持你原本完美的運作邏輯不變
+          // ==========================================
+          html.classList.toggle('landscape-lock', enabled);
+        } else {
+          // ==========================================
+          // 🤖 【Android 專用修正程式碼】
+          // 避免 Android 旋轉後畫面卡死、無法正常滑動的問題
+          // ==========================================
+          if (enabled) {
+            html.classList.add('landscape-lock-android'); // 專屬 Android 的樣式類別
+            // 如果 Android 不需要整頁旋轉，或是需要用別的寬高計算，可在這裡處理
+          } else {
+            html.classList.remove('landscape-lock-android');
+          }
         }
-
         if (btn) {
           btn.classList.toggle('active', enabled);
           btn.innerText = enabled ? '解除橫向鎖定' : '橫向鎖定';
         }
-
-        // 僅記住使用者設定，不儲存或偵測任何系統方向資訊。
-        localStorage.setItem(LANDSCAPE_LOCK_KEY, enabled ? 'true' : 'false');
-
         if (showMessage) {
           showToast(enabled ? '已啟用橫向鎖定' : '已解除橫向鎖定');
         }
@@ -1312,102 +1301,16 @@
 
       function toggleLandscapeLock() {
         if (!isAdmin) return;
-        const enabled = !document.documentElement.classList.contains('landscape-lock');
+        const currentEnabled = localStorage.getItem(LANDSCAPE_LOCK_KEY) === 'true';
+        const enabled = !currentEnabled;
         applyLandscapeLock(enabled, true);
       }
 
-      // ==========================================
-      // 【Android 純視覺旋轉觸控捲動】
-      // 不偵測手機方向、不使用 Orientation API。
-      // CSS 旋轉後，將原本的垂直內容高度轉成水平 scrollLeft，
-      // 再把手指上下滑動映射成 scrollLeft，讓 Android 直立開啟
-      // 橫向鎖定時仍能正常上下滑動視覺上的頁面。
-      // ==========================================
-      let landscapeTouchStartY = 0;
-      let landscapeTouchStartX = 0;
-      let landscapeTouchStartScroll = 0;
-      let landscapeTouchActive = false;
-      let landscapeSpacer = null;
-      let landscapeResizeObserver = null;
-
-      function ensureLandscapeScrollSupport() {
-        const body = document.body;
-        if (!body) return;
-
-        if (!landscapeSpacer) {
-          landscapeSpacer = document.createElement('div');
-          landscapeSpacer.className = 'landscape-scroll-spacer';
-          body.appendChild(landscapeSpacer);
-        }
-
-        const updateSpacer = () => {
-          if (!document.documentElement.classList.contains('landscape-lock')) {
-            landscapeSpacer.style.width = '1px';
-            return;
-          }
-          // body.scrollHeight 是未旋轉前的實際內容高度，正好是旋轉後需要的視覺垂直捲動距離。
-          const contentHeight = Math.max(body.scrollHeight, body.clientHeight);
-          landscapeSpacer.style.width = Math.ceil(contentHeight) + 'px';
-        };
-
-        updateSpacer();
-
-        if (!landscapeResizeObserver && 'ResizeObserver' in window) {
-          landscapeResizeObserver = new ResizeObserver(updateSpacer);
-          landscapeResizeObserver.observe(body);
-        }
-
-        requestAnimationFrame(updateSpacer);
-        setTimeout(updateSpacer, 100);
-        setTimeout(updateSpacer, 500);
+      function toggleLandscapeLock() {
+        if (!isAdmin) return;
+        const enabled = !document.documentElement.classList.contains('landscape-lock');
+        applyLandscapeLock(enabled, true);
       }
-
-      function initLandscapeTouchScroll() {
-        const body = document.body;
-        if (!body || body.dataset.landscapeTouchScroll === '1') return;
-        body.dataset.landscapeTouchScroll = '1';
-
-        body.addEventListener('touchstart', (event) => {
-          if (!document.documentElement.classList.contains('landscape-lock')) return;
-          if (!event.touches || event.touches.length !== 1) return;
-
-          const t = event.touches[0];
-          landscapeTouchStartY = t.clientY;
-          landscapeTouchStartX = t.clientX;
-          landscapeTouchStartScroll = body.scrollLeft;
-          landscapeTouchActive = false;
-        }, { passive: true });
-
-        body.addEventListener('touchmove', (event) => {
-          if (!document.documentElement.classList.contains('landscape-lock')) return;
-          if (!event.touches || event.touches.length !== 1) return;
-
-          const t = event.touches[0];
-          const dx = t.clientX - landscapeTouchStartX;
-          const dy = t.clientY - landscapeTouchStartY;
-
-          // 以「上下手勢」控制旋轉後的視覺垂直捲動。
-          if (!landscapeTouchActive) {
-            if (Math.abs(dy) < 6) return;
-            if (Math.abs(dy) <= Math.abs(dx)) return;
-            landscapeTouchActive = true;
-          }
-
-          event.preventDefault();
-          body.scrollLeft = landscapeTouchStartScroll - dy;
-        }, { passive: false });
-
-        body.addEventListener('touchend', () => {
-          landscapeTouchActive = false;
-        }, { passive: true });
-
-        body.addEventListener('touchcancel', () => {
-          landscapeTouchActive = false;
-        }, { passive: true });
-      }
-
-      initLandscapeTouchScroll();
-
       // ==========================================
       // 您原本的 DOMContentLoaded 程式碼
       // ==========================================
