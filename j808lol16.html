@@ -112,11 +112,11 @@
         min-height: 0;
         max-width: none;
         margin: 0;
-        overflow-x: hidden;
-        overflow-y: auto;
+        overflow-x: auto;
+        overflow-y: hidden;
         -webkit-overflow-scrolling: touch;
-        overscroll-behavior: auto;
-        touch-action: pan-y;
+        overscroll-behavior: none;
+        touch-action: none;
         transform-origin: top left;
         transform: rotate(90deg) translateY(-100%);
         -webkit-transform: rotate(90deg) translateY(-100%);
@@ -147,15 +147,30 @@
           min-height: 100vh;
           max-height: 100vh;
           box-sizing: border-box;
-          overflow-x: hidden;
-          overflow-y: auto;
+          overflow-x: auto;
+          overflow-y: hidden;
           -webkit-overflow-scrolling: touch;
-          overscroll-behavior-y: auto;
-          touch-action: pan-y;
+          overscroll-behavior: none;
+          touch-action: none;
           transform-origin: top left;
           transform: none;
           -webkit-transform: none;
         }
+      }
+
+      /* Android 觸控捲動輔助：橫向視覺旋轉後，將原本垂直內容的高度轉成可水平捲動距離。 */
+      .landscape-scroll-spacer {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 1px;
+        height: 1px;
+        min-width: 1px;
+        min-height: 1px;
+        padding: 0 !important;
+        margin: 0 !important;
+        pointer-events: none !important;
+        visibility: hidden !important;
       }
 
       .header-container {
@@ -305,32 +320,32 @@
       }
 
       .btn-unlock {
-        border-color: #b8860b;
-        color: #ffd700;
-        background: linear-gradient(180deg, #3d3014 0%, #181206 100%);
+        border-color: #3b82f6;
+        color: #8fc2ff;
+        background: linear-gradient(180deg, #122b4f 0%, #081426 100%);
         flex: 1;
         min-width: 130px;
       }
 
       .btn-unlock:hover {
-        border-color: #ffd700;
+        border-color: #60a5fa;
         color: #fff;
-        box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-        background: linear-gradient(180deg, #57441d 0%, #241a09 100%);
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.55);
+        background: linear-gradient(180deg, #1b4272 0%, #0d2340 100%);
       }
 
       .btn-unlock.unlocked {
-        border-color: var(--lol-hextech-blue);
-        color: var(--lol-hextech-blue);
-        background: linear-gradient(180deg, #092830 0%, #031015 100%);
-        box-shadow: 0 0 8px var(--lol-hextech-glow);
+        border-color: #2563eb;
+        color: #93c5fd;
+        background: linear-gradient(180deg, #12356b 0%, #071a36 100%);
+        box-shadow: 0 0 8px rgba(37, 99, 235, 0.5);
       }
 
       .btn-unlock.unlocked:hover {
-        border-color: #00ffff;
+        border-color: #60a5fa;
         color: #fff;
-        box-shadow: 0 0 12px var(--lol-hextech-glow);
-        background: linear-gradient(180deg, #0d3b47 0%, #061f26 100%);
+        box-shadow: 0 0 12px rgba(37, 99, 235, 0.6);
+        background: linear-gradient(180deg, #1a4b91 0%, #0a244c 100%);
       }
 
       .btn-reset {
@@ -377,33 +392,33 @@
       }
 
       .btn-save {
-        border-color: var(--lol-hextech-blue);
-        color: var(--lol-hextech-blue);
-        background: linear-gradient(180deg, #092830 0%, #031015 100%);
+        border-color: #ff6b35;
+        color: #ff9a76;
+        background: linear-gradient(180deg, #3a1b10 0%, #1a0a05 100%);
         flex: 1;
         min-width: 150px;
       }
 
       .btn-save:hover {
-        border-color: #00ffff;
+        border-color: #ff8a5b;
         color: #fff;
-        box-shadow: 0 0 12px var(--lol-hextech-glow);
-        background: linear-gradient(180deg, #0d3b47 0%, #061f26 100%);
+        box-shadow: 0 0 12px rgba(255, 107, 53, 0.55);
+        background: linear-gradient(180deg, #542516 0%, #281008 100%);
       }
 
       .btn-load {
-        border-color: var(--lol-gold-2);
-        color: var(--lol-gold-2);
-        background: linear-gradient(180deg, #3d3014 0%, #181206 100%);
+        border-color: #eab308;
+        color: #fde68a;
+        background: linear-gradient(180deg, #3b2f0b 0%, #1c1504 100%);
         flex: 1;
         min-width: 150px;
       }
 
       .btn-load:hover {
-        border-color: var(--lol-gold-1);
+        border-color: #facc15;
         color: #fff;
-        box-shadow: 0 0 12px rgba(200, 170, 110, 0.5);
-        background: linear-gradient(180deg, #57441d 0%, #241a09 100%);
+        box-shadow: 0 0 12px rgba(234, 179, 8, 0.55);
+        background: linear-gradient(180deg, #5a470e 0%, #2a2005 100%);
       }
 
       .btn-login {
@@ -1276,6 +1291,12 @@
         // 唯一的視覺旋轉開關：CSS class。
         html.classList.toggle('landscape-lock', enabled);
 
+        if (enabled) {
+          ensureLandscapeScrollSupport();
+        } else if (document.body) {
+          document.body.scrollLeft = 0;
+        }
+
         if (btn) {
           btn.classList.toggle('active', enabled);
           btn.innerText = enabled ? '解除橫向鎖定' : '橫向鎖定';
@@ -1294,6 +1315,98 @@
         const enabled = !document.documentElement.classList.contains('landscape-lock');
         applyLandscapeLock(enabled, true);
       }
+
+      // ==========================================
+      // 【Android 純視覺旋轉觸控捲動】
+      // 不偵測手機方向、不使用 Orientation API。
+      // CSS 旋轉後，將原本的垂直內容高度轉成水平 scrollLeft，
+      // 再把手指上下滑動映射成 scrollLeft，讓 Android 直立開啟
+      // 橫向鎖定時仍能正常上下滑動視覺上的頁面。
+      // ==========================================
+      let landscapeTouchStartY = 0;
+      let landscapeTouchStartX = 0;
+      let landscapeTouchStartScroll = 0;
+      let landscapeTouchActive = false;
+      let landscapeSpacer = null;
+      let landscapeResizeObserver = null;
+
+      function ensureLandscapeScrollSupport() {
+        const body = document.body;
+        if (!body) return;
+
+        if (!landscapeSpacer) {
+          landscapeSpacer = document.createElement('div');
+          landscapeSpacer.className = 'landscape-scroll-spacer';
+          body.appendChild(landscapeSpacer);
+        }
+
+        const updateSpacer = () => {
+          if (!document.documentElement.classList.contains('landscape-lock')) {
+            landscapeSpacer.style.width = '1px';
+            return;
+          }
+          // body.scrollHeight 是未旋轉前的實際內容高度，正好是旋轉後需要的視覺垂直捲動距離。
+          const contentHeight = Math.max(body.scrollHeight, body.clientHeight);
+          landscapeSpacer.style.width = Math.ceil(contentHeight) + 'px';
+        };
+
+        updateSpacer();
+
+        if (!landscapeResizeObserver && 'ResizeObserver' in window) {
+          landscapeResizeObserver = new ResizeObserver(updateSpacer);
+          landscapeResizeObserver.observe(body);
+        }
+
+        requestAnimationFrame(updateSpacer);
+        setTimeout(updateSpacer, 100);
+        setTimeout(updateSpacer, 500);
+      }
+
+      function initLandscapeTouchScroll() {
+        const body = document.body;
+        if (!body || body.dataset.landscapeTouchScroll === '1') return;
+        body.dataset.landscapeTouchScroll = '1';
+
+        body.addEventListener('touchstart', (event) => {
+          if (!document.documentElement.classList.contains('landscape-lock')) return;
+          if (!event.touches || event.touches.length !== 1) return;
+
+          const t = event.touches[0];
+          landscapeTouchStartY = t.clientY;
+          landscapeTouchStartX = t.clientX;
+          landscapeTouchStartScroll = body.scrollLeft;
+          landscapeTouchActive = false;
+        }, { passive: true });
+
+        body.addEventListener('touchmove', (event) => {
+          if (!document.documentElement.classList.contains('landscape-lock')) return;
+          if (!event.touches || event.touches.length !== 1) return;
+
+          const t = event.touches[0];
+          const dx = t.clientX - landscapeTouchStartX;
+          const dy = t.clientY - landscapeTouchStartY;
+
+          // 以「上下手勢」控制旋轉後的視覺垂直捲動。
+          if (!landscapeTouchActive) {
+            if (Math.abs(dy) < 6) return;
+            if (Math.abs(dy) <= Math.abs(dx)) return;
+            landscapeTouchActive = true;
+          }
+
+          event.preventDefault();
+          body.scrollLeft = landscapeTouchStartScroll - dy;
+        }, { passive: false });
+
+        body.addEventListener('touchend', () => {
+          landscapeTouchActive = false;
+        }, { passive: true });
+
+        body.addEventListener('touchcancel', () => {
+          landscapeTouchActive = false;
+        }, { passive: true });
+      }
+
+      initLandscapeTouchScroll();
 
       // ==========================================
       // 您原本的 DOMContentLoaded 程式碼
