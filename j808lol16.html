@@ -128,8 +128,8 @@
        * ========================================================== */
       html.landscape-lock-android {
         width: 100%;
+        height: 100%;
         min-width: 0;
-        height: auto;
         min-height: 100%;
         overflow: auto !important;
         overflow-x: auto !important;
@@ -139,11 +139,12 @@
 
       html.landscape-lock-android body {
         position: relative;
-        width: 100vh;
-        min-width: 100vh;
+        /* 由 JS 依 wrapper 實際高度同步，讓 transform 後的內容不被裁切。 */
+        width: var(--android-scroll-width, 100vh);
+        min-width: var(--android-scroll-width, 100vh);
         max-width: none;
+        height: 100vh;
         min-height: 100vh;
-        height: auto;
         margin: 0;
         overflow: auto !important;
         overflow-x: auto !important;
@@ -159,8 +160,8 @@
         position: relative;
         width: 100vh;
         min-width: 100vh;
-        min-height: 100vh;
         height: auto;
+        min-height: 100vh;
         overflow: visible;
         transform-origin: top left;
         transform: rotate(90deg) translateY(-100%);
@@ -1291,12 +1292,86 @@
       const LANDSCAPE_LOCK_KEY = 'j808_landscape_lock';
       const IS_ANDROID_DEVICE = /Android/i.test(navigator.userAgent || '');
 
+      /*
+       * Android transform scroll-space 同步：
+       * rotate(90deg) 不會自動把 transform 後的視覺寬度算進 body.scrollWidth。
+       * 因此用 wrapper 的實際 layout 高度建立等寬的水平 scroll-space。
+       * ResizeObserver 只在尺寸真的變化時更新，避免展開/收合造成閃爍。
+       */
+      let androidLayoutObserver = null;
+      let androidLayoutSyncRAF = 0;
+      let androidLandscapeWasEnabled = false;
+
+      function syncAndroidLandscapeScrollSpace(resetToTop = false) {
+        if (!IS_ANDROID_DEVICE) return;
+        if (!document.documentElement.classList.contains('landscape-lock-android')) return;
+
+        const wrapper = document.querySelector('.android-landscape-page');
+        const html = document.documentElement;
+        if (!wrapper) return;
+
+        if (androidLayoutSyncRAF) cancelAnimationFrame(androidLayoutSyncRAF);
+        androidLayoutSyncRAF = requestAnimationFrame(() => {
+          androidLayoutSyncRAF = 0;
+
+          const contentHeight = Math.max(
+            wrapper.scrollHeight,
+            wrapper.offsetHeight,
+            wrapper.getBoundingClientRect().height
+          );
+          const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 1;
+          const scrollWidth = Math.max(viewportHeight, Math.ceil(contentHeight));
+
+          html.style.setProperty('--android-scroll-width', `${scrollWidth}px`);
+
+          if (resetToTop) {
+            const root = document.scrollingElement || document.documentElement || document.body;
+            if (root) {
+              root.scrollLeft = 0;
+              root.scrollTop = 0;
+            }
+            window.scrollTo(0, 0);
+          }
+        });
+      }
+
+      function setupAndroidLandscapeLayoutObserver() {
+        if (!IS_ANDROID_DEVICE || androidLayoutObserver) return;
+        const wrapper = document.querySelector('.android-landscape-page');
+        if (!wrapper || typeof ResizeObserver === 'undefined') return;
+
+        androidLayoutObserver = new ResizeObserver(() => {
+          syncAndroidLandscapeScrollSpace(false);
+        });
+        androidLayoutObserver.observe(wrapper);
+      }
+
+      function teardownAndroidLandscapeLayoutObserver() {
+        if (androidLayoutObserver) {
+          androidLayoutObserver.disconnect();
+          androidLayoutObserver = null;
+        }
+        document.documentElement.style.removeProperty('--android-scroll-width');
+      }
+
       function applyLandscapeLock(enabled, showMessage = false) {
         const html = document.documentElement;
         const btn = document.getElementById('landscapeBtn');
 
         html.classList.toggle('landscape-lock', enabled);
         html.classList.toggle('landscape-lock-android', enabled && IS_ANDROID_DEVICE);
+
+        if (IS_ANDROID_DEVICE) {
+          if (enabled) {
+            setupAndroidLandscapeLayoutObserver();
+            /* 切換完成時從內容最上方開始，不沿用瀏覽器旋轉前的中間 scroll 位置。 */
+            syncAndroidLandscapeScrollSpace(true);
+            androidLandscapeWasEnabled = true;
+          } else {
+            teardownAndroidLandscapeLayoutObserver();
+            androidLandscapeWasEnabled = false;
+          }
+        }
 
         if (btn) {
           btn.classList.toggle('active', enabled);
@@ -1410,6 +1485,10 @@
       window.addEventListener('DOMContentLoaded', () => {
         initColumnState();
         applyLandscapeLock(localStorage.getItem(LANDSCAPE_LOCK_KEY) === 'true');
+        if (IS_ANDROID_DEVICE && document.documentElement.classList.contains('landscape-lock-android')) {
+          setupAndroidLandscapeLayoutObserver();
+          syncAndroidLandscapeScrollSpace(false);
+        }
         if (localStorage.getItem('j808_is_admin') === 'true') {
           setAdminMode(true);
         }
