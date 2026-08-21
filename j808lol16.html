@@ -145,22 +145,32 @@
         }
       }
 
-      /* ==========================================================
-       * 🤖 Android 專用：解除畫面強制旋轉造成的滑動卡死
-       * 讓 Android 點擊橫向鎖定時，維持正常捲動與觸控互動
+       /* ==========================================================
+       * 🤖 Android 專用：強制轉向橫向並修復滑動卡死問題
        * ========================================================== */
       html.landscape-lock-android {
         width: 100%;
         height: 100%;
-        overflow: auto !important;
+        overflow: hidden !important;
       }
 
       html.landscape-lock-android body {
-        width: 100%;
-        height: 100%;
-        overflow: auto !important;
-        transform: none !important;
-        -webkit-transform: none !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vh;
+        height: 100vw;
+        min-width: 0;
+        min-height: 0;
+        max-width: none;
+        margin: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: none;
+        transform-origin: top left;
+        transform: rotate(90deg) translateY(-100%);
+        -webkit-transform: rotate(90deg) translateY(-100%);
       }
 
       .header-container {
