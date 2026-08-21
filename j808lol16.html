@@ -102,7 +102,8 @@
       }
 
       html.landscape-lock body {
-        position: fixed;
+        /* Android：不要使用 fixed body，避免 CSS 旋轉後觸控捲動失效 */
+        position: absolute;
         top: 0;
         left: 0;
         width: 100vh;
@@ -114,7 +115,8 @@
         overflow-x: hidden;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
-        overscroll-behavior: none;
+        overscroll-behavior: auto;
+        touch-action: pan-y;
         transform-origin: top left;
         transform: rotate(90deg) translateY(-100%);
         -webkit-transform: rotate(90deg) translateY(-100%);
@@ -375,18 +377,18 @@
       }
 
       .btn-save {
-        border-color: var(--lol-hextech-blue);
-        color: var(--lol-hextech-blue);
-        background: linear-gradient(180deg, #092830 0%, #031015 100%);
+        border-color: #c084fc;
+        color: #e9d5ff;
+        background: linear-gradient(180deg, #35135a 0%, #160822 100%);
         flex: 1;
         min-width: 150px;
       }
 
       .btn-save:hover {
-        border-color: #00ffff;
+        border-color: #e9d5ff;
         color: #fff;
-        box-shadow: 0 0 12px var(--lol-hextech-glow);
-        background: linear-gradient(180deg, #0d3b47 0%, #061f26 100%);
+        box-shadow: 0 0 12px rgba(192, 132, 252, 0.55);
+        background: linear-gradient(180deg, #54208a 0%, #241036 100%);
       }
 
       .btn-load {
