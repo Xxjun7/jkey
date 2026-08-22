@@ -29,8 +29,8 @@
 </head>
 <body class="bg-[#FDFBF7] text-[#5C4033] font-sans min-h-screen flex flex-col items-center py-8 px-4 selection:bg-[#FFD1DC]">
 
-    <!-- 主容器：手機適應與置中 -->
-    <div class="w-full max-w-md mx-auto flex flex-col gap-6">
+    <!-- 主容器：手機適應與置中，加上 id 方便動態調整大小 -->
+    <div id="mainContainer" class="w-full max-w-md mx-auto flex flex-col gap-4 transition-all duration-200">
         
         <!-- 標題 -->
         <header class="text-center">
@@ -40,21 +40,31 @@
             <p class="text-xs text-[#A67B5B] mt-1">點擊按鈕就能複製文字，隨時記錄你的常用語！</p>
         </header>
 
-        <!-- 第一行：功能控制列（新增按鈕、刪除開關） -->
+        <!-- 第一行：功能控制列（新增按鈕、編輯開關） -->
         <div class="flex items-center justify-between gap-3 bg-[#F4ECD8] p-3 rounded-full shadow-sm border border-[#E6D5B8]">
             <!-- 新增按鈕 -->
             <button onclick="openModal()" class="flex-1 bg-[#D7CCC8] hover:bg-[#C5B9B5] text-[#4E342E] font-medium py-2.5 px-4 rounded-full shadow-sm transition-all duration-200 active:scale-95 flex items-center justify-center gap-1.5 text-sm cursor-pointer cafe-hover">
                 <span class="text-base font-bold">+</span> 新增按鈕
             </button>
 
-            <!-- 刪除按鈕開關 -->
+            <!-- 編輯模式按鈕 -->
             <button id="deleteToggleBtn" onclick="toggleDeleteMode()" class="bg-[#FFE5EC] hover:bg-[#FFD1DC] text-[#D81B60] font-medium py-2.5 px-4 rounded-full shadow-sm transition-all duration-200 active:scale-95 text-sm cursor-pointer border border-[#FFB6C1]">
                 ✨ 編輯模式
             </button>
         </div>
 
+        <!-- 縮放控制列（預設隱藏，只有在打開編輯模式時才會顯示） -->
+        <div id="zoomControlBar" class="hidden flex items-center justify-between gap-3 bg-[#F4ECD8] px-4 py-2 rounded-full shadow-sm border border-[#E6D5B8] animate-in fade-in duration-200">
+            <button onclick="adjustZoom(0.1)" class="flex-1 bg-[#E6D5B8] hover:bg-[#D7CCC8] text-[#5C4033] font-medium py-1.5 px-3 rounded-full shadow-sm transition-all duration-200 active:scale-95 text-xs cursor-pointer flex items-center justify-center gap-1">
+                ➕ 放大
+            </button>
+            <button onclick="adjustZoom(-0.1)" class="flex-1 bg-[#E6D5B8] hover:bg-[#D7CCC8] text-[#5C4033] font-medium py-1.5 px-3 rounded-full shadow-sm transition-all duration-200 active:scale-95 text-xs cursor-pointer flex items-center justify-center gap-1">
+                ➖ 縮小
+            </button>
+        </div>
+
         <!-- 第二行開始：動態生成的按鈕列表區塊 -->
-        <div id="buttonContainer" class="flex flex-col gap-3 pb-12">
+        <div id="buttonContainer" class="flex flex-col gap-3 pb-12 mt-2">
             <!-- 這裡會透過 JavaScript 自動渲染按鈕 -->
         </div>
     </div>
@@ -117,10 +127,34 @@
         let isDeleteMode = false;
         let draggedIndex = null;
 
+        // 獨立分頁縮放比例：使用 sessionStorage（分頁關閉或開新分頁皆獨立不連動）
+        let currentZoom = parseFloat(sessionStorage.getItem('cafe_page_zoom')) || 1.0;
+
         // 初始化渲染
         window.onload = function() {
+            applyZoom();
             renderButtons();
         };
+
+        // 調整縮放大小
+        function adjustZoom(amount) {
+            currentZoom += amount;
+            // 限制縮放範圍在 0.7 到 1.6 之間
+            if (currentZoom < 0.7) currentZoom = 0.7;
+            if (currentZoom > 1.6) currentZoom = 1.6;
+            
+            currentZoom = Math.round(currentZoom * 10) / 10;
+
+            sessionStorage.setItem('cafe_page_zoom', currentZoom);
+            applyZoom();
+        }
+
+        // 套用縮放比例到主容器
+        function applyZoom() {
+            const container = document.getElementById('mainContainer');
+            container.style.transform = `scale(${currentZoom})`;
+            container.style.transformOrigin = 'top center';
+        }
 
         // 儲存資料到 LocalStorage
         function saveToLocalStorage() {
@@ -144,11 +178,9 @@
             buttonsData.forEach((btn, index) => {
                 const buttonElement = document.createElement('div');
                 
-                // 只有在刪除模式下才允許整個區塊作為拖曳源
                 buttonElement.draggable = isDeleteMode;
                 buttonElement.dataset.index = index;
 
-                // 外框樣式
                 buttonElement.className = `w-full py-4 px-6 rounded-3xl font-medium text-base shadow-sm transition-all duration-200 flex items-center justify-between gap-3 border text-left ${
                     isDeleteMode 
                     ? 'bg-[#FFEBEE] border-[#EF9A9A]' 
@@ -156,21 +188,16 @@
                 }`;
 
                 if (isDeleteMode) {
-                    // 【刪除/排序模式】：切成左右兩個獨立區塊
                     buttonElement.innerHTML = `
-                        <!-- 左側：拖曳排序區（按住 ☰ 換位置） -->
                         <div class="flex items-center gap-3 flex-1 cursor-grab active:cursor-grabbing py-1 select-none" title="按住這裡上下拖曳排序">
                             <span class="text-lg opacity-60 font-bold">☰</span>
                             <span class="w-full break-all leading-relaxed text-[#D32F2F]">${escapeHTML(btn.text)}</span>
                         </div>
-
-                        <!-- 右側：獨立的刪除按鈕區塊（避免誤觸） -->
                         <button onclick="deleteButton(${btn.id})" class="bg-[#D32F2F] hover:bg-[#B71C1C] text-white text-xs px-3 py-2 rounded-xl shrink-0 transition-all cursor-pointer shadow-sm active:scale-95">
                             🗑️ 刪除
                         </button>
                     `;
                 } else {
-                    // 【一般模式】：點擊直接複製文字
                     buttonElement.innerHTML = `
                         <span class="w-full break-all leading-relaxed">${escapeHTML(btn.text)}</span>
                         <span class="text-xs opacity-60 shrink-0">📋 點擊複製</span>
@@ -181,7 +208,7 @@
                     };
                 }
 
-                // --- HTML5 拖曳排序事件監聽 ---
+                // 拖曳事件
                 buttonElement.addEventListener('dragstart', (e) => {
                     draggedIndex = index;
                     e.dataTransfer.effectAllowed = 'move';
@@ -270,17 +297,24 @@
             closeModal();
         }
 
-        // 切換刪除模式
+        // 切換編輯模式與顯示縮放列
         function toggleDeleteMode() {
             isDeleteMode = !isDeleteMode;
             const toggleBtn = document.getElementById('deleteToggleBtn');
+            const zoomBar = document.getElementById('zoomControlBar');
             
             if (isDeleteMode) {
                 toggleBtn.className = "bg-[#D32F2F] text-white font-medium py-2.5 px-4 rounded-full shadow-sm transition-all duration-200 active:scale-95 text-sm cursor-pointer border border-[#B71C1C]";
                 toggleBtn.innerText = "❌ 編輯模式";
+                // 顯示放大縮小列
+                zoomBar.classList.remove('hidden');
+                zoomBar.classList.add('flex');
             } else {
                 toggleBtn.className = "bg-[#FFE5EC] hover:bg-[#FFD1DC] text-[#D81B60] font-medium py-2.5 px-4 rounded-full shadow-sm transition-all duration-200 active:scale-95 text-sm cursor-pointer border border-[#FFB6C1]";
                 toggleBtn.innerText = "✨ 編輯模式";
+                // 隱藏放大縮小列
+                zoomBar.classList.remove('flex');
+                zoomBar.classList.add('hidden');
             }
             renderButtons();
         }
