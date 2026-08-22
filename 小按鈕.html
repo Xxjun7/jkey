@@ -20,6 +20,11 @@
         .cafe-hover:hover {
             animation: float 0.6s ease-in-out infinite;
         }
+        /* 拖曳時的樣式 */
+        .dragging {
+            opacity: 0.4;
+            transform: scale(0.98);
+        }
     </style>
 </head>
 <body class="bg-[#FDFBF7] text-[#5C4033] font-sans min-h-screen flex flex-col items-center py-8 px-4 selection:bg-[#FFD1DC]">
@@ -44,7 +49,7 @@
 
             <!-- 刪除按鈕開關 -->
             <button id="deleteToggleBtn" onclick="toggleDeleteMode()" class="bg-[#FFE5EC] hover:bg-[#FFD1DC] text-[#D81B60] font-medium py-2.5 px-4 rounded-full shadow-sm transition-all duration-200 active:scale-95 text-sm cursor-pointer border border-[#FFB6C1]">
-                🗑️ 刪除模式：關
+                ✨ 編輯模式
             </button>
         </div>
 
@@ -110,6 +115,7 @@
         ];
 
         let isDeleteMode = false;
+        let draggedIndex = null;
 
         // 初始化渲染
         window.onload = function() {
@@ -135,30 +141,74 @@
                 return;
             }
 
-            buttonsData.forEach(btn => {
-                const buttonElement = document.createElement('button');
+            buttonsData.forEach((btn, index) => {
+                const buttonElement = document.createElement('div');
                 
-                // 基礎樣式：改為圓角矩形 (rounded-2xl) 讓多行文字排列更自然，並允許文字自動換行 (break-all)
-                buttonElement.className = `w-full py-4 px-6 rounded-3xl font-medium text-base shadow-sm transition-all duration-200 active:scale-98 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 cursor-pointer border text-left ${
+                // 只有在刪除模式下才允許整個區塊作為拖曳源
+                buttonElement.draggable = isDeleteMode;
+                buttonElement.dataset.index = index;
+
+                // 外框樣式
+                buttonElement.className = `w-full py-4 px-6 rounded-3xl font-medium text-base shadow-sm transition-all duration-200 flex items-center justify-between gap-3 border text-left ${
                     isDeleteMode 
-                    ? 'bg-[#FFEBEE] hover:bg-[#FFCDD2] text-[#D32F2F] border-[#EF9A9A] animate-pulse' 
-                    : 'bg-[#FFFDD0] hover:bg-[#FFF9C4] text-[#5C4033] border-[#E6D5B8] hover:shadow-md cafe-hover'
+                    ? 'bg-[#FFEBEE] border-[#EF9A9A]' 
+                    : 'bg-[#FFFDD0] hover:bg-[#FFF9C4] text-[#5C4033] border-[#E6D5B8] hover:shadow-md cafe-hover cursor-pointer'
                 }`;
 
-                // 按鈕文字與圖示（移除 truncate，改用 break-all 確保完整顯示並可自動換行）
-                buttonElement.innerHTML = `
-                    <span class="w-full break-all leading-relaxed">${escapeHTML(btn.text)}</span>
-                    <span class="text-xs opacity-60 shrink-0 self-end sm:self-center">${isDeleteMode ? '🗑️ 點擊刪除' : '📋 點擊複製'}</span>
-                `;
+                if (isDeleteMode) {
+                    // 【刪除/排序模式】：切成左右兩個獨立區塊
+                    buttonElement.innerHTML = `
+                        <!-- 左側：拖曳排序區（按住 ☰ 換位置） -->
+                        <div class="flex items-center gap-3 flex-1 cursor-grab active:cursor-grabbing py-1 select-none" title="按住這裡上下拖曳排序">
+                            <span class="text-lg opacity-60 font-bold">☰</span>
+                            <span class="w-full break-all leading-relaxed text-[#D32F2F]">${escapeHTML(btn.text)}</span>
+                        </div>
 
-                // 點擊事件：依據目前是否為刪除模式來決定行為
-                buttonElement.onclick = () => {
-                    if (isDeleteMode) {
-                        deleteButton(btn.id);
-                    } else {
+                        <!-- 右側：獨立的刪除按鈕區塊（避免誤觸） -->
+                        <button onclick="deleteButton(${btn.id})" class="bg-[#D32F2F] hover:bg-[#B71C1C] text-white text-xs px-3 py-2 rounded-xl shrink-0 transition-all cursor-pointer shadow-sm active:scale-95">
+                            🗑️ 刪除
+                        </button>
+                    `;
+                } else {
+                    // 【一般模式】：點擊直接複製文字
+                    buttonElement.innerHTML = `
+                        <span class="w-full break-all leading-relaxed">${escapeHTML(btn.text)}</span>
+                        <span class="text-xs opacity-60 shrink-0">📋 點擊複製</span>
+                    `;
+
+                    buttonElement.onclick = () => {
                         copyText(btn.text);
-                    }
-                };
+                    };
+                }
+
+                // --- HTML5 拖曳排序事件監聽 ---
+                buttonElement.addEventListener('dragstart', (e) => {
+                    draggedIndex = index;
+                    e.dataTransfer.effectAllowed = 'move';
+                    setTimeout(() => buttonElement.classList.add('dragging'), 0);
+                });
+
+                buttonElement.addEventListener('dragend', () => {
+                    buttonElement.classList.remove('dragging');
+                    draggedIndex = null;
+                });
+
+                buttonElement.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                });
+
+                buttonElement.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    if (draggedIndex === null || draggedIndex === index) return;
+
+                    const movedItem = buttonsData.splice(draggedIndex, 1)[0];
+                    buttonsData.splice(index, 0, movedItem);
+
+                    draggedIndex = index;
+                    saveToLocalStorage();
+                    renderButtons();
+                });
 
                 container.appendChild(buttonElement);
             });
@@ -170,7 +220,6 @@
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             document.getElementById('buttonNameInput').value = '';
-            // 預設關閉快速選單
             document.getElementById('quickMenu').classList.add('hidden');
             setTimeout(() => document.getElementById('buttonNameInput').focus(), 50);
         }
@@ -211,7 +260,7 @@
             }
 
             const newBtn = {
-                id: Date.now(), // 用時間戳當作唯一 ID
+                id: Date.now(),
                 text: text
             };
 
@@ -228,10 +277,10 @@
             
             if (isDeleteMode) {
                 toggleBtn.className = "bg-[#D32F2F] text-white font-medium py-2.5 px-4 rounded-full shadow-sm transition-all duration-200 active:scale-95 text-sm cursor-pointer border border-[#B71C1C]";
-                toggleBtn.innerText = "❌ 關閉刪除模式";
+                toggleBtn.innerText = "❌ 編輯模式";
             } else {
                 toggleBtn.className = "bg-[#FFE5EC] hover:bg-[#FFD1DC] text-[#D81B60] font-medium py-2.5 px-4 rounded-full shadow-sm transition-all duration-200 active:scale-95 text-sm cursor-pointer border border-[#FFB6C1]";
-                toggleBtn.innerText = "🗑️ 刪除模式：關";
+                toggleBtn.innerText = "✨ 編輯模式";
             }
             renderButtons();
         }
@@ -243,7 +292,7 @@
             renderButtons();
         }
 
-        // 複製文字功能 (含手機相容處理與 Toast 提示)
+        // 複製文字功能
         function copyText(text) {
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text).then(() => {
@@ -260,7 +309,7 @@
         function fallbackCopyText(text) {
             const textArea = document.createElement("textarea");
             textArea.value = text;
-            textArea.style.position = "fixed";  // 避免滾動到底部
+            textArea.style.position = "fixed"; 
             document.body.appendChild(textArea);
             textArea.focus();
             textArea.select();
