@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>實用小按鈕</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        /* 自定義咖啡風滑動動畫與過渡效果 */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+        .cafe-hover:hover {
+            animation: float 0.6s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-[#FDFBF7] text-[#5C4033] font-sans min-h-screen flex flex-col items-center py-8 px-4 selection:bg-[#FFD1DC]">
+
+    <!-- 主容器：手機適應與置中 -->
+    <div class="w-full max-w-md mx-auto flex flex-col gap-6">
+        
+        <!-- 標題 -->
+        <header class="text-center">
+            <h1 class="text-2xl font-bold tracking-wide text-[#7B3F00] flex items-center justify-center gap-2">
+                ☕ 我的實用按鈕 🍮
+            </h1>
+            <p class="text-xs text-[#A67B5B] mt-1">點擊按鈕就能複製文字，隨時記錄你的常用語！</p>
+        </header>
+
+        <!-- 第一行：功能控制列（新增按鈕、刪除開關） -->
+        <div class="flex items-center justify-between gap-3 bg-[#F4ECD8] p-3 rounded-full shadow-sm border border-[#E6D5B8]">
+            <!-- 新增按鈕 -->
+            <button onclick="openModal()" class="flex-1 bg-[#D7CCC8] hover:bg-[#C5B9B5] text-[#4E342E] font-medium py-2.5 px-4 rounded-full shadow-sm transition-all duration-200 active:scale-95 flex items-center justify-center gap-1.5 text-sm cursor-pointer cafe-hover">
+                <span class="text-base font-bold">+</span> 新增按鈕
+            </button>
+
+            <!-- 刪除按鈕開關 -->
+            <button id="deleteToggleBtn" onclick="toggleDeleteMode()" class="bg-[#FFE5EC] hover:bg-[#FFD1DC] text-[#D81B60] font-medium py-2.5 px-4 rounded-full shadow-sm transition-all duration-200 active:scale-95 text-sm cursor-pointer border border-[#FFB6C1]">
+                🗑️ 刪除模式：關
+            </button>
+        </div>
+
+        <!-- 第二行開始：動態生成的按鈕列表區塊 -->
+        <div id="buttonContainer" class="flex flex-col gap-3 pb-12">
+            <!-- 這裡會透過 JavaScript 自動渲染按鈕 -->
+        </div>
+    </div>
+
+    <!-- 複製成功的小提示 Toast (預設隱藏) -->
+    <div id="toast" class="fixed bottom-6 bg-[#4E342E] text-[#FFFDD0] px-4 py-2 rounded-full text-xs shadow-lg transition-opacity duration-300 opacity-0 pointer-events-none z-50">
+        ✨ 複製成功！
+    </div>
+
+    <!-- 新增按鈕的彈出小框 (Modal，點擊背景可關閉) -->
+    <div id="modal" onclick="handleModalClick(event)" class="fixed inset-0 bg-black/20 backdrop-blur-[2px] hidden items-center justify-center p-4 z-40">
+        <div class="bg-[#FFFDD0] w-full max-w-xs rounded-[2.5rem] p-6 shadow-xl border-2 border-[#E6D5B8] flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200">
+            
+            <!-- 標題與「快速按鈕」 -->
+            <div class="flex items-center justify-between">
+                <h3 class="font-bold text-[#7B3F00] text-base">✨ 新增一個小按鈕</h3>
+                <button onclick="toggleQuickMenu()" class="bg-[#E6D5B8] hover:bg-[#D7CCC8] text-[#5C4033] text-xs font-medium px-3 py-1.5 rounded-full transition-all cursor-pointer">
+                    ⚡ 快速按鈕
+                </button>
+            </div>
+
+            <!-- 快速按鈕的預設選單（預設隱藏） -->
+            <div id="quickMenu" class="hidden flex flex-col gap-1.5 bg-[#FDFBF7] p-2.5 rounded-2xl border border-[#E6D5B8] max-h-44 overflow-y-auto">
+                <p class="text-[11px] text-[#A67B5B] px-1 font-medium">點擊下方項目直接加入：</p>
+                <button onclick="addQuickText('稍等我一下唷')" class="text-left text-xs bg-[#FFFDD0] hover:bg-[#FFF9C4] text-[#5C4033] p-2 rounded-xl transition-all">
+                    📌 稍等我一下唷
+                </button>
+                <button onclick="addQuickText('1759717138317')" class="text-left text-xs bg-[#FFFDD0] hover:bg-[#FFF9C4] text-[#5C4033] p-2 rounded-xl transition-all">
+                    📌 1759717138317
+                </button>
+                <button onclick="addQuickText('006')" class="text-left text-xs bg-[#FFFDD0] hover:bg-[#FFF9C4] text-[#5C4033] p-2 rounded-xl transition-all">
+                    📌 006
+                </button>
+                <button onclick="addQuickText('點擊選單LINE Pay Money或街口後直接轉帳即可😊')" class="text-left text-xs bg-[#FFFDD0] hover:bg-[#FFF9C4] text-[#5C4033] p-2 rounded-xl transition-all">
+                    📌 點擊選單LINE Pay Money或街口後直接轉帳即可😊
+                </button>
+            </div>
+            
+            <!-- 輸入框 -->
+            <input type="text" id="buttonNameInput" placeholder="請輸入按鈕名稱（也是複製的文字）..." 
+                class="w-full bg-[#FDFBF7] border-2 border-[#E6D5B8] focus:border-[#C5832B] focus:outline-none rounded-full px-4 py-3 text-sm text-[#5C4033] placeholder-[#B0A89F] transition-all">
+            
+            <!-- 確認按鈕 -->
+            <button onclick="createNewButton()" class="w-full bg-[#C5832B] hover:bg-[#B07220] text-white font-medium py-3 rounded-full shadow-md transition-all active:scale-95 cursor-pointer">
+                確認新增
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript 邏輯 -->
+    <script>
+        // 資料狀態：從 LocalStorage 讀取，若無則給預設範例
+        let buttonsData = JSON.parse(localStorage.getItem('cafe_custom_buttons')) || [
+            { id: 1, text: '稍等我一下唷' },
+            { id: 2, text: '1759717138317' },
+            { id: 3, text: '006' },
+            { id: 4, text: '點擊選單LINE Pay Money或街口後直接轉帳即可😊' }
+        ];
+
+        let isDeleteMode = false;
+
+        // 初始化渲染
+        window.onload = function() {
+            renderButtons();
+        };
+
+        // 儲存資料到 LocalStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('cafe_custom_buttons', JSON.stringify(buttonsData));
+        }
+
+        // 渲染按鈕列表
+        function renderButtons() {
+            const container = document.getElementById('buttonContainer');
+            container.innerHTML = '';
+
+            if (buttonsData.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10 text-[#B0A89F] text-sm">
+                        這裡空空如也～快點上方「新增按鈕」建立一個吧！🍡
+                    </div>
+                `;
+                return;
+            }
+
+            buttonsData.forEach(btn => {
+                const buttonElement = document.createElement('button');
+                
+                // 基礎樣式：改為圓角矩形 (rounded-2xl) 讓多行文字排列更自然，並允許文字自動換行 (break-all)
+                buttonElement.className = `w-full py-4 px-6 rounded-3xl font-medium text-base shadow-sm transition-all duration-200 active:scale-98 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 cursor-pointer border text-left ${
+                    isDeleteMode 
+                    ? 'bg-[#FFEBEE] hover:bg-[#FFCDD2] text-[#D32F2F] border-[#EF9A9A] animate-pulse' 
+                    : 'bg-[#FFFDD0] hover:bg-[#FFF9C4] text-[#5C4033] border-[#E6D5B8] hover:shadow-md cafe-hover'
+                }`;
+
+                // 按鈕文字與圖示（移除 truncate，改用 break-all 確保完整顯示並可自動換行）
+                buttonElement.innerHTML = `
+                    <span class="w-full break-all leading-relaxed">${escapeHTML(btn.text)}</span>
+                    <span class="text-xs opacity-60 shrink-0 self-end sm:self-center">${isDeleteMode ? '🗑️ 點擊刪除' : '📋 點擊複製'}</span>
+                `;
+
+                // 點擊事件：依據目前是否為刪除模式來決定行為
+                buttonElement.onclick = () => {
+                    if (isDeleteMode) {
+                        deleteButton(btn.id);
+                    } else {
+                        copyText(btn.text);
+                    }
+                };
+
+                container.appendChild(buttonElement);
+            });
+        }
+
+        // 開啟 Modal
+        function openModal() {
+            const modal = document.getElementById('modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('buttonNameInput').value = '';
+            // 預設關閉快速選單
+            document.getElementById('quickMenu').classList.add('hidden');
+            setTimeout(() => document.getElementById('buttonNameInput').focus(), 50);
+        }
+
+        // 點擊 Modal 背景關閉
+        function handleModalClick(event) {
+            if (event.target.id === 'modal') {
+                closeModal();
+            }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+
+        // 切換快速按鈕選單的顯示/隱藏
+        function toggleQuickMenu() {
+            const quickMenu = document.getElementById('quickMenu');
+            quickMenu.classList.toggle('hidden');
+        }
+
+        // 點擊快速按鈕後，直接填入輸入框並新增
+        function addQuickText(text) {
+            document.getElementById('buttonNameInput').value = text;
+            createNewButton();
+        }
+
+        // 新增按鈕邏輯
+        function createNewButton() {
+            const input = document.getElementById('buttonNameInput');
+            const text = input.value.trim();
+
+            if (!text) {
+                alert('請輸入按鈕名稱喔！');
+                return;
+            }
+
+            const newBtn = {
+                id: Date.now(), // 用時間戳當作唯一 ID
+                text: text
+            };
+
+            buttonsData.push(newBtn);
+            saveToLocalStorage();
+            renderButtons();
+            closeModal();
+        }
+
+        // 切換刪除模式
+        function toggleDeleteMode() {
+            isDeleteMode = !isDeleteMode;
+            const toggleBtn = document.getElementById('deleteToggleBtn');
+            
+            if (isDeleteMode) {
+                toggleBtn.className = "bg-[#D32F2F] text-white font-medium py-2.5 px-4 rounded-full shadow-sm transition-all duration-200 active:scale-95 text-sm cursor-pointer border border-[#B71C1C]";
+                toggleBtn.innerText = "❌ 關閉刪除模式";
+            } else {
+                toggleBtn.className = "bg-[#FFE5EC] hover:bg-[#FFD1DC] text-[#D81B60] font-medium py-2.5 px-4 rounded-full shadow-sm transition-all duration-200 active:scale-95 text-sm cursor-pointer border border-[#FFB6C1]";
+                toggleBtn.innerText = "🗑️ 刪除模式：關";
+            }
+            renderButtons();
+        }
+
+        // 刪除單一按鈕
+        function deleteButton(id) {
+            buttonsData = buttonsData.filter(btn => btn.id !== id);
+            saveToLocalStorage();
+            renderButtons();
+        }
+
+        // 複製文字功能 (含手機相容處理與 Toast 提示)
+        function copyText(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast();
+                }).catch(err => {
+                    fallbackCopyText(text);
+                });
+            } else {
+                fallbackCopyText(text);
+            }
+        }
+
+        // 備用複製方法
+        function fallbackCopyText(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";  // 避免滾動到底部
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast();
+            } catch (err) {
+                alert('複製失敗，請手動複製');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // 顯示提示訊息
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('opacity-0');
+            toast.classList.add('opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0');
+            }, 1500);
+        }
+
+        // 防止 XSS 的簡單跳脫字元函式
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+    </script>
+</body>
+</html>
