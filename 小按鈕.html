@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="./Jicon.ico">
+    <title>實用小按鈕</title>
+  
+    <!-- 控制 LINE 預覽顯示的文字 -->
+    <meta property="og:title" content="任你打">
+    <meta property="og:description" content="常用複製按鈕">
+  
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+        .cafe-hover:hover {
+            animation: float 0.6s ease-in-out infinite;
+        }
+        .dragging {
+            opacity: 0.4;
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body id="pageBody" class="bg-[#F4F5FA] text-[#3F3D56] font-sans min-h-screen flex flex-col items-center py-8 px-4 selection:bg-[#D4D1F3] transition-colors duration-300">
+
+    <!-- 右上角風格切換小圓圈按鈕 -->
+    <div class="fixed top-4 right-4 z-50">
+        <button onclick="toggleThemeMenu()" class="w-10 h-10 rounded-full bg-white/80 dark:bg-zinc-800 shadow-md border border-black/10 flex items-center justify-center text-lg hover:scale-110 active:scale-95 transition-all cursor-pointer backdrop-blur-sm" title="切換風格主題">
+            🎨
+        </button>
+
+        <!-- 風格選擇彈出選單 -->
+        <div id="themeMenu" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-black/10 p-2 flex flex-col gap-1.5 backdrop-blur-md">
+            <p class="text-[11px] text-zinc-400 px-2 pt-1 font-bold">選擇風格主題：</p>
+            <button onclick="setTheme('blueberry')" class="text-left text-xs px-3 py-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all flex items-center gap-2 cursor-pointer">🫐 藍莓優格</button>
+            <button onclick="setTheme('sakura')" class="text-left text-xs px-3 py-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all flex items-center gap-2 cursor-pointer">🌸 櫻花拿鐵</button>
+            <button onclick="setTheme('matcha')" class="text-left text-xs px-3 py-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all flex items-center gap-2 cursor-pointer">🍵 抹茶拿鐵</button>
+            <button onclick="setTheme('mint')" class="text-left text-xs px-3 py-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all flex items-center gap-2 cursor-pointer">🧊 薄荷藍</button>
+            <button onclick="setTheme('sky')" class="text-left text-xs px-3 py-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all flex items-center gap-2 cursor-pointer">☁️ 輕柔天空</button>
+            <button onclick="setTheme('pudding')" class="text-left text-xs px-3 py-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all flex items-center gap-2 cursor-pointer">🍮 焦糖布丁</button>
+            <button onclick="setTheme('lavender')" class="text-left text-xs px-3 py-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all flex items-center gap-2 cursor-pointer">🪻 薰衣草紫</button>
+        </div>
+    </div>
+
+    <!-- 主容器 -->
+    <div id="mainContainer" class="w-full max-w-md mx-auto flex flex-col gap-4 transition-all duration-200">
+        
+        <!-- 第一行：功能控制列 -->
+        <div id="controlBar1" class="flex items-center justify-between gap-3 p-3 rounded-full shadow-sm border transition-colors duration-300">
+            <button onclick="openModal()" id="addBtnStyle" class="flex-1 font-medium py-2.5 px-4 rounded-full shadow-sm transition-all duration-200 active:scale-95 flex items-center justify-center gap-1.5 text-sm cursor-pointer cafe-hover">
+                <span class="text-base font-bold">+</span> 新增按鈕
+            </button>
+
+            <button id="deleteToggleBtn" onclick="toggleDeleteMode()" class="font-medium py-2.5 px-4 rounded-full shadow-sm transition-all duration-200 active:scale-95 text-sm cursor-pointer border">
+                ✨ 編輯模式
+            </button>
+        </div>
+
+        <!-- 縮放控制列 -->
+        <div id="zoomControlBar" class="hidden flex items-center justify-between gap-3 p-2 px-4 rounded-full shadow-sm border transition-colors duration-300 animate-in fade-in duration-200">
+            <button onclick="adjustZoom(0.1)" id="zoomInBtn" class="flex-1 font-medium py-1.5 px-3 rounded-full shadow-sm transition-all duration-200 active:scale-95 text-xs cursor-pointer flex items-center justify-center gap-1">
+                ➕ 放大
+            </button>
+            <button onclick="adjustZoom(-0.1)" id="zoomOutBtn" class="flex-1 font-medium py-1.5 px-3 rounded-full shadow-sm transition-all duration-200 active:scale-95 text-xs cursor-pointer flex items-center justify-center gap-1">
+                ➖ 縮小
+            </button>
+        </div>
+
+        <!-- 第二行開始：按鈕列表區塊 -->
+        <div id="buttonContainer" class="flex flex-col gap-3 pb-12 mt-2"></div>
+    </div>
+
+    <!-- 複製成功的小提示 Toast -->
+    <div id="toast" class="fixed bottom-6 px-4 py-2 rounded-full text-xs shadow-lg transition-opacity duration-300 opacity-0 pointer-events-none z-50">
+        ✨ 複製成功！
+    </div>
+
+    <!-- 新增按鈕的彈出小框 -->
+    <div id="modal" onclick="handleModalClick(event)" class="fixed inset-0 bg-black/30 backdrop-blur-[2px] hidden items-center justify-center p-4 z-40">
+        <div id="modalBox" class="w-full max-w-xs rounded-[2.5rem] p-6 shadow-xl border-2 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200">
+            
+            <div class="flex items-center justify-between">
+                <h3 id="modalTitle" class="font-bold text-base">✨ 新增一個小按鈕</h3>
+                <button onclick="toggleQuickMenu()" id="quickBtnStyle" class="text-xs font-medium px-3 py-1.5 rounded-full transition-all cursor-pointer">
+                    ⚡ 快速按鈕
+                </button>
+            </div>
+
+            <div id="quickMenu" class="hidden flex flex-col gap-1.5 p-2.5 rounded-2xl border max-h-44 overflow-y-auto transition-colors duration-300">
+                <p id="quickDesc" class="text-[11px] px-1 font-medium">點擊下方項目直接加入：</p>
+                <button onclick="addQuickText('稍等我一下唷')" class="quick-item text-left text-xs p-2 rounded-xl transition-all cursor-pointer">📌 稍等我一下唷</button>
+                <button onclick="addQuickText('1759717138317')" class="quick-item text-left text-xs p-2 rounded-xl transition-all cursor-pointer">📌 1759717138317</button>
+                <button onclick="addQuickText('006')" class="quick-item text-left text-xs p-2 rounded-xl transition-all cursor-pointer">📌 006</button>
+                <button onclick="addQuickText('點擊選單LINE Pay Money或街口後直接轉帳即可😊')" class="quick-item text-left text-xs p-2 rounded-xl transition-all cursor-pointer">📌 點擊選單LINE Pay Money或街口後直接轉帳即可😊</button>
+            </div>
+            
+            <input type="text" id="buttonNameInput" placeholder="請輸入按鈕名稱（也是複製的文字）..." 
+                class="w-full border-2 focus:outline-none rounded-full px-4 py-3 text-sm transition-all">
+            
+            <button onclick="createNewButton()" id="confirmBtnStyle" class="w-full font-medium py-3 rounded-full shadow-md transition-all active:scale-95 cursor-pointer text-white">
+                確認新增
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript 邏輯 -->
+    <script>
+        let buttonsData = JSON.parse(localStorage.getItem('cafe_custom_buttons')) || [
+            { id: 1, text: '稍等我一下唷' },
+            { id: 2, text: '1759717138317' },
+            { id: 3, text: '006' },
+            { id: 4, text: '點擊選單LINE Pay Money或街口後直接轉帳即可😊' }
+        ];
+
+        let isDeleteMode = false;
+        let draggedIndex = null;
+        let currentZoom = parseFloat(sessionStorage.getItem('cafe_page_zoom')) || 1.0;
+        
+        let expandedState = JSON.parse(localStorage.getItem('cafe_buttons_expanded')) || {};
+
+        const themes = {
+            blueberry: {
+                bg: 'bg-[#F4F5FA]', text: 'text-[#3F3D56]',
+                controlBar: 'bg-[#E4E7F5] border-[#D1D6EC]',
+                addBtn: 'bg-[#D1D6EC] hover:bg-[#BEC4E3] text-[#2C2A4A]',
+                editBtn: 'bg-[#FCEAE8] hover:bg-[#F9D7D3] text-[#D9534F] border-[#F2B3B0]',
+                zoomBar: 'bg-[#E4E7F5] border-[#D1D6EC]', zoomBtn: 'bg-[#D1D6EC] hover:bg-[#BEC4E3] text-[#3F3D56]',
+                normalBtn: 'bg-white hover:bg-[#EAEFFD] text-[#3F3D56] border-[#D1D6EC]',
+                toast: 'bg-[#2C2A4A] text-[#F4F5FA]',
+                modalBox: 'bg-white border-[#D1D6EC]', modalTitle: 'text-[#4A477A]',
+                quickBtn: 'bg-[#D1D6EC] hover:bg-[#BEC4E3] text-[#3F3D56]',
+                quickMenu: 'bg-[#F4F5FA] border-[#D1D6EC]', quickDesc: 'text-[#6C6991]',
+                quickItem: 'bg-[#E4E7F5] hover:bg-[#D1D6EC] text-[#3F3D56]',
+                input: 'bg-[#F4F5FA] border-[#D1D6EC] focus:border-[#5A55B3] text-[#3F3D56] placeholder-[#9A97BC]',
+                confirmBtn: 'bg-[#5A55B3] hover:bg-[#48439B]'
+            },
+            sakura: {
+                bg: 'bg-[#FFF5F7]', text: 'text-[#6B4C58]',
+                controlBar: 'bg-[#FFE4EC] border-[#FFCCD5]',
+                addBtn: 'bg-[#FFB3C6] hover:bg-[#FF99B1] text-[#592636]',
+                editBtn: 'bg-[#FFF0F3] hover:bg-[#FFE3E8] text-[#D1496B] border-[#FFB3C6]',
+                zoomBar: 'bg-[#FFE4EC] border-[#FFCCD5]', zoomBtn: 'bg-[#FFCCD5] hover:bg-[#FFB3C6] text-[#6B4C58]',
+                normalBtn: 'bg-white hover:bg-[#FFF0F3] text-[#6B4C58] border-[#FFCCD5]',
+                toast: 'bg-[#6B4C58] text-[#FFF5F7]',
+                modalBox: 'bg-white border-[#FFCCD5]', modalTitle: 'text-[#9C526B]',
+                quickBtn: 'bg-[#FFCCD5] hover:bg-[#FFB3C6] text-[#6B4C58]',
+                quickMenu: 'bg-[#FFF5F7] border-[#FFCCD5]', quickDesc: 'text-[#B87D92]',
+                quickItem: 'bg-[#FFE4EC] hover:bg-[#FFCCD5] text-[#6B4C58]',
+                input: 'bg-[#FFF5F7] border-[#FFCCD5] focus:border-[#D1496B] text-[#6B4C58] placeholder-[#D4A3B4]',
+                confirmBtn: 'bg-[#D1496B] hover:bg-[#B53B59]'
+            },
+            matcha: {
+                bg: 'bg-[#F4F9F4]', text: 'text-[#3A4F3A]',
+                controlBar: 'bg-[#E3EFE3] border-[#C8DCC8]',
+                addBtn: 'bg-[#C8DCC8] hover:bg-[#B2CCB2] text-[#2D402D]',
+                editBtn: 'bg-[#EAF4EA] hover:bg-[#D5EAD5] text-[#3B6E3B] border-[#B2CCB2]',
+                zoomBar: 'bg-[#E3EFE3] border-[#C8DCC8]', zoomBtn: 'bg-[#C8DCC8] hover:bg-[#B2CCB2] text-[#3A4F3A]',
+                normalBtn: 'bg-white hover:bg-[#F0F7F0] text-[#3A4F3A] border-[#C8DCC8]',
+                toast: 'bg-[#2D402D] text-[#F4F9F4]',
+                modalBox: 'bg-white border-[#C8DCC8]', modalTitle: 'text-[#2D402D]',
+                quickBtn: 'bg-[#C8DCC8] hover:bg-[#B2CCB2] text-[#3A4F3A]',
+                quickMenu: 'bg-[#F4F9F4] border-[#C8DCC8]', quickDesc: 'text-[#6A856A]',
+                quickItem: 'bg-[#E3EFE3] hover:bg-[#C8DCC8] text-[#3A4F3A]',
+                input: 'bg-[#F4F9F4] border-[#C8DCC8] focus:border-[#4B8B4B] text-[#3A4F3A] placeholder-[#9EBA9E]',
+                confirmBtn: 'bg-[#4B8B4B] hover:bg-[#3A6B3A]'
+            },
+            mint: {
+                bg: 'bg-[#F0F9F8]', text: 'text-[#2D4A48]',
+                controlBar: 'bg-[#D8F0EC] border-[#BCE4DE]',
+                addBtn: 'bg-[#BCE4DE] hover:bg-[#A3D8D0] text-[#1E3331]',
+                editBtn: 'bg-[#E8F8F5] hover:bg-[#D4F2ED] text-[#20A486] border-[#A3D8D0]',
+                zoomBar: 'bg-[#D8F0EC] border-[#BCE4DE]', zoomBtn: 'bg-[#BCE4DE] hover:bg-[#A3D8D0] text-[#2D4A48]',
+                normalBtn: 'bg-white hover:bg-[#EAF7F5] text-[#2D4A48] border-[#BCE4DE]',
+                toast: 'bg-[#1E3331] text-[#F0F9F8]',
+                modalBox: 'bg-white border-[#BCE4DE]', modalTitle: 'text-[#1E3331]',
+                quickBtn: 'bg-[#BCE4DE] hover:bg-[#A3D8D0] text-[#2D4A48]',
+                quickMenu: 'bg-[#F0F9F8] border-[#BCE4DE]', quickDesc: 'text-[#5B8581]',
+                quickItem: 'bg-[#D8F0EC] hover:bg-[#BCE4DE] text-[#2D4A48]',
+                input: 'bg-[#F0F9F8] border-[#BCE4DE] focus:border-[#12A182] text-[#2D4A48] placeholder-[#91B8B3]',
+                confirmBtn: 'bg-[#12A182] hover:bg-[#0E8268]'
+            },
+            sky: {
+                bg: 'bg-[#F0F8FF]', text: 'text-[#334E68]',
+                controlBar: 'bg-[#E1F0FF] border-[#BCCCDC]',
+                addBtn: 'bg-[#BCCCDC] hover:bg-[#9FB3C8] text-[#102A43]',
+                editBtn: 'bg-[#EBF8FF] hover:bg-[#D9F0FF] text-[#0284C7] border-[#7DD3FC]',
+                zoomBar: 'bg-[#E1F0FF] border-[#BCCCDC]', zoomBtn: 'bg-[#BCCCDC] hover:bg-[#9FB3C8] text-[#334E68]',
+                normalBtn: 'bg-white hover:bg-[#F0F4F8] text-[#334E68] border-[#BCCCDC]',
+                toast: 'bg-[#102A43] text-[#F0F8FF]',
+                modalBox: 'bg-white border-[#BCCCDC]', modalTitle: 'text-[#102A43]',
+                quickBtn: 'bg-[#BCCCDC] hover:bg-[#9FB3C8] text-[#334E68]',
+                quickMenu: 'bg-[#F0F8FF] border-[#BCCCDC]', quickDesc: 'text-[#627D98]',
+                quickItem: 'bg-[#E1F0FF] hover:bg-[#BCCCDC] text-[#334E68]',
+                input: 'bg-[#F0F8FF] border-[#BCCCDC] focus:border-[#0284C7] text-[#334E68] placeholder-[#829AB1]',
+                confirmBtn: 'bg-[#0284C7] hover:bg-[#0369A1]'
+            },
+            pudding: {
+                bg: 'bg-[#FFFDF9]', text: 'text-[#5C4529]',
+                controlBar: 'bg-[#FDF0D5] border-[#F0D5B7]',
+                addBtn: 'bg-[#F0D5B7] hover:bg-[#E5C198] text-[#5C4529]',
+                editBtn: 'bg-[#FFF1EE] hover:bg-[#FFE3DC] text-[#E07A5F] border-[#F2CC8F]',
+                zoomBar: 'bg-[#FDF0D5] border-[#F0D5B7]', zoomBtn: 'bg-[#F0D5B7] hover:bg-[#E5C198] text-[#5C4529]',
+                normalBtn: 'bg-white hover:bg-[#FFF9EC] text-[#5C4529] border-[#F0D5B7]',
+                toast: 'bg-[#5C4529] text-[#FFFDF9]',
+                modalBox: 'bg-white border-[#F0D5B7]', modalTitle: 'text-[#8C581E]',
+                quickBtn: 'bg-[#F0D5B7] hover:bg-[#E5C198] text-[#5C4529]',
+                quickMenu: 'bg-[#FFFDF9] border-[#F0D5B7]', quickDesc: 'text-[#B3834C]',
+                quickItem: 'bg-[#FDF0D5] hover:bg-[#F0D5B7] text-[#5C4529]',
+                input: 'bg-[#FFFDF9] border-[#F0D5B7] focus:border-[#D4A373] text-[#5C4529] placeholder-[#C2B29D]',
+                confirmBtn: 'bg-[#D4A373] hover:bg-[#BC8A5F]'
+            },
+            lavender: {
+                bg: 'bg-[#F8F7FC]', text: 'text-[#4A4458]',
+                controlBar: 'bg-[#EFEBF5] border-[#DCD5EC]',
+                addBtn: 'bg-[#DCD5EC] hover:bg-[#CBC1DF] text-[#4A4458]',
+                editBtn: 'bg-[#FCEEEF] hover:bg-[#F8DEE1] text-[#A64D79] border-[#E8B4CB]',
+                zoomBar: 'bg-[#EFEBF5] border-[#DCD5EC]', zoomBtn: 'bg-[#DCD5EC] hover:bg-[#CBC1DF] text-[#4A4458]',
+                normalBtn: 'bg-white hover:bg-[#F4F2FA] text-[#4A4458] border-[#DCD5EC]',
+                toast: 'bg-[#4A4458] text-[#F8F7FC]',
+                modalBox: 'bg-white border-[#DCD5EC]', modalTitle: 'text-[#5D5179]',
+                quickBtn: 'bg-[#DCD5EC] hover:bg-[#CBC1DF] text-[#4A4458]',
+                quickMenu: 'bg-[#F8F7FC] border-[#DCD5EC]', quickDesc: 'text-[#8C7EAE]',
+                quickItem: 'bg-[#EFEBF5] hover:bg-[#DCD5EC] text-[#4A4458]',
+                input: 'bg-[#F8F7FC] border-[#DCD5EC] focus:border-[#7F63B8] text-[#4A4458] placeholder-[#AFA5C3]',
+                confirmBtn: 'bg-[#7F63B8] hover:bg-[#6A4FA0]'
+            }
+        };
+
+        window.onload = function() {
+            const savedTheme = localStorage.getItem('cafe_theme_style') || 'blueberry';
+            applyTheme(savedTheme, false);
+            applyZoom();
+            renderButtons();
+        };
+
+        function toggleThemeMenu() {
+            const menu = document.getElementById('themeMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        function setTheme(themeName) {
+            localStorage.setItem('cafe_theme_style', themeName);
+            applyTheme(themeName, true);
+            toggleThemeMenu();
+        }
+
+        function applyTheme(themeName, animate = false) {
+            const t = themes[themeName] || themes.blueberry;
+            
+            document.getElementById('pageBody').className = `${t.bg} ${t.text} font-sans min-h-screen flex flex-col items-center py-8 px-4 transition-colors duration-300`;
+            
+            document.getElementById('controlBar1').className = `flex items-center justify-between gap-3 p-3 rounded-full shadow-sm border transition-colors duration-300 ${t.controlBar}`;
+            document.getElementById('addBtnStyle').className = `flex-1 font-medium py-2.5 px-4 rounded-full shadow-sm transition-all duration-200 active:scale-95 flex items-center justify-center gap-1.5 text-sm cursor-pointer cafe-hover ${t.addBtn}`;
+            
+            const deleteToggleBtn = document.getElementById('deleteToggleBtn');
+            if (isDeleteMode) {
+                deleteToggleBtn.className = "bg-[#D32F2F] text-white font-medium py-2.5 px-4 rounded-full shadow-sm transition-all duration-200 active:scale-95 text-sm cursor-pointer border border-[#B71C1C]";
+            } else {
+                deleteToggleBtn.className = `font-medium py-2.5 px-4 rounded-full shadow-sm transition-all duration-200 active:scale-95 text-sm cursor-pointer border ${t.editBtn}`;
+            }
+
+            const zoomBar = document.getElementById('zoomControlBar');
+            if (isDeleteMode) {
+                zoomBar.className = `flex items-center justify-between gap-3 p-2 px-4 rounded-full shadow-sm border transition-colors duration-300 animate-in fade-in duration-200 ${t.zoomBar}`;
+            } else {
+                zoomBar.className = `hidden items-center justify-between gap-3 p-2 px-4 rounded-full shadow-sm border transition-colors duration-300 animate-in fade-in duration-200 ${t.zoomBar}`;
+            }
+
+            document.getElementById('zoomInBtn').className = `flex-1 font-medium py-1.5 px-3 rounded-full shadow-sm transition-all duration-200 active:scale-95 text-xs cursor-pointer flex items-center justify-center gap-1 ${t.zoomBtn}`;
+            document.getElementById('zoomOutBtn').className = `flex-1 font-medium py-1.5 px-3 rounded-full shadow-sm transition-all duration-200 active:scale-95 text-xs cursor-pointer flex items-center justify-center gap-1 ${t.zoomBtn}`;
+
+            document.getElementById('toast').className = `fixed bottom-6 px-4 py-2 rounded-full text-xs shadow-lg transition-opacity duration-300 opacity-0 pointer-events-none z-50 ${t.toast}`;
+            
+            document.getElementById('modalBox').className = `w-full max-w-xs rounded-[2.5rem] p-6 shadow-xl border-2 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200 ${t.modalBox}`;
+            document.getElementById('modalTitle').className = `font-bold text-base ${t.modalTitle}`;
+            document.getElementById('quickBtnStyle').className = `text-xs font-medium px-3 py-1.5 rounded-full transition-all cursor-pointer ${t.quickBtn}`;
+            document.getElementById('quickMenu').className = `hidden flex flex-col gap-1.5 p-2.5 rounded-2xl border max-h-44 overflow-y-auto transition-colors duration-300 ${t.quickMenu}`;
+            document.getElementById('quickDesc').className = `text-[11px] px-1 font-medium ${t.quickDesc}`;
+            
+            document.querySelectorAll('.quick-item').forEach(el => {
+                el.className = `quick-item text-left text-xs p-2 rounded-xl transition-all cursor-pointer ${t.quickItem}`;
+            });
+
+            document.getElementById('buttonNameInput').className = `w-full border-2 focus:outline-none rounded-full px-4 py-3 text-sm transition-all ${t.input}`;
+            document.getElementById('confirmBtnStyle').className = `w-full font-medium py-3 rounded-full shadow-md transition-all active:scale-95 cursor-pointer text-white ${t.confirmBtn}`;
+
+            renderButtons();
+        }
+
+        function adjustZoom(amount) {
+            currentZoom += amount;
+            if (currentZoom < 0.7) currentZoom = 0.7;
+            if (currentZoom > 1.6) currentZoom = 1.6;
+            currentZoom = Math.round(currentZoom * 10) / 10;
+            sessionStorage.setItem('cafe_page_zoom', currentZoom);
+            applyZoom();
+        }
+
+        function applyZoom() {
+            const container = document.getElementById('mainContainer');
+            container.style.transform = `scale(${currentZoom})`;
+            container.style.transformOrigin = 'top center';
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('cafe_custom_buttons', JSON.stringify(buttonsData));
+            localStorage.setItem('cafe_buttons_expanded', JSON.stringify(expandedState));
+        }
+
+        function renderButtons() {
+            const container = document.getElementById('buttonContainer');
+            container.innerHTML = '';
+
+            const currentThemeName = localStorage.getItem('cafe_theme_style') || 'blueberry';
+            const t = themes[currentThemeName] || themes.blueberry;
+
+            if (buttonsData.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10 opacity-60 text-sm">
+                        這裡空空如也～快點上方「新增按鈕」建立一個吧！🍡
+                    </div>
+                `;
+                return;
+            }
+
+            buttonsData.forEach((btn, index) => {
+                const buttonElement = document.createElement('div');
+                buttonElement.draggable = isDeleteMode;
+                buttonElement.dataset.index = index;
+
+                const isExpanded = !!expandedState[btn.id];
+
+                if (isDeleteMode) {
+                    const textClass = isExpanded ? "w-full break-all leading-relaxed text-[#D32F2F]" : "w-full truncate text-[#D32F2F]";
+
+                    buttonElement.className = `w-full py-4 px-6 rounded-3xl font-medium text-base shadow-sm transition-all duration-200 flex items-center justify-between gap-3 border text-left bg-[#FFEBEE] border-[#EF9A9A] cursor-grab active:cursor-grabbing select-none`;
+                    buttonElement.innerHTML = `
+                        <span class="${textClass}">${escapeHTML(btn.text)}</span>
+                        <button onclick="event.stopPropagation(); deleteButton(${btn.id})" class="bg-[#D32F2F] hover:bg-[#B71C1C] text-white text-xs px-3 py-2 rounded-xl shrink-0 transition-all cursor-pointer shadow-sm active:scale-95">
+                            🗑️ 刪除
+                        </button>
+                    `;
+
+                    buttonElement.ondblclick = (e) => {
+                        e.stopPropagation();
+                        expandedState[btn.id] = !isExpanded;
+                        saveToLocalStorage();
+                        renderButtons();
+                    };
+
+                } else {
+                    const textClass = isExpanded ? "w-full break-all leading-relaxed" : "w-full truncate";
+
+                    buttonElement.className = `w-full py-4 px-6 rounded-3xl font-medium text-base shadow-sm transition-all duration-200 flex items-center justify-between gap-3 border text-left hover:shadow-md cafe-hover cursor-pointer ${t.normalBtn}`;
+                    buttonElement.innerHTML = `
+                        <span class="${textClass}">${escapeHTML(btn.text)}</span>
+                        <span class="text-xs opacity-60 shrink-0">📋 複製</span>
+                    `;
+                    
+                    buttonElement.onclick = () => copyText(btn.text);
+                }
+
+                buttonElement.addEventListener('dragstart', (e) => {
+                    draggedIndex = index;
+                    e.dataTransfer.effectAllowed = 'move';
+                    setTimeout(() => buttonElement.classList.add('dragging'), 0);
+                });
+
+                buttonElement.addEventListener('dragend', () => {
+                    buttonElement.classList.remove('dragging');
+                    draggedIndex = null;
+                });
+
+                buttonElement.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                });
+
+                buttonElement.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    if (draggedIndex === null || draggedIndex === index) return;
+                    const movedItem = buttonsData.splice(draggedIndex, 1)[0];
+                    buttonsData.splice(index, 0, movedItem);
+                    draggedIndex = index;
+                    saveToLocalStorage();
+                    renderButtons();
+                });
+
+                container.appendChild(buttonElement);
+            });
+        }
+
+        function openModal() {
+            const modal = document.getElementById('modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('buttonNameInput').value = '';
+            document.getElementById('quickMenu').classList.add('hidden');
+            setTimeout(() => document.getElementById('buttonNameInput').focus(), 50);
+        }
+
+        function handleModalClick(event) {
+            if (event.target.id === 'modal') {
+                closeModal();
+            }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+
+        function toggleQuickMenu() {
+            const quickMenu = document.getElementById('quickMenu');
+            quickMenu.classList.toggle('hidden');
+        }
+
+        function addQuickText(text) {
+            document.getElementById('buttonNameInput').value = text;
+            createNewButton();
+        }
+
+        function createNewButton() {
+            const input = document.getElementById('buttonNameInput');
+            const text = input.value.trim();
+
+            if (!text) {
+                alert('請輸入按鈕名稱喔！');
+                return;
+            }
+
+            buttonsData.push({ id: Date.now(), text: text });
+            saveToLocalStorage();
+            renderButtons();
+            closeModal();
+        }
+
+        function toggleDeleteMode() {
+            isDeleteMode = !isDeleteMode;
+            const toggleBtn = document.getElementById('deleteToggleBtn');
+            const zoomBar = document.getElementById('zoomControlBar');
+            const currentThemeName = localStorage.getItem('cafe_theme_style') || 'blueberry';
+            const t = themes[currentThemeName] || themes.blueberry;
+            
+            if (isDeleteMode) {
+                toggleBtn.className = "bg-[#D32F2F] text-white font-medium py-2.5 px-4 rounded-full shadow-sm transition-all duration-200 active:scale-95 text-sm cursor-pointer border border-[#B71C1C]";
+                toggleBtn.innerText = "❌ 編輯模式";
+                zoomBar.classList.remove('hidden');
+                zoomBar.classList.add('flex');
+            } else {
+                toggleBtn.className = `font-medium py-2.5 px-4 rounded-full shadow-sm transition-all duration-200 active:scale-95 text-sm cursor-pointer border ${t.editBtn}`;
+                toggleBtn.innerText = "✨ 編輯模式";
+                zoomBar.classList.remove('flex');
+                zoomBar.classList.add('hidden');
+            }
+            renderButtons();
+        }
+
+        function deleteButton(id) {
+            buttonsData = buttonsData.filter(btn => btn.id !== id);
+            delete expandedState[id];
+            saveToLocalStorage();
+            renderButtons();
+        }
+
+        function copyText(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => showToast()).catch(() => fallbackCopyText(text));
+            } else {
+                fallbackCopyText(text);
+            }
+        }
+
+        function fallbackCopyText(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed"; 
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast();
+            } catch (err) {
+                alert('複製失敗，請手動複製');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('opacity-0');
+            toast.classList.add('opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0');
+            }, 1500);
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+    </script>
+</body>
+</html>
