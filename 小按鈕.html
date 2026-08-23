@@ -28,8 +28,8 @@
 </head>
 <body id="pageBody" class="bg-[#F4F5FA] text-[#3F3D56] font-sans min-h-screen flex flex-col items-center py-8 px-4 selection:bg-[#D4D1F3] transition-colors duration-300">
 
-    <!-- 主容器 -->
-    <div id="mainContainer" class="w-full max-w-md mx-auto flex flex-col gap-4 transition-all duration-200">
+    <!-- 主容器：將 max-w-md 改為 max-w-xl，讓兩側不會空出太多 -->
+    <div id="mainContainer" class="w-full max-w-xl mx-auto flex flex-col gap-4 transition-all duration-200">
         
         <!-- 第一行：功能控制列 -->
         <div id="controlBar1" class="flex items-center justify-between gap-3 p-3 rounded-full shadow-sm border transition-colors duration-300">
@@ -51,12 +51,12 @@
                 ➖ 縮小
             </button>
             
-            <!-- 整合進來的風格切換按鈕 -->
+            <!-- 風格切換按鈕 -->
             <button onclick="toggleThemeMenu()" id="themeToggleBarBtn" class="font-medium py-1.5 px-3 rounded-full shadow-sm transition-all duration-200 active:scale-95 text-xs cursor-pointer flex items-center justify-center gap-1" title="切換風格主題">
                 🎨 主題
             </button>
 
-            <!-- 風格選擇彈出選單（相對於此行定位） -->
+            <!-- 風格選擇彈出選單 -->
             <div id="themeMenu" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-black/10 p-2 flex flex-col gap-1.5 backdrop-blur-md z-50">
                 <p class="text-[11px] text-zinc-400 px-2 pt-1 font-bold">選擇風格主題：</p>
                 <button onclick="setTheme('blueberry')" class="text-left text-xs px-3 py-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all flex items-center gap-2 cursor-pointer">🫐 藍莓優格</button>
@@ -236,7 +236,6 @@
             renderButtons();
         };
 
-        // 點擊畫面其他地方時自動關閉主題選單
         window.addEventListener('click', function(event) {
             const themeMenu = document.getElementById('themeMenu');
             const isClickInside = event.target.closest('#themeMenu') || event.target.closest("button[onclick='toggleThemeMenu()']");
@@ -457,7 +456,6 @@
             const currentThemeName = localStorage.getItem('cafe_theme_style') || 'blueberry';
             const t = themes[currentThemeName] || themes.blueberry;
             
-            // 每次關閉編輯模式時，也順便把主題選單收起來
             document.getElementById('themeMenu').classList.add('hidden');
 
             if (isDeleteMode) {
