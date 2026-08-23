@@ -7,8 +7,8 @@
     <title>實用小按鈕</title>
   
     <!-- 控制 LINE 預覽顯示的文字 -->
-    <meta property="og:title" content="我的實用小按鈕">
-    <meta property="og:description" content="點擊常用按鈕">
+    <meta property="og:title" content="任你打">
+    <meta property="og:description" content="常用複製按鈕">
   
     <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
@@ -53,7 +53,7 @@
         <!-- 標題 -->
         <header class="text-center">
             <h1 id="mainTitle" class="text-2xl font-bold tracking-wide flex items-center justify-center gap-2">
-                ☕ 我的實用按鈕 🥨
+                ☕ 我的實用小按鈕 🥨
             </h1>
             <p id="subTitle" class="text-xs mt-1">編輯模式下雙擊按鈕可切換該按鈕的展開／收合狀態！</p>
         </header>
@@ -133,7 +133,7 @@
 
         const themes = {
             cafe: {
-                titleText: '☕ 我的實用按鈕 🥨',
+                titleText: '☕ 我的實用小按鈕 🥨',
                 bg: 'bg-[#FDFBF7]', text: 'text-[#5C4033]', title: 'text-[#7B3F00]', subtitle: 'text-[#A67B5B]',
                 controlBar: 'bg-[#F4ECD8] border-[#E6D5B8]',
                 addBtn: 'bg-[#D7CCC8] hover:bg-[#C5B9B5] text-[#4E342E]',
@@ -382,7 +382,7 @@
                     buttonElement.className = `w-full py-4 px-6 rounded-3xl font-medium text-base shadow-sm transition-all duration-200 flex items-center justify-between gap-3 border text-left hover:shadow-md cafe-hover cursor-pointer ${t.normalBtn}`;
                     buttonElement.innerHTML = `
                         <span class="${textClass}">${escapeHTML(btn.text)}</span>
-                        <span class="text-xs opacity-60 shrink-0">📋 點擊複製</span>
+                        <span class="text-xs opacity-60 shrink-0">📋 複製</span>
                     `;
                     
                     // 點擊維持複製功能
