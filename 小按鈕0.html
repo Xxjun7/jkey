@@ -26,12 +26,12 @@
         }
     </style>
 </head>
-<body id="pageBody" class="bg-[#F4F5FA] text-[#3F3D56] font-sans min-h-screen flex flex-col items-center py-6 px-4 selection:bg-[#D4D1F3] transition-colors duration-300">
+<body id="pageBody" class="bg-[#F4F5FA] text-[#3F3D56] font-sans min-h-screen flex flex-col items-center py-3 px-4 selection:bg-[#D4D1F3] transition-colors duration-300">
 
-    <!-- 主容器：放寬限制 (max-w-2xl)，減少兩側與頂部空隙 -->
-    <div id="mainContainer" class="w-full max-w-2xl mx-auto flex flex-col gap-3 transition-all duration-200 relative pt-2">
+    <!-- 主容器：放寬限制 (max-w-2xl)，並將上方留白收緊 (pt-0) -->
+    <div id="mainContainer" class="w-full max-w-2xl mx-auto flex flex-col gap-3 transition-all duration-200 relative pt-0">
         
-        <!-- 頂部資訊列：將快速排版按鈕與簡潔佈局融合，減少上方空曠感 -->
+        <!-- 頂部資訊列：只保留快速排版按鈕，介面更乾淨 -->
         <div class="flex items-center justify-between px-2 select-none">
             <div id="formatTrigger" class="text-xs font-medium flex items-center gap-1 cursor-pointer w-fit hover:opacity-85 transition-opacity" onclick="openFormatModal()">
                 🎁 快速文字排版
@@ -114,13 +114,12 @@
             <div id="formatHeader" class="flex items-center justify-between border-b pb-3">
                 <h3 id="formatModalTitle" class="font-bold text-base flex items-center gap-2">🎁 快速文字排版</h3>
                 <div class="flex items-center gap-2">
-                    <!-- 重置按鈕：清空 1 與 2 -->
                     <button id="resetBtnStyle" onclick="resetFormatForm()" class="text-xs px-2.5 py-1 rounded-xl cursor-pointer transition-all">🔄 重置</button>
                     <button onclick="closeFormatModal()" class="text-xs opacity-50 hover:opacity-100 px-2 py-1 cursor-pointer">✕ 關閉</button>
                 </div>
             </div>
 
-            <!-- 第一行：選單 (選擇即直接加入) -->
+            <!-- 第一行：選單 -->
             <div class="flex flex-col gap-1.5">
                 <label id="label1" class="text-xs font-bold">1. 選擇品項（點擊即可加入，可選多個）：</label>
                 <div id="subContainer1" class="border rounded-2xl p-2 flex flex-col gap-1">
@@ -164,13 +163,12 @@
                         </optgroup>
                     </select>
                 </div>
-                <!-- 已選擇的品項顯示區 -->
                 <div id="selectedItemsBox" class="border rounded-xl p-2 min-h-16 max-h-40 overflow-y-auto flex flex-col gap-1 mt-1">
                     <span class="text-[11px] opacity-50 italic">尚未選擇品項（從上方下拉選單點擊即可加入）</span>
                 </div>
             </div>
 
-            <!-- 第二行：輸入框 (數學算式) = 結果 -->
+            <!-- 第二行：數學算式 -->
             <div class="flex flex-col gap-1.5">
                 <label id="label2" class="text-xs font-bold">2. 數學算式（會自動計算結果）：</label>
                 <div class="flex items-center gap-2">
@@ -391,7 +389,7 @@
 
         function applyTheme(themeName) {
             const t = themes[themeName] || themes.blueberry;
-            document.getElementById('pageBody').className = `${t.bg} ${t.text} font-sans min-h-screen flex flex-col items-center py-6 px-4 transition-colors duration-300`;
+            document.getElementById('pageBody').className = `${t.bg} ${t.text} font-sans min-h-screen flex flex-col items-center py-3 px-4 transition-colors duration-300`;
             document.getElementById('formatTrigger').className = `text-xs font-medium ${t.trigger} flex items-center gap-1 cursor-pointer w-fit select-none hover:opacity-85 transition-opacity`;
             document.getElementById('controlBar1').className = `flex items-center justify-between gap-3 p-3 rounded-full shadow-sm border transition-colors duration-300 ${t.controlBar}`;
             document.getElementById('addBtnStyle').className = `flex-1 font-medium py-2.5 px-4 rounded-full shadow-sm transition-all duration-200 active:scale-95 flex items-center justify-center gap-1.5 text-sm cursor-pointer cafe-hover ${t.addBtn}`;
@@ -428,7 +426,6 @@
             document.getElementById('buttonNameInput').className = `w-full border-2 focus:outline-none rounded-full px-4 py-3 text-sm transition-all ${t.input}`;
             document.getElementById('confirmBtnStyle').className = `w-full font-medium py-3 rounded-full shadow-md transition-all active:scale-95 cursor-pointer text-white ${t.confirmBtn}`;
 
-            // 🎁 快速排版面板樣式套用
             document.getElementById('formatModalBox').className = `w-full max-w-md rounded-3xl p-6 shadow-2xl border-2 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto ${t.formatModalBox}`;
             document.getElementById('formatHeader').className = `flex items-center justify-between border-b pb-3 ${t.formatHeader}`;
             document.getElementById('formatModalTitle').className = `font-bold text-base flex items-center gap-2 ${t.modalTitle}`;
@@ -539,7 +536,6 @@
             });
         }
 
-        // 🎁 快速排版面板互動邏輯
         function openFormatModal() {
             const modal = document.getElementById('formatModal');
             modal.classList.remove('hidden');
@@ -559,7 +555,6 @@
             }
         }
 
-        // 🔄 重置按鈕：清空 1 (已選品項) 與 2 (數學算式)
         function resetFormatForm() {
             chosenItems = [];
             renderSelectedItems();
@@ -569,12 +564,11 @@
             updatePreview();
         }
 
-        // 下拉選單選擇時直接加入
         function handleItemSelect(selectElement) {
             const val = selectElement.value;
             if (!val) return;
             chosenItems.push(val);
-            selectElement.selectedIndex = 0; // 加入後自動歸位到提示選項
+            selectElement.selectedIndex = 0;
             renderSelectedItems();
             updatePreview();
         }
@@ -670,7 +664,6 @@
             closeFormatModal();
         }
 
-        // 一般按鈕邏輯
         function openModal() {
             const modal = document.getElementById('modal');
             modal.classList.remove('hidden');
