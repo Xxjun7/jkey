@@ -34,7 +34,7 @@
         <!-- 頂部資訊列：只保留快速排版按鈕，介面更乾淨 -->
         <div class="flex items-center justify-between px-2 select-none">
             <div id="formatTrigger" class="text-xs font-medium flex items-center gap-1 cursor-pointer w-fit hover:opacity-85 transition-opacity" onclick="openFormatModal()">
-                🎁 快速文字排版
+                🎁 兌換排版
             </div>
         </div>
 
@@ -112,10 +112,10 @@
     <div id="formatModal" onclick="handleFormatModalClick(event)" class="fixed inset-0 bg-black/30 backdrop-blur-[2px] hidden items-center justify-center p-4 z-40">
         <div id="formatModalBox" class="w-full max-w-md rounded-3xl p-6 shadow-2xl border-2 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
             <div id="formatHeader" class="flex items-center justify-between border-b pb-3">
-                <h3 id="formatModalTitle" class="font-bold text-base flex items-center gap-2">🎁 快速文字排版</h3>
+                <h3 id="formatModalTitle" class="font-bold text-base flex items-center gap-2">🎁 兌換快速排版</h3>
                 <div class="flex items-center gap-2">
                     <button id="resetBtnStyle" onclick="resetFormatForm()" class="text-xs px-2.5 py-1 rounded-xl cursor-pointer transition-all">🔄 重置</button>
-                    <button onclick="closeFormatModal()" class="text-xs opacity-50 hover:opacity-100 px-2 py-1 cursor-pointer">✕ 關閉</button>
+                    <button onclick="closeFormatModal()" class="text-xs opacity-50 hover:opacity-100 px-2 py-1 cursor-pointer">❌</button>
                 </div>
             </div>
 
@@ -172,7 +172,7 @@
             <div class="flex flex-col gap-1.5">
                 <label id="label2" class="text-xs font-bold">2. 數學算式（會自動計算結果）：</label>
                 <div class="flex items-center gap-2">
-                    <input type="text" id="calcInput" placeholder="例如: 239-100-100" oninput="calculateMath()"
+                    <input type="text" id="calcInput" placeholder="" oninput="calculateMath()"
                         class="flex-1 border rounded-xl px-3 py-2 text-xs focus:outline-none">
                     <span id="calcResultDisplay" class="text-xs font-bold px-3 py-2 rounded-xl whitespace-nowrap">
                         = 0
