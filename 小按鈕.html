@@ -238,6 +238,16 @@
             renderButtons();
         };
 
+        // 點擊畫面其他地方時自動關閉主題選單
+        window.addEventListener('click', function(event) {
+            const themeMenu = document.getElementById('themeMenu');
+            const isClickInside = event.target.closest('#themeMenu') || event.target.closest("button[onclick='toggleThemeMenu()']");
+            
+            if (!isClickInside && !themeMenu.classList.contains('hidden')) {
+                themeMenu.classList.add('hidden');
+            }
+        });
+
         function toggleThemeMenu() {
             const menu = document.getElementById('themeMenu');
             menu.classList.toggle('hidden');
