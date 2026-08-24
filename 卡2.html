@@ -296,10 +296,11 @@
             width: 90%;
             max-width: 450px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-            max-height: 85vh;
+            max-height: 85vh; /* 確保不會超過螢幕高度 */
             display: flex;
             flex-direction: column;
-            position: relative;
+            box-sizing: border-box;
+            overflow: hidden; /* 防止父容器溢出 */
         }
 
         .modal-title {
@@ -308,6 +309,7 @@
             margin-bottom: 12px;
             color: #333;
             text-align: center;
+            flex-shrink: 0;
         }
 
         .modal-text {
@@ -322,6 +324,7 @@
             gap: 10px;
             justify-content: center;
             margin-top: 15px;
+            flex-shrink: 0; /* 底部按鈕區不被壓縮 */
         }
 
         .modal-btn {
@@ -344,12 +347,14 @@
             gap: 8px;
             margin-bottom: 12px;
             align-items: center;
+            flex-shrink: 0;
         }
 
         .batch-select {
             flex: 2;
             height: 36px;
             font-size: 14px;
+            width: 0; /* 讓 flex 正常縮放 */
         }
 
         .batch-input-qty {
@@ -357,19 +362,22 @@
             height: 36px;
             font-size: 14px;
             text-align: center;
+            width: 0;
         }
 
         .btn-add-item {
             background-color: #2196F3;
             color: white;
             border: none;
-            padding: 0 12px;
+            padding: 0 14px;
             height: 36px;
             border-radius: 4px;
             font-weight: bold;
             cursor: pointer;
+            flex-shrink: 0;
         }
 
+        /* 修正：讓清單區域內部捲動，防跑出面板 */
         .batch-list-box {
             flex: 1;
             overflow-y: auto;
@@ -377,7 +385,6 @@
             border-radius: 6px;
             padding: 8px;
             min-height: 120px;
-            max-height: 200px;
             background: #fafafa;
         }
 
@@ -540,7 +547,7 @@
             <button class="btn-add-item" type="button" onclick="addBatchItem(event)">加入</button>
         </div>
 
-        <div style="text-align: left; font-size: 12px; color: #666; margin-bottom: 4px;">當前待新增清單：</div>
+        <div style="text-align: left; font-size: 12px; color: #666; margin-bottom: 4px; flex-shrink: 0;">當前待新增清單：</div>
         <div class="batch-list-box" id="batchListBox"></div>
 
         <div class="modal-actions">
@@ -554,7 +561,7 @@
     <div class="modal-card">
         <div class="modal-title">📜 歷史紀錄面板</div>
         
-        <div class="batch-list-box" id="historyListBox" style="min-height: 220px; max-height: 350px;"></div>
+        <div class="batch-list-box" id="historyListBox"></div>
 
         <div class="modal-actions">
             <button class="modal-btn btn-cancel" type="button" style="background-color: #d32f2f; color: #fff;" onclick="openResetHistoryModal()">🗑️ 清空所有紀錄</button>
@@ -785,7 +792,7 @@
     function closeBatchModal() { document.getElementById('batchModal').classList.remove('active'); }
 
     function addBatchItem(e) {
-        if (e) e.stopPropagation(); // 防止事件冒泡
+        if (e) e.stopPropagation();
 
         const select = document.getElementById('batchCardSelect');
         const qtyInput = document.getElementById('batchCardQty');
@@ -794,7 +801,6 @@
 
         if (qty <= 0) return;
 
-        // 讀取首頁目前最新的名稱與價格
         const currentName = document.getElementById(`name-${itemIndex}`).value.trim() || `項目 #${itemIndex + 1}`;
         const currentPrice = parseFloat(document.getElementById(`price-${itemIndex}`).value) || 0;
 
@@ -819,7 +825,7 @@
     function renderBatchList() {
         const box = document.getElementById('batchListBox');
         if (currentBatchList.length === 0) {
-            box.innerHTML = '<div style="color: #aaa; text-align: center; padding-top: 45px;">暫無項目，請由上方新增</div>';
+            box.innerHTML = '<div style="color: #aaa; text-align: center; padding-top: 40px;">暫無項目，請由上方新增</div>';
             return;
         }
         box.innerHTML = '';
@@ -872,7 +878,7 @@
     function renderHistoryList() {
         const box = document.getElementById('historyListBox');
         if (orderHistory.length === 0) {
-            box.innerHTML = '<div style="color: #aaa; text-align: center; padding-top: 80px;">尚無新增紀錄，請先透過「批量設定」新增一單</div>';
+            box.innerHTML = '<div style="color: #aaa; text-align: center; padding-top: 60px;">尚無新增紀錄，請先透過「批量設定」新增一單</div>';
             return;
         }
 
