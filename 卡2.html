@@ -27,12 +27,15 @@
             --qty-width: 40px;
         }
 
-        /* 關鍵修正：當彈窗開啟時，徹底鎖死背景頁面，防止 iOS 被整個往上拉 */
+        /* 預留滾動條位置，防止彈窗跳出時頁面晃動 */
+        html {
+            scrollbar-gutter: stable;
+        }
+
+        /* 關鍵修正：取消 position: fixed，改用防閃爍鎖定機制 */
         body.modal-open {
             overflow: hidden !important;
-            height: 100vh !important;
-            position: fixed;
-            width: 100%;
+            touch-action: none;
         }
 
         body {
@@ -285,8 +288,8 @@
             z-index: 1000;
             opacity: 0;
             visibility: hidden;
-            transition: all 0.2s ease-in-out;
-            touch-action: none; /* 關鍵：阻止 iOS 手勢傳遞給背景 */
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+            touch-action: none;
         }
 
         .modal-overlay.active {
@@ -305,7 +308,7 @@
             display: flex;
             flex-direction: column;
             box-sizing: border-box;
-            touch-action: auto; /* 恢復彈窗內部的正常觸控 */
+            touch-action: auto;
         }
 
         .modal-title {
@@ -381,7 +384,6 @@
             flex-shrink: 0;
         }
 
-        /* 關鍵修正：加上 overscroll-behavior empêche 防止觸底/頂時拉動背景 */
         .batch-list-box {
             flex: 1 1 auto;
             min-height: 80px;
@@ -661,7 +663,7 @@
         updateTextColor(index);
     });
 
-    /* 動態切換背景鎖定，防 iOS 手勢拉動 */
+    /* 切換背景鎖定，防止背景滾動且不影響寬度 */
     function toggleBodyLock() {
         const hasActiveModal = document.querySelector('.modal-overlay.active');
         if (hasActiveModal) {
