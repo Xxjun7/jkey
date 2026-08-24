@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <!-- 防縮放關鍵設定：加入 maximum-scale=1.0, user-scalable=no -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+      <!-- 控制 LINE 預覽顯示的文字 -->
+    <meta property="og:title" content="卡片費用計算器">
+    <meta property="og:description" content="威力卡+">
+    <link rel="icon" type="image/x-icon" href="./Jicon.ico">
+  
+    <title>卡片費用計算器</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f8;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+            --header-bg: #fff0f0;
+            --price-bg: #ffeedd;
+            
+            /* 動態微調變數 */
+            --font-size: 15px;
+            --padding-v: 8px;
+            --padding-h: 6px;
+            --input-height: 28px;
+            --btn-size: 28px;
+            --price-width: 65px;
+            --qty-width: 40px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            /* 禁用快速點擊引發的縮放手勢 */
+            touch-action: manipulation;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .header-summary {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background-color: #f9f9f9;
+            padding: 4px 12px;
+            border-radius: 6px;
+            border: 1px solid #eee;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .summary-val {
+            color: #d32f2f;
+            font-size: 16px;
+        }
+
+        .top-btn {
+            background-color: #ffffff;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .top-btn:active {
+            background-color: #eee;
+        }
+
+        .top-btn.active {
+            background-color: #2196F3;
+            color: white;
+            border-color: #2196F3;
+        }
+
+        .font-btn-group {
+            display: flex;
+            gap: 2px;
+        }
+
+        .font-btn-group .top-btn {
+            padding: 5px 8px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            max-height: calc(100vh - 120px);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+
+        th, td {
+            padding: var(--padding-v) var(--padding-h);
+            border-bottom: 1px solid var(--border-color);
+            font-size: var(--font-size);
+        }
+
+        th {
+            background-color: var(--header-bg);
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            font-weight: bold;
+            color: #d32f2f;
+        }
+
+        th.clickable-th {
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+            touch-action: manipulation;
+        }
+
+        /* 🔓 解鎖狀態 */
+        th.unlocked {
+            background-color: #C8DCC8 !important;
+            color: #2e7d32 !important;
+        }
+
+        /* 🔒 鎖定狀態 */
+        th.locked {
+            background-color: var(--header-bg) !important;
+            color: #d32f2f !important;
+        }
+
+        .price-td {
+            background-color: var(--price-bg);
+        }
+
+        input[type="text"], input[type="number"] {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 2px 4px;
+            font-size: var(--font-size);
+            box-sizing: border-box;
+            background-color: #fff;
+            height: var(--input-height);
+            touch-action: manipulation;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #2196F3;
+        }
+
+        .name-input {
+            width: 100%;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .color-red { color: #d32f2f !important; }
+        .color-purple { color: #8e24aa !important; }
+        .color-yellow { color: #d97706 !important; }
+        .color-default { color: #333333 !important; }
+
+        .price-input {
+            width: var(--price-width);
+            text-align: center;
+            font-weight: bold;
+            color: #d32f2f;
+        }
+
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .btn-qty {
+            width: var(--btn-size);
+            height: var(--btn-size);
+            border: 1px solid #ccc;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            font-size: calc(var(--font-size) - 1px);
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            touch-action: manipulation;
+        }
+
+        .btn-qty:active {
+            background-color: #ddd;
+        }
+
+        .qty-input {
+            width: var(--qty-width);
+            text-align: center;
+        }
+
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .lock-input {
+            border: none !important;
+            background: transparent !important;
+            pointer-events: none;
+            padding: 0;
+        }
+
+        .lock-qty .btn-qty {
+            display: none;
+        }
+
+        .subtotal {
+            font-weight: bold;
+            color: #d32f2f;
+            min-width: 50px;
+        }
+
+        tr.hide-row {
+            display: none;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-card {
+            background: #fff;
+            padding: 24px;
+            border-radius: 12px;
+            width: 85%;
+            max-width: 320px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .modal-text {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 8px 0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .btn-confirm { background-color: #d32f2f; color: #fff; }
+        .btn-cancel { background-color: #e0e0e0; color: #333; }
+
+        @media (max-width: 600px) {
+            body { padding: 4px; }
+            .container { padding: 8px; }
+            .header-bar { justify-content: space-between; }
+            .header-summary { font-size: 12px; padding: 2px 6px; gap: 6px; }
+            .summary-val { font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-bar">
+        <div class="header-left">
+            <button class="top-btn" onclick="openResetModal()">🔄 重置數量</button>
+            <button class="top-btn" id="filterBtn" onclick="toggleFilterOnlyHasQty()">🌟 只看有數量</button>
+            
+            <div class="font-btn-group">
+                <button class="top-btn" onclick="adjustSize(-1)">A-</button>
+                <button class="top-btn" onclick="resetSize()" title="恢復預設大小">↺</button>
+                <button class="top-btn" onclick="adjustSize(1)">A+</button>
+            </div>
+        </div>
+
+        <div class="header-summary">
+            <div>總數: <span class="summary-val" id="totalQuantity">0</span></div>
+            <div>總額: <span class="summary-val" id="totalAmount">0</span></div>
+        </div>
+    </div>
+    
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th id="th-name" class="clickable-th locked" style="width: 38%;" onclick="toggleColEdit('name')">卡片類別 🔒</th>
+                    <th id="th-price" class="clickable-th locked" style="width: 20%;" onclick="toggleColEdit('price')">價格 🔒</th>
+                    <th id="th-qty" class="clickable-th locked" style="width: 24%;" onclick="toggleColEdit('qty')">數量 🔒</th>
+                    <th style="width: 18%;">金額</th>
+                </tr>
+            </thead>
+            <tbody id="cardTable"></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal-overlay" id="resetModal">
+    <div class="modal-card">
+        <div class="modal-title">確認重置</div>
+        <div class="modal-text">確定要清空所有卡片數量嗎？<br>（卡片名稱與價格會保留）</div>
+        <div class="modal-actions">
+            <button class="modal-btn btn-cancel" onclick="closeResetModal()">取消</button>
+            <button class="modal-btn btn-confirm" onclick="confirmReset()">確定重置</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const items = [
+        { name: "體驗5星-紅", price: 5 },
+        { name: "體驗5星-紫", price: 25 },
+        { name: "一般1星-黃", price: 20 },
+        { name: "一般2星-黃", price: 40 },
+        { name: "一般3星-黃", price: 60 },
+        { name: "一般4星-黃", price: 105 },
+        { name: "一般5星-黃", price: 150 },
+        { name: "一般1星-紅", price: 80 },
+        { name: "一般2星-紅", price: 120 },
+        { name: "一般3星-紅", price: 200 },
+        { name: "一般4星-紅", price: 300 },
+        { name: "一般5星-紅", price: 400 },
+        { name: "一般1星-紫", price: 200 },
+        { name: "一般2星-紫", price: 300 },
+        { name: "一般3星-紫", price: 500 },
+        { name: "一般4星-紫", price: 750 },
+        { name: "一般5星-紫", price: 1000 },
+        { name: "高手1星-黃", price: 300 },
+        { name: "高手2星-黃", price: 350 },
+        { name: "高手3星-黃", price: 400 },
+        { name: "高手4星-黃", price: "" },
+        { name: "高手5星-黃", price: "" },
+        { name: "高手1星-紅", price: 800 },
+        { name: "高手2星-紅", price: 1000 },
+        { name: "高手3星-紅", price: 1200 },
+        { name: "高手4星-紅", price: 1500 },
+        { name: "高手5星-紅", price: 2000 },
+        { name: "高手1星-紫", price: 2000 },
+        { name: "高手2星-紫", price: 2400 },
+        { name: "高手3星-紫", price: 3000 },
+        { name: "高手4星-紫", price: 3750 },
+        { name: "高手5星-紫", price: 4500 },
+        { name: "至尊1星-黃", price: 1200 },
+        { name: "至尊2星-黃", price: "" },
+        { name: "至尊3星-黃", price: "" },
+        { name: "至尊4星-黃", price: "" },
+        { name: "至尊5星-黃", price: "" },
+        { name: "至尊1星-紅", price: 2500 }
+    ];
+
+    /* 預設常態全鎖定 (false) */
+    const editState = {
+        name: false,
+        price: false,
+        qty: false
+    };
+
+    let showOnlyHasQty = false;
+    let currentFontSize = 15;
+
+    const tbody = document.getElementById('cardTable');
+
+    items.forEach((item, index) => {
+        const tr = document.createElement('tr');
+        tr.id = `row-${index}`;
+        tr.innerHTML = `
+            <td><input type="text" class="name-input lock-input" id="name-${index}" value="${item.name}" oninput="updateTextColor(${index})"></td>
+            <td class="price-td"><input type="number" class="price-input lock-input" id="price-${index}" value="${item.price}" placeholder="0" oninput="calculateTotals()"></td>
+            <td>
+                <div class="quantity-control lock-qty" id="qty-box-${index}">
+                    <button class="btn-qty" onclick="changeQty(${index}, -1)">➖</button>
+                    <input type="number" class="qty-input lock-input" id="qty-${index}" min="0" value="0" oninput="calculateTotals()">
+                    <button class="btn-qty" onclick="changeQty(${index}, 1)">➕</button>
+                </div>
+            </td>
+            <td class="subtotal" id="subtotal-${index}">0</td>
+        `;
+        tbody.appendChild(tr);
+        updateTextColor(index);
+    });
+
+    function updateTextColor(index) {
+        const input = document.getElementById(`name-${index}`);
+        const val = input.value.trim();
+        input.classList.remove('color-red', 'color-purple', 'color-yellow', 'color-default');
+        if (val.endsWith('紅')) input.classList.add('color-red');
+        else if (val.endsWith('紫')) input.classList.add('color-purple');
+        else if (val.endsWith('黃')) input.classList.add('color-yellow');
+        else input.classList.add('color-default');
+    }
+
+    function changeQty(index, delta) {
+        if (!editState.qty) return;
+        const input = document.getElementById(`qty-${index}`);
+        let current = parseInt(input.value) || 0;
+        current += delta;
+        if (current < 0) current = 0;
+        input.value = current;
+        calculateTotals();
+    }
+
+    function calculateTotals() {
+        let totalQty = 0, totalAmt = 0;
+        items.forEach((_, index) => {
+            const price = parseFloat(document.getElementById(`price-${index}`).value) || 0;
+            const qty = parseInt(document.getElementById(`qty-${index}`).value) || 0;
+            const subtotal = price * qty;
+            document.getElementById(`subtotal-${index}`).innerText = subtotal > 0 ? subtotal : '0';
+            totalQty += qty;
+            totalAmt += subtotal;
+
+            if (showOnlyHasQty) {
+                const row = document.getElementById(`row-${index}`);
+                if (qty > 0) {
+                    row.classList.remove('hide-row');
+                } else {
+                    row.classList.add('hide-row');
+                }
+            }
+        });
+        document.getElementById('totalQuantity').innerText = totalQty;
+        document.getElementById('totalAmount').innerText = totalAmt.toLocaleString();
+    }
+
+    function toggleFilterOnlyHasQty() {
+        showOnlyHasQty = !showOnlyHasQty;
+        const btn = document.getElementById('filterBtn');
+
+        if (showOnlyHasQty) {
+            btn.classList.add('active');
+            btn.innerText = '🌟 顯示全部';
+        } else {
+            btn.classList.remove('active');
+            btn.innerText = '🌟 只看有數量';
+        }
+
+        items.forEach((_, index) => {
+            const row = document.getElementById(`row-${index}`);
+            const qty = parseInt(document.getElementById(`qty-${index}`).value) || 0;
+
+            if (showOnlyHasQty && qty === 0) {
+                row.classList.add('hide-row');
+            } else {
+                row.classList.remove('hide-row');
+            }
+        });
+    }
+
+    function toggleColEdit(colType) {
+        editState[colType] = !editState[colType];
+        const isEditable = editState[colType];
+        
+        const thMap = { name: 'th-name', price: 'th-price', qty: 'th-qty' };
+        const labelMap = { name: '卡片類別', price: '價格', qty: '數量' };
+        const th = document.getElementById(thMap[colType]);
+
+        if (isEditable) {
+            th.classList.remove('locked');
+            th.classList.add('unlocked');
+            th.innerText = `${labelMap[colType]} 🔓`;
+        } else {
+            th.classList.remove('unlocked');
+            th.classList.add('locked');
+            th.innerText = `${labelMap[colType]} 🔒`;
+        }
+
+        items.forEach((_, index) => {
+            if (colType === 'name') {
+                const el = document.getElementById(`name-${index}`);
+                el.classList.toggle('lock-input', !isEditable);
+            } else if (colType === 'price') {
+                const el = document.getElementById(`price-${index}`);
+                el.classList.toggle('lock-input', !isEditable);
+            } else if (colType === 'qty') {
+                const box = document.getElementById(`qty-box-${index}`);
+                const input = document.getElementById(`qty-${index}`);
+                box.classList.toggle('lock-qty', !isEditable);
+                input.classList.toggle('lock-input', !isEditable);
+            }
+        });
+    }
+
+    function openResetModal() { document.getElementById('resetModal').classList.add('active'); }
+    function closeResetModal() { document.getElementById('resetModal').classList.remove('active'); }
+    function confirmReset() {
+        items.forEach((_, index) => { document.getElementById(`qty-${index}`).value = 0; });
+        if (showOnlyHasQty) toggleFilterOnlyHasQty();
+        calculateTotals();
+        closeResetModal();
+    }
+
+    function adjustSize(delta) {
+        currentFontSize += delta;
+        if (currentFontSize < 1) currentFontSize = 1;
+
+        const paddingV = Math.round(currentFontSize * 0.5);
+        const paddingH = Math.round(currentFontSize * 0.4);
+        const inputHeight = Math.round(currentFontSize * 1.8);
+        const btnSize = Math.round(currentFontSize * 1.8);
+        const priceWidth = Math.round(currentFontSize * 4.3);
+        const qtyWidth = Math.round(currentFontSize * 2.6);
+
+        const root = document.documentElement.style;
+        root.setProperty('--font-size', `${currentFontSize}px`);
+        root.setProperty('--padding-v', `${paddingV}px`);
+        root.setProperty('--padding-h', `${paddingH}px`);
+        root.setProperty('--input-height', `${inputHeight}px`);
+        root.setProperty('--btn-size', `${btnSize}px`);
+        root.setProperty('--price-width', `${priceWidth}px`);
+        root.setProperty('--qty-width', `${qtyWidth}px`);
+    }
+
+    function resetSize() {
+        currentFontSize = 15;
+        document.documentElement.removeAttribute('style');
+    }
+</script>
+
+</body>
+</html>
