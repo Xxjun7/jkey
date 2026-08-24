@@ -518,7 +518,7 @@
             <button class="top-btn" id="filterBtn" type="button" onclick="toggleFilterOnlyHasQty()">🌟 只看有數量</button>
             
             <button class="top-btn btn-purple" type="button" onclick="openBatchModal()">⚡ 批量設定</button>
-            <button class="top-btn btn-green" type="button" onclick="openHistoryModal()">📜 紀錄面板</button>
+            <button class="top-btn btn-green" type="button" onclick="openHistoryModal()">📜 批量紀錄</button>
             
             <div class="font-btn-group">
                 <button class="top-btn" type="button" onclick="adjustSize(-1)">A-</button>
@@ -587,7 +587,7 @@
 <!-- ⚡ 批量設定面板 -->
 <div class="modal-overlay" id="batchModal" onclick="handleOverlayClick(event, 'batchModal')">
     <div class="modal-card">
-        <div class="modal-title" id="batchModalTitle">⚡ 批量設定面板</div>
+        <div class="modal-title" id="batchModalTitle">⚡ 批量設定</div>
         
         <input type="text" class="batch-order-input" id="batchOrderName" placeholder="單號／名稱 (選填，未填預設 單號 #)">
 
@@ -606,10 +606,10 @@
     </div>
 </div>
 
-<!-- 📜 紀錄面板 -->
+<!-- 📜 批量紀錄面板 -->
 <div class="modal-overlay" id="historyModal" onclick="handleOverlayClick(event, 'historyModal')">
     <div class="modal-card">
-        <div class="modal-title">📜 歷史紀錄面板</div>
+        <div class="modal-title">📜 批量歷史紀錄</div>
         
         <!-- 歷史紀錄總計 -->
         <div class="history-summary">
@@ -911,7 +911,7 @@
             editingHistoryIndex = null;
             currentBatchList = [];
             document.getElementById('batchOrderName').value = '';
-            document.getElementById('batchModalTitle').innerText = '⚡ 批量設定面板';
+            document.getElementById('batchModalTitle').innerText = '⚡ 批量設定';
             const btnSave = document.getElementById('btnSaveBatch');
             btnSave.innerText = '+ 批量新增一單';
             btnSave.style.backgroundColor = '#8e24aa';
