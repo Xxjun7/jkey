@@ -300,7 +300,6 @@
             display: flex;
             flex-direction: column;
             position: relative;
-            box-sizing: border-box;
         }
 
         .modal-title {
@@ -339,43 +338,36 @@
         .btn-confirm { background-color: #d32f2f; color: #fff; }
         .btn-cancel { background-color: #e0e0e0; color: #333; }
 
-        /* ⚡ 批量與紀錄面板表單修正區塊 */
+        /* 批量與紀錄面板專用表單樣式 */
         .batch-form-group {
             display: flex;
             gap: 8px;
             margin-bottom: 12px;
             align-items: center;
-            flex-wrap: wrap;
         }
 
         .batch-select {
-            flex: 1;
-            min-width: 130px;
+            flex: 2;
             height: 36px;
             font-size: 14px;
-            box-sizing: border-box;
         }
 
         .batch-input-qty {
-            width: 65px;
-            flex: none;
+            flex: 1;
             height: 36px;
             font-size: 14px;
             text-align: center;
-            box-sizing: border-box;
         }
 
         .btn-add-item {
             background-color: #2196F3;
             color: white;
             border: none;
-            padding: 0 14px;
+            padding: 0 12px;
             height: 36px;
             border-radius: 4px;
             font-weight: bold;
             cursor: pointer;
-            white-space: nowrap;
-            box-sizing: border-box;
         }
 
         .batch-list-box {
@@ -387,7 +379,6 @@
             min-height: 120px;
             max-height: 200px;
             background: #fafafa;
-            box-sizing: border-box;
         }
 
         .batch-item-row {
@@ -427,6 +418,29 @@
             border-bottom: 1px solid #eee;
             padding-bottom: 4px;
             margin-bottom: 6px;
+        }
+
+        .order-title-input {
+            border: 1px solid transparent;
+            background: transparent;
+            font-weight: bold;
+            font-size: 14px;
+            color: #1976D2;
+            padding: 2px 4px;
+            border-radius: 4px;
+            width: 70%;
+            height: auto;
+        }
+
+        .order-title-input:hover {
+            border-color: #bbb;
+            background-color: #f0f7ff;
+        }
+
+        .order-title-input:focus {
+            border-color: #2196F3;
+            background-color: #fff;
+            outline: none;
         }
 
         .order-detail {
@@ -491,7 +505,7 @@
     </div>
 </div>
 
-<!-- 重置確認彈窗 -->
+<!-- 重置確認彈窗 (首頁) -->
 <div class="modal-overlay" id="resetModal" onclick="handleOverlayClick(event, 'resetModal')">
     <div class="modal-card" style="max-width: 320px;">
         <div class="modal-title">確認重置</div>
@@ -499,6 +513,18 @@
         <div class="modal-actions">
             <button class="modal-btn btn-cancel" onclick="closeResetModal()">取消</button>
             <button class="modal-btn btn-confirm" onclick="confirmReset()">確定重置</button>
+        </div>
+    </div>
+</div>
+
+<!-- 清空所有紀錄確認彈窗 -->
+<div class="modal-overlay" id="resetHistoryModal" onclick="handleOverlayClick(event, 'resetHistoryModal')" style="z-index: 1050;">
+    <div class="modal-card" style="max-width: 320px;">
+        <div class="modal-title">確認清空紀錄</div>
+        <div class="modal-text">確定要清空所有歷史紀錄嗎？<br>（此操作無法復原）</div>
+        <div class="modal-actions">
+            <button class="modal-btn btn-cancel" onclick="closeResetHistoryModal()">取消</button>
+            <button class="modal-btn btn-confirm" onclick="confirmResetHistory()">確定清空</button>
         </div>
     </div>
 </div>
@@ -531,8 +557,8 @@
         <div class="batch-list-box" id="historyListBox" style="min-height: 220px; max-height: 350px;"></div>
 
         <div class="modal-actions">
-            <button class="modal-btn btn-cancel" style="background-color: #d32f2f; color: #fff;" onclick="resetHistory()">🗑️ 清空所有紀錄</button>
-            <button class="modal-btn btn-confirm" style="background-color: #2e7d32;" onclick="syncHistoryToHome()">寫入（同步到首頁）</button>
+            <button class="modal-btn btn-cancel" style="background-color: #d32f2f; color: #fff;" onclick="openResetHistoryModal()">🗑️ 清空所有紀錄</button>
+            <button class="modal-btn btn-confirm" style="background-color: #2e7d32;" onclick="syncHistoryToHome()">同步更新</button>
         </div>
     </div>
 </div>
@@ -808,8 +834,10 @@
             orderAmt += item.price * item.qty;
         });
 
+        const nextId = orderHistory.length + 1;
         orderHistory.push({
-            id: orderHistory.length + 1,
+            id: nextId,
+            title: `單號 #${nextId}`,
             items: JSON.parse(JSON.stringify(currentBatchList)),
             totalQty: orderQty,
             totalAmt: orderAmt
@@ -844,7 +872,7 @@
 
             card.innerHTML = `
                 <div class="order-header">
-                    <span>單號 #${order.id}</span>
+                    <input type="text" class="order-title-input" value="${order.title}" onchange="updateOrderTitle(${historyIdx}, this.value)">
                     <button class="btn-del-item" onclick="deleteHistoryOrder(${historyIdx})" title="刪除此單">✕</button>
                 </div>
                 <div class="order-detail">${detailsHtml}</div>
@@ -854,22 +882,36 @@
         });
     }
 
+    function updateOrderTitle(index, newTitle) {
+        if (orderHistory[index]) {
+            orderHistory[index].title = newTitle.trim() || `單號 #${orderHistory[index].id}`;
+        }
+    }
+
     function deleteHistoryOrder(index) {
         orderHistory.splice(index, 1);
         renderHistoryList();
     }
 
-    function resetHistory() {
+    /* 清空所有紀錄 UI 彈窗機制 */
+    function openResetHistoryModal() {
         if (orderHistory.length === 0) {
             showMsgModal("目前沒有紀錄可清空！");
             return;
         }
+        document.getElementById('resetHistoryModal').classList.add('active');
+    }
+    function closeResetHistoryModal() {
+        document.getElementById('resetHistoryModal').classList.remove('active');
+    }
+    function confirmResetHistory() {
         orderHistory = [];
         renderHistoryList();
+        closeResetHistoryModal();
         showMsgModal("已成功清空所有歷史紀錄！");
     }
 
-    /* 寫入（同步到首頁） */
+    /* 同步更新（同步到首頁） */
     function syncHistoryToHome() {
         if (orderHistory.length === 0) {
             showMsgModal("尚無可同步的歷史紀錄！");
@@ -892,7 +934,7 @@
 
         calculateTotals();
         closeHistoryModal();
-        showMsgModal("已成功將所有紀錄同步累加至首頁！");
+        showMsgModal("已成功將所有紀錄同步更新至首頁！");
     }
 
     /* 字級調整 */
