@@ -267,7 +267,7 @@
 
         tr.hide-row { display: none; }
 
-        /* 通用 Modal 彈窗樣式 */
+        /* 通用 Modal 彈窗樣式 - 修正 Flex 與高度限制 */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -296,11 +296,11 @@
             width: 90%;
             max-width: 450px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-            max-height: 85vh; /* 確保不會超過螢幕高度 */
+            max-height: 85vh; /* 限制最高佔螢幕 85% */
             display: flex;
-            flex-direction: column;
+            flex-direction: column; /* 強制垂直彈性佈局 */
             box-sizing: border-box;
-            overflow: hidden; /* 防止父容器溢出 */
+            overflow: hidden; /* 防止外殼被撐開 */
         }
 
         .modal-title {
@@ -309,7 +309,7 @@
             margin-bottom: 12px;
             color: #333;
             text-align: center;
-            flex-shrink: 0;
+            flex-shrink: 0; /* 標題不被壓縮 */
         }
 
         .modal-text {
@@ -324,7 +324,7 @@
             gap: 10px;
             justify-content: center;
             margin-top: 15px;
-            flex-shrink: 0; /* 底部按鈕區不被壓縮 */
+            flex-shrink: 0; /* 按鈕區不被壓縮 */
         }
 
         .modal-btn {
@@ -347,14 +347,14 @@
             gap: 8px;
             margin-bottom: 12px;
             align-items: center;
-            flex-shrink: 0;
+            flex-shrink: 0; /* 表單區不被壓縮 */
         }
 
         .batch-select {
             flex: 2;
             height: 36px;
             font-size: 14px;
-            width: 0; /* 讓 flex 正常縮放 */
+            width: 0;
         }
 
         .batch-input-qty {
@@ -377,14 +377,16 @@
             flex-shrink: 0;
         }
 
-        /* 修正：讓清單區域內部捲動，防跑出面板 */
+        /* 修正關鍵：清單區域啟用內部滾動軸 */
         .batch-list-box {
-            flex: 1;
-            overflow-y: auto;
+            flex: 1; /* 自動填滿剩餘高度 */
+            overflow-y: auto; /* 超出內容時自動顯示垂直滾動軸 */
+            -webkit-overflow-scrolling: touch; /* 手機端平滑滾動 */
             border: 1px solid #ddd;
             border-radius: 6px;
             padding: 8px;
-            min-height: 120px;
+            min-height: 150px;
+            max-height: 55vh; /* 限制最大高度 */
             background: #fafafa;
         }
 
@@ -392,7 +394,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 6px;
+            padding: 8px 6px;
             border-bottom: 1px dashed #e0e0e0;
             font-size: 14px;
         }
@@ -404,6 +406,7 @@
             font-weight: bold;
             cursor: pointer;
             padding: 0 4px;
+            font-size: 16px;
         }
 
         .order-card {
@@ -512,7 +515,7 @@
     </div>
 </div>
 
-<!-- 重置確認彈窗 (首頁) -->
+<!-- 重置確認彈窗 -->
 <div class="modal-overlay" id="resetModal" onclick="handleOverlayClick(event, 'resetModal')">
     <div class="modal-card" style="max-width: 320px;">
         <div class="modal-title">確認重置</div>
@@ -570,7 +573,7 @@
     </div>
 </div>
 
-<!-- 💡 通用 UI 訊息提示面板 -->
+<!-- 通用 UI 訊息提示面板 -->
 <div class="modal-overlay" id="msgModal" onclick="handleOverlayClick(event, 'msgModal')" style="z-index: 1100;">
     <div class="modal-card" style="max-width: 300px;">
         <div class="modal-title" id="msgModalTitle">提示</div>
@@ -651,7 +654,6 @@
         updateTextColor(index);
     });
 
-    /* 動態讀取首頁最新名稱與價格並更新下拉選單 */
     function syncBatchSelectFromHome() {
         const select = document.getElementById('batchCardSelect');
         select.innerHTML = '';
@@ -758,14 +760,12 @@
         });
     }
 
-    /* 點擊面板外部遮罩關閉 Modal */
     function handleOverlayClick(event, modalId) {
         if (event.target.id === modalId) {
             document.getElementById(modalId).classList.remove('active');
         }
     }
 
-    /* 自訂 UI 訊息彈窗 */
     function showMsgModal(text, title = "提示") {
         document.getElementById('msgModalTitle').innerText = title;
         document.getElementById('msgModalText').innerText = text;
@@ -773,7 +773,6 @@
     }
     function closeMsgModal() { document.getElementById('msgModal').classList.remove('active'); }
 
-    /* Modal 控制與重置 */
     function openResetModal() { document.getElementById('resetModal').classList.add('active'); }
     function closeResetModal() { document.getElementById('resetModal').classList.remove('active'); }
     function confirmReset() {
@@ -785,11 +784,10 @@
 
     /* ⚡ 批量設定功能 */
     function openBatchModal() { 
-        syncBatchSelectFromHome(); // 開啟時同步首頁最新名稱與價格
+        syncBatchSelectFromHome();
         renderBatchList();
         document.getElementById('batchModal').classList.add('active'); 
     }
-    function closeBatchModal() { document.getElementById('batchModal').classList.remove('active'); }
 
     function addBatchItem(e) {
         if (e) e.stopPropagation();
@@ -864,7 +862,7 @@
 
         currentBatchList = [];
         renderBatchList();
-        closeBatchModal();
+        document.getElementById('batchModal').classList.remove('active');
         showMsgModal("已成功新增一單至紀錄！");
     }
 
@@ -873,7 +871,6 @@
         renderHistoryList();
         document.getElementById('historyModal').classList.add('active');
     }
-    function closeHistoryModal() { document.getElementById('historyModal').classList.remove('active'); }
 
     function renderHistoryList() {
         const box = document.getElementById('historyListBox');
@@ -912,7 +909,6 @@
         renderHistoryList();
     }
 
-    /* 清空所有紀錄 UI 彈窗機制 */
     function openResetHistoryModal() {
         if (orderHistory.length === 0) {
             showMsgModal("目前沒有紀錄可清空！");
@@ -930,7 +926,6 @@
         showMsgModal("已成功清空所有歷史紀錄！");
     }
 
-    /* 同步更新（同步到首頁） */
     function syncHistoryToHome() {
         if (orderHistory.length === 0) {
             showMsgModal("尚無可同步的歷史紀錄！");
@@ -952,11 +947,10 @@
         });
 
         calculateTotals();
-        closeHistoryModal();
+        document.getElementById('historyModal').classList.remove('active');
         showMsgModal("已成功將所有紀錄同步更新至首頁！");
     }
 
-    /* 字級調整 */
     function adjustSize(delta) {
         currentFontSize += delta;
         if (currentFontSize < 1) currentFontSize = 1;
