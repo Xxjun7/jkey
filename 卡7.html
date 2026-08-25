@@ -91,20 +91,21 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 16px;
+            gap: 12px;
             background-color: #e8f5e9;
-            padding: 6px 12px;
+            padding: 6px 10px;
             border-radius: 6px;
             border: 1px solid #c8e6c9;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
             margin-bottom: 10px;
             flex-shrink: 0;
+            flex-wrap: wrap;
         }
 
         .summary-val {
             color: #d32f2f;
-            font-size: 16px;
+            font-size: 15px;
         }
 
         .top-btn {
@@ -584,7 +585,7 @@
     </div>
 </div>
 
-<!-- ⚡ 批量設定面板 -->
+<!-- ⚡ 批量設定 -->
 <div class="modal-overlay" id="batchModal" onclick="handleOverlayClick(event, 'batchModal')">
     <div class="modal-card">
         <div class="modal-title" id="batchModalTitle">⚡ 批量設定</div>
@@ -606,13 +607,14 @@
     </div>
 </div>
 
-<!-- 📜 批量紀錄面板 -->
+<!-- 📜 批量歷史紀錄 -->
 <div class="modal-overlay" id="historyModal" onclick="handleOverlayClick(event, 'historyModal')">
     <div class="modal-card">
         <div class="modal-title">📜 批量歷史紀錄</div>
         
         <!-- 歷史紀錄總計 -->
         <div class="history-summary">
+            <div>總單: <span class="summary-val" id="historyTotalOrders">0</span></div>
             <div>總數: <span class="summary-val" id="historyTotalQuantity">0</span></div>
             <div>總額: <span class="summary-val" id="historyTotalAmount">0</span></div>
         </div>
@@ -688,6 +690,7 @@
     let items = [];
     let editingHistoryIndex = null;
     let pendingDeleteHistoryIndex = null;
+    let msgModalCallback = null;
 
     // --- 本地儲存機制 (LocalStorage) ---
     function saveToLocalStorage() {
@@ -877,15 +880,22 @@
         }
     }
 
-    function showMsgModal(text, title = "提示") {
+    function showMsgModal(text, title = "提示", callback = null) {
+        msgModalCallback = callback;
         document.getElementById('msgModalTitle').innerText = title;
         document.getElementById('msgModalText').innerText = text;
         document.getElementById('msgModal').classList.add('active');
         toggleBodyLock();
     }
+    
     function closeMsgModal() { 
         document.getElementById('msgModal').classList.remove('active'); 
         toggleBodyLock();
+        if (typeof msgModalCallback === 'function') {
+            const cb = msgModalCallback;
+            msgModalCallback = null;
+            cb();
+        }
     }
 
     function openResetModal() { 
@@ -990,8 +1000,9 @@
         });
 
         const customTitle = document.getElementById('batchOrderName').value.trim();
+        const isEditing = (editingHistoryIndex !== null);
 
-        if (editingHistoryIndex !== null) {
+        if (isEditing) {
             const origId = orderHistory[editingHistoryIndex].id;
             const finalTitle = customTitle || `單號 #${origId}`;
             
@@ -1002,8 +1013,6 @@
                 totalQty: orderQty,
                 totalAmt: orderAmt
             };
-            
-            showMsgModal("已成功套用修改！");
         } else {
             const nextId = orderHistory.length + 1;
             const finalTitle = customTitle || `單號 #${nextId}`;
@@ -1015,8 +1024,6 @@
                 totalQty: orderQty,
                 totalAmt: orderAmt
             });
-            
-            showMsgModal("已成功新增一單至紀錄！");
         }
 
         saveToLocalStorage();
@@ -1025,6 +1032,16 @@
         editingHistoryIndex = null;
         renderBatchList();
         closeBatchModal();
+
+        if (isEditing) {
+            showMsgModal("已成功套用修改！", "提示", function() {
+                openHistoryModal();
+            });
+        } else {
+            showMsgModal("已成功新增一單至紀錄！", "提示", function() {
+                openBatchModal();
+            });
+        }
     }
 
     function openHistoryModal() {
@@ -1040,14 +1057,16 @@
     function renderHistoryList() {
         const box = document.getElementById('historyListBox');
         
-        // 計算所有歷史紀錄的總數與總額
+        let historyTotalOrders = orderHistory.length;
         let historyTotalQty = 0;
         let historyTotalAmt = 0;
+        
         orderHistory.forEach(order => {
             historyTotalQty += order.totalQty || 0;
             historyTotalAmt += order.totalAmt || 0;
         });
 
+        document.getElementById('historyTotalOrders').innerText = historyTotalOrders;
         document.getElementById('historyTotalQuantity').innerText = historyTotalQty;
         document.getElementById('historyTotalAmount').innerText = historyTotalAmt.toLocaleString();
 
