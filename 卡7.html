@@ -590,7 +590,7 @@
     <div class="modal-card">
         <div class="modal-title" id="batchModalTitle">⚡ 批量設定</div>
         
-        <input type="text" class="batch-order-input" id="batchOrderName" placeholder="單號／名稱 (選填，未填預設 單號 #)">
+        <input type="text" class="batch-order-input" id="batchOrderName" placeholder="單號／名稱 (未填預設 單號 #1)">
 
         <div class="batch-form-group">
             <select class="batch-select" id="batchCardSelect"></select>
@@ -917,10 +917,14 @@
     function openBatchModal(isEditMode = false) { 
         syncBatchSelectFromHome();
         
+        const nextOrderNum = orderHistory.length + 1;
+        const inputElem = document.getElementById('batchOrderName');
+
         if (!isEditMode) {
             editingHistoryIndex = null;
             currentBatchList = [];
-            document.getElementById('batchOrderName').value = '';
+            inputElem.value = '';
+            inputElem.placeholder = `單號／名稱 (未填預設 單號 #${nextOrderNum})`;
             document.getElementById('batchModalTitle').innerText = '⚡ 批量設定';
             const btnSave = document.getElementById('btnSaveBatch');
             btnSave.innerText = '+ 批量新增一單';
