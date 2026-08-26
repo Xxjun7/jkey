@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta property="og:title" content="卡片費用計算器">
+    <meta property="og:description" content="威力卡+">
+    <link rel="icon" type="image/x-icon" href="./Jicon.ico">
+  
+    <title>卡片費用計算器</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f8;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+            --header-bg: #fff0f0;
+            --price-bg: #ffeedd;
+            
+            /* 動態微調變數 */
+            --font-size: 15px;
+            --padding-v: 8px;
+            --padding-h: 6px;
+            --input-height: 28px;
+            --btn-size: 28px;
+            --price-width: 65px;
+            --qty-width: 40px;
+        }
+
+        /* 預留滾動條位置，防止彈窗跳出時頁面晃動 */
+        html {
+            scrollbar-gutter: stable;
+        }
+
+        body.modal-open {
+            overflow: hidden !important;
+            touch-action: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .header-summary {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background-color: #f9f9f9;
+            padding: 4px 12px;
+            border-radius: 6px;
+            border: 1px solid #eee;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .history-summary {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background-color: #e8f5e9;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid #c8e6c9;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+
+        .summary-val {
+            color: #d32f2f;
+            font-size: 15px;
+        }
+
+        .top-btn {
+            background-color: #ffffff;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .top-btn:active { background-color: #eee; }
+
+        .top-btn.active {
+            background-color: #2196F3;
+            color: white;
+            border-color: #2196F3;
+        }
+
+        .btn-purple {
+            background-color: #8e24aa;
+            color: white;
+            border-color: #8e24aa;
+        }
+        .btn-purple:active { background-color: #7b1fa2; }
+
+        .btn-green {
+            background-color: #2e7d32;
+            color: white;
+            border-color: #2e7d32;
+        }
+        .btn-green:active { background-color: #1b5e20; }
+
+        .font-btn-group {
+            display: flex;
+            gap: 2px;
+        }
+
+        .font-btn-group .top-btn { padding: 5px 8px; }
+
+        .table-wrapper {
+            overflow-x: auto;
+            max-height: calc(100vh - 120px);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+
+        th, td {
+            padding: var(--padding-v) var(--padding-h);
+            border-bottom: 1px solid var(--border-color);
+            font-size: var(--font-size);
+        }
+
+        th {
+            background-color: var(--header-bg);
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            font-weight: bold;
+            color: #d32f2f;
+        }
+
+        th.clickable-th {
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+            touch-action: manipulation;
+        }
+
+        th.unlocked {
+            background-color: #C8DCC8 !important;
+            color: #2e7d32 !important;
+        }
+
+        th.locked {
+            background-color: var(--header-bg) !important;
+            color: #d32f2f !important;
+        }
+
+        .price-td { background-color: var(--price-bg); }
+
+        input[type="text"], input[type="number"], select {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 2px 4px;
+            font-size: var(--font-size);
+            box-sizing: border-box;
+            background-color: #fff;
+            height: var(--input-height);
+            touch-action: manipulation;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: #2196F3;
+        }
+
+        .name-input {
+            width: 100%;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .color-red { color: #d32f2f !important; }
+        .color-purple { color: #8e24aa !important; }
+        .color-yellow { color: #d97706 !important; }
+        .color-default { color: #333333 !important; }
+
+        .price-input {
+            width: var(--price-width);
+            text-align: center;
+            font-weight: bold;
+            color: #d32f2f;
+        }
+
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .btn-qty {
+            width: var(--btn-size);
+            height: var(--btn-size);
+            border: 1px solid #ccc;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            font-size: calc(var(--font-size) - 1px);
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            touch-action: manipulation;
+        }
+
+        .btn-qty:active { background-color: #ddd; }
+
+        .qty-input {
+            width: var(--qty-width);
+            text-align: center;
+        }
+
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] { -moz-appearance: textfield; }
+
+        .lock-input {
+            border: none !important;
+            background: transparent !important;
+            pointer-events: none;
+            padding: 0;
+        }
+
+        .lock-qty .btn-qty { display: none; }
+
+        .subtotal {
+            font-weight: bold;
+            color: #d32f2f;
+            min-width: 50px;
+        }
+
+        tr.hide-row { display: none; }
+
+        /* 通用 Modal 彈窗樣式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+            touch-action: none;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-card {
+            background: #fff;
+            padding: 16px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 460px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            touch-action: auto;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #333;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .modal-text {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            margin-top: 12px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+
+        .modal-btn {
+            flex: 1;
+            min-width: 75px;
+            padding: 8px 4px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            touch-action: manipulation;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        .btn-confirm { background-color: #d32f2f; color: #fff; }
+        .btn-cancel { background-color: #e0e0e0; color: #333; }
+
+        .batch-form-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .batch-order-input {
+            width: 100%;
+            height: 36px;
+            font-size: 14px;
+            padding: 0 8px;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .batch-select {
+            flex: 2;
+            height: 36px;
+            font-size: 14px;
+            width: 0;
+        }
+
+        .batch-input-qty {
+            flex: 1;
+            height: 36px;
+            font-size: 14px;
+            text-align: center;
+            width: 0;
+        }
+
+        .btn-add-item {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 0 14px;
+            height: 36px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .batch-list-box {
+            flex: 1 1 auto;
+            min-height: 80px;
+            max-height: 50vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 8px;
+            background: #fafafa;
+            box-sizing: border-box;
+            overscroll-behavior: contain;
+        }
+
+        .batch-item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 6px;
+            border-bottom: 1px dashed #e0e0e0;
+            font-size: 14px;
+        }
+
+        .btn-del-item {
+            color: #d32f2f;
+            border: none;
+            background: none;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0 6px;
+            font-size: 16px;
+        }
+
+        .order-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #fff;
+            text-align: left;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 14px;
+            color: #1976D2;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 6px;
+            margin-bottom: 6px;
+        }
+
+        .order-title-text {
+            font-weight: bold;
+            font-size: 15px;
+            color: #1976D2;
+        }
+
+        .order-action-btns {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-icon {
+            border: none;
+            background: none;
+            cursor: pointer;
+            padding: 2px 6px;
+            font-size: 15px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .btn-icon:active { background-color: #eee; }
+
+        .order-detail {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .order-summary {
+            margin-top: 6px;
+            font-weight: bold;
+            font-size: 13px;
+            text-align: right;
+            color: #d32f2f;
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 4px; }
+            .container { padding: 8px; }
+            .header-bar { justify-content: space-between; }
+            .header-summary { font-size: 12px; padding: 2px 6px; gap: 6px; }
+            .summary-val { font-size: 14px; }
+            .modal-card { width: 95%; padding: 10px; }
+            .modal-actions { gap: 4px; }
+            .modal-btn { font-size: 11px; padding: 8px 2px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-bar">
+        <div class="header-left">
+            <button class="top-btn" type="button" onclick="openResetModal()">🔄 重置數量</button>
+            <button class="top-btn" id="filterBtn" type="button" onclick="toggleFilterOnlyHasQty()">🌟 只看有數量</button>
+            
+            <button class="top-btn btn-purple" type="button" onclick="openBatchModal()">⚡ 批量設定</button>
+            <button class="top-btn btn-green" type="button" onclick="openHistoryModal()">📜 批量紀錄</button>
+            
+            <div class="font-btn-group">
+                <button class="top-btn" type="button" onclick="adjustSize(-1)">A-</button>
+                <button class="top-btn" type="button" onclick="resetSize()" title="恢復預設大小">↺</button>
+                <button class="top-btn" type="button" onclick="adjustSize(1)">A+</button>
+            </div>
+        </div>
+
+        <div class="header-summary">
+            <div>總數: <span class="summary-val" id="totalQuantity">0</span></div>
+            <div>總額: <span class="summary-val" id="totalAmount">0</span></div>
+        </div>
+    </div>
+    
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th id="th-name" class="clickable-th locked" style="width: 38%;" onclick="toggleColEdit('name')">卡片類別 🔒</th>
+                    <th id="th-price" class="clickable-th locked" style="width: 20%;" onclick="toggleColEdit('price')">價格 🔒</th>
+                    <th id="th-qty" class="clickable-th locked" style="width: 24%;" onclick="toggleColEdit('qty')">數量 🔒</th>
+                    <th style="width: 18%;">金額</th>
+                </tr>
+            </thead>
+            <tbody id="cardTable"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 重置確認彈窗 (首頁) -->
+<div class="modal-overlay" id="resetModal" onclick="handleOverlayClick(event, 'resetModal')">
+    <div class="modal-card" style="max-width: 320px;">
+        <div class="modal-title">確認重置</div>
+        <div class="modal-text">確定要清空所有卡片數量嗎？<br>（卡片名稱與價格會保留）</div>
+        <div class="modal-actions">
+            <button class="modal-btn btn-cancel" type="button" onclick="closeResetModal()">取消</button>
+            <button class="modal-btn btn-confirm" type="button" onclick="confirmReset()">確定重置</button>
+        </div>
+    </div>
+</div>
+
+<!-- 清空所有紀錄確認彈窗 -->
+<div class="modal-overlay" id="resetHistoryModal" onclick="handleOverlayClick(event, 'resetHistoryModal')" style="z-index: 1050;">
+    <div class="modal-card" style="max-width: 320px;">
+        <div class="modal-title">確認清空紀錄</div>
+        <div class="modal-text">確定要清空所有歷史紀錄嗎？<br>（此操作無法復原）</div>
+        <div class="modal-actions">
+            <button class="modal-btn btn-cancel" type="button" onclick="closeResetHistoryModal()">取消</button>
+            <button class="modal-btn btn-confirm" type="button" onclick="confirmResetHistory()">確定清空</button>
+        </div>
+    </div>
+</div>
+
+<!-- 刪除單筆歷史紀錄確認彈窗 -->
+<div class="modal-overlay" id="deleteSingleOrderModal" onclick="handleOverlayClick(event, 'deleteSingleOrderModal')" style="z-index: 1050;">
+    <div class="modal-card" style="max-width: 320px;">
+        <div class="modal-title">刪除確認</div>
+        <div class="modal-text" id="deleteSingleOrderText">確定要刪除這筆紀錄嗎？</div>
+        <div class="modal-actions">
+            <button class="modal-btn btn-cancel" type="button" onclick="closeDeleteSingleOrderModal()">取消</button>
+            <button class="modal-btn btn-confirm" type="button" onclick="confirmDeleteSingleOrder()">確定刪除</button>
+        </div>
+    </div>
+</div>
+
+<!-- ⚡ 批量設定 -->
+<div class="modal-overlay" id="batchModal" onclick="handleOverlayClick(event, 'batchModal')">
+    <div class="modal-card">
+        <div class="modal-title" id="batchModalTitle">⚡ 批量設定</div>
+        
+        <input type="text" class="batch-order-input" id="batchOrderName" placeholder="單號／名稱 (未填預設 單號 #1)">
+
+        <div class="batch-form-group">
+            <select class="batch-select" id="batchCardSelect"></select>
+            <input type="number" class="batch-input-qty" id="batchCardQty" placeholder="數量" min="1" value="1">
+            <button class="btn-add-item" type="button" onclick="addBatchItem(event)">加入</button>
+        </div>
+
+        <div style="text-align: left; font-size: 12px; color: #666; margin-bottom: 4px; flex-shrink: 0;">當前待新增清單：</div>
+        <div class="batch-list-box" id="batchListBox"></div>
+
+        <div class="modal-actions">
+            <button class="modal-btn btn-confirm" id="btnSaveBatch" type="button" style="background-color: #8e24aa;" onclick="saveBatchOrder()">+ 批量新增一單</button>
+        </div>
+    </div>
+</div>
+
+<!-- 📜 批量歷史紀錄 -->
+<div class="modal-overlay" id="historyModal" onclick="handleOverlayClick(event, 'historyModal')">
+    <div class="modal-card">
+        <div class="modal-title">📜 批量歷史紀錄</div>
+        
+        <!-- 歷史紀錄總計 -->
+        <div class="history-summary">
+            <div>總單: <span class="summary-val" id="historyTotalOrders">0</span></div>
+            <div>總數: <span class="summary-val" id="historyTotalQuantity">0</span></div>
+            <div>總額: <span class="summary-val" id="historyTotalAmount">0</span></div>
+        </div>
+
+        <div class="batch-list-box" id="historyListBox"></div>
+
+        <!-- 按鈕位置：🗑️ 清空所有紀錄 | 同步更新 | 📤 分享 | 📋 複製紀錄 -->
+        <div class="modal-actions">
+            <button class="modal-btn btn-cancel" type="button" style="background-color: #d32f2f; color: #fff;" onclick="openResetHistoryModal()">🗑️ 清空紀錄</button>
+            <button class="modal-btn btn-confirm" type="button" style="background-color: #2e7d32;" onclick="syncHistoryToHome()">同步更新</button>
+            <button class="modal-btn btn-confirm" type="button" style="background-color: #0288d1;" onclick="shareHistoryOrders()">📤 分享</button>
+            <button class="modal-btn btn-confirm" type="button" style="background-color: #f57c00;" onclick="copyHistoryOrders()">📋 複製紀錄</button>
+        </div>
+    </div>
+</div>
+
+<!-- 💡 通用 UI 訊息提示面板 -->
+<div class="modal-overlay" id="msgModal" onclick="handleOverlayClick(event, 'msgModal')" style="z-index: 1100;">
+    <div class="modal-card" style="max-width: 300px;">
+        <div class="modal-title" id="msgModalTitle">提示</div>
+        <div class="modal-text" id="msgModalText">內容訊息</div>
+        <div class="modal-actions">
+            <button class="modal-btn btn-confirm" type="button" style="background-color: #2196F3;" onclick="closeMsgModal()">確定</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const defaultItems = [
+        { name: "體驗5星-紅", price: 5 },
+        { name: "體驗5星-紫", price: 25 },
+        { name: "一般1星-黃", price: 20 },
+        { name: "一般2星-黃", price: 40 },
+        { name: "一般3星-黃", price: 60 },
+        { name: "一般4星-黃", price: 105 },
+        { name: "一般5星-黃", price: 150 },
+        { name: "一般1星-紅", price: 80 },
+        { name: "一般2星-紅", price: 120 },
+        { name: "一般3星-紅", price: 200 },
+        { name: "一般4星-紅", price: 300 },
+        { name: "一般5星-紅", price: 400 },
+        { name: "一般1星-紫", price: 200 },
+        { name: "一般2星-紫", price: 300 },
+        { name: "一般3星-紫", price: 500 },
+        { name: "一般4星-紫", price: 750 },
+        { name: "一般5星-紫", price: 1000 },
+        { name: "高手1星-黃", price: 300 },
+        { name: "高手2星-黃", price: 350 },
+        { name: "高手3星-黃", price: 400 },
+        { name: "高手4星-黃", price: "" },
+        { name: "高手5星-黃", price: "" },
+        { name: "高手1星-紅", price: 800 },
+        { name: "高手2星-紅", price: 1000 },
+        { name: "高手3星-紅", price: 1200 },
+        { name: "高手4星-紅", price: 1500 },
+        { name: "高手5星-紅", price: 2000 },
+        { name: "高手1星-紫", price: 2000 },
+        { name: "高手2星-紫", price: 2400 },
+        { name: "高手3星-紫", price: 3000 },
+        { name: "高手4星-紫", price: 3750 },
+        { name: "高手5星-紫", price: 4500 },
+        { name: "至尊1星-紅", price: 2500 }
+    ];
+
+    const editState = { name: false, price: false, qty: false };
+    let showOnlyHasQty = false;
+    let currentFontSize = 15;
+
+    let currentBatchList = [];
+    let orderHistory = [];
+    let items = [];
+    let editingHistoryIndex = null;
+    let pendingDeleteHistoryIndex = null;
+    let msgModalCallback = null;
+
+    // --- 本地儲存機制 (LocalStorage) ---
+    function saveToLocalStorage() {
+        const tableData = items.map((_, index) => ({
+            name: document.getElementById(`name-${index}`).value,
+            price: document.getElementById(`price-${index}`).value,
+            qty: document.getElementById(`qty-${index}`).value
+        }));
+        localStorage.setItem('cardCalc_tableData', JSON.stringify(tableData));
+        localStorage.setItem('cardCalc_orderHistory', JSON.stringify(orderHistory));
+    }
+
+    function loadFromLocalStorage() {
+        const savedHistory = localStorage.getItem('cardCalc_orderHistory');
+        if (savedHistory) {
+            try { orderHistory = JSON.parse(savedHistory); } catch (e) { orderHistory = []; }
+        }
+
+        const savedTable = localStorage.getItem('cardCalc_tableData');
+        let tableData = null;
+        if (savedTable) {
+            try { tableData = JSON.parse(savedTable); } catch (e) { tableData = null; }
+        }
+
+        if (tableData && tableData.length === defaultItems.length) {
+            items = defaultItems.map((def, index) => ({
+                name: tableData[index].name !== undefined ? tableData[index].name : def.name,
+                price: tableData[index].price !== undefined ? tableData[index].price : def.price,
+                qty: tableData[index].qty !== undefined ? tableData[index].qty : 0
+            }));
+        } else {
+            items = defaultItems.map(def => ({ ...def, qty: 0 }));
+        }
+    }
+
+    // 初始化表格內容
+    loadFromLocalStorage();
+    const tbody = document.getElementById('cardTable');
+
+    items.forEach((item, index) => {
+        const tr = document.createElement('tr');
+        tr.id = `row-${index}`;
+        tr.innerHTML = `
+            <td><input type="text" class="name-input lock-input" id="name-${index}" value="${item.name}" oninput="handleDataChange(${index})"></td>
+            <td class="price-td"><input type="number" class="price-input lock-input" id="price-${index}" value="${item.price}" placeholder="0" oninput="handleDataChange(${index})"></td>
+            <td>
+                <div class="quantity-control lock-qty" id="qty-box-${index}">
+                    <button class="btn-qty" type="button" onclick="changeQty(${index}, -1)">➖</button>
+                    <input type="number" class="qty-input lock-input" id="qty-${index}" min="0" value="${item.qty}" oninput="handleDataChange(${index})">
+                    <button class="btn-qty" type="button" onclick="changeQty(${index}, 1)">➕</button>
+                </div>
+            </td>
+            <td class="subtotal" id="subtotal-${index}">0</td>
+        `;
+        tbody.appendChild(tr);
+        updateTextColor(index);
+    });
+
+    calculateTotals();
+
+    function handleDataChange(index) {
+        updateTextColor(index);
+        calculateTotals();
+        saveToLocalStorage();
+    }
+
+    function toggleBodyLock() {
+        const hasActiveModal = document.querySelector('.modal-overlay.active');
+        if (hasActiveModal) {
+            document.body.classList.add('modal-open');
+        } else {
+            document.body.classList.remove('modal-open');
+        }
+    }
+
+    function syncBatchSelectFromHome() {
+        const select = document.getElementById('batchCardSelect');
+        select.innerHTML = '';
+        items.forEach((_, index) => {
+            const currentName = document.getElementById(`name-${index}`).value.trim() || `項目 #${index + 1}`;
+            const currentPriceVal = document.getElementById(`price-${index}`).value;
+            const currentPrice = parseFloat(currentPriceVal);
+            const priceText = (!isNaN(currentPrice) && currentPriceVal !== "") ? `$${currentPrice}` : '未定價';
+
+            const opt = document.createElement('option');
+            opt.value = index;
+            opt.innerText = `${currentName} (${priceText})`;
+            select.appendChild(opt);
+        });
+    }
+
+    function updateTextColor(index) {
+        const input = document.getElementById(`name-${index}`);
+        const val = input.value.trim();
+        input.classList.remove('color-red', 'color-purple', 'color-yellow', 'color-default');
+        if (val.endsWith('紅')) input.classList.add('color-red');
+        else if (val.endsWith('紫')) input.classList.add('color-purple');
+        else if (val.endsWith('黃')) input.classList.add('color-yellow');
+        else input.classList.add('color-default');
+    }
+
+    function changeQty(index, delta) {
+        if (!editState.qty) return;
+        const input = document.getElementById(`qty-${index}`);
+        let current = parseInt(input.value) || 0;
+        current += delta;
+        if (current < 0) current = 0;
+        input.value = current;
+        handleDataChange(index);
+    }
+
+    function calculateTotals() {
+        let totalQty = 0, totalAmt = 0;
+        items.forEach((_, index) => {
+            const price = parseFloat(document.getElementById(`price-${index}`).value) || 0;
+            const qty = parseInt(document.getElementById(`qty-${index}`).value) || 0;
+            const subtotal = price * qty;
+            document.getElementById(`subtotal-${index}`).innerText = subtotal > 0 ? subtotal : '0';
+            totalQty += qty;
+            totalAmt += subtotal;
+
+            if (showOnlyHasQty) {
+                const row = document.getElementById(`row-${index}`);
+                if (qty > 0) row.classList.remove('hide-row');
+                else row.classList.add('hide-row');
+            }
+        });
+        document.getElementById('totalQuantity').innerText = totalQty;
+        document.getElementById('totalAmount').innerText = totalAmt.toLocaleString();
+    }
+
+    function toggleFilterOnlyHasQty() {
+        showOnlyHasQty = !showOnlyHasQty;
+        const btn = document.getElementById('filterBtn');
+
+        if (showOnlyHasQty) {
+            btn.classList.add('active');
+            btn.innerText = '🌟 顯示全部';
+        } else {
+            btn.classList.remove('active');
+            btn.innerText = '🌟 只看有數量';
+        }
+
+        items.forEach((_, index) => {
+            const row = document.getElementById(`row-${index}`);
+            const qty = parseInt(document.getElementById(`qty-${index}`).value) || 0;
+            if (showOnlyHasQty && qty === 0) row.classList.add('hide-row');
+            else row.classList.remove('hide-row');
+        });
+    }
+
+    function toggleColEdit(colType) {
+        editState[colType] = !editState[colType];
+        const isEditable = editState[colType];
+        
+        const thMap = { name: 'th-name', price: 'th-price', qty: 'th-qty' };
+        const labelMap = { name: '卡片類別', price: '價格', qty: '數量' };
+        const th = document.getElementById(thMap[colType]);
+
+        if (isEditable) {
+            th.classList.remove('locked');
+            th.classList.add('unlocked');
+            th.innerText = `${labelMap[colType]} 🔓`;
+        } else {
+            th.classList.remove('unlocked');
+            th.classList.add('locked');
+            th.innerText = `${labelMap[colType]} 🔒`;
+        }
+
+        items.forEach((_, index) => {
+            if (colType === 'name') {
+                document.getElementById(`name-${index}`).classList.toggle('lock-input', !isEditable);
+            } else if (colType === 'price') {
+                document.getElementById(`price-${index}`).classList.toggle('lock-input', !isEditable);
+            } else if (colType === 'qty') {
+                document.getElementById(`qty-box-${index}`).classList.toggle('lock-qty', !isEditable);
+                document.getElementById(`qty-${index}`).classList.toggle('lock-input', !isEditable);
+            }
+        });
+    }
+
+    function handleOverlayClick(event, modalId) {
+        if (event.target.id === modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            toggleBodyLock();
+        }
+    }
+
+    function showMsgModal(text, title = "提示", callback = null) {
+        msgModalCallback = callback;
+        document.getElementById('msgModalTitle').innerText = title;
+        document.getElementById('msgModalText').innerText = text;
+        document.getElementById('msgModal').classList.add('active');
+        toggleBodyLock();
+    }
+    
+    function closeMsgModal() { 
+        document.getElementById('msgModal').classList.remove('active'); 
+        toggleBodyLock();
+        if (typeof msgModalCallback === 'function') {
+            const cb = msgModalCallback;
+            msgModalCallback = null;
+            cb();
+        }
+    }
+
+    function openResetModal() { 
+        document.getElementById('resetModal').classList.add('active'); 
+        toggleBodyLock();
+    }
+    function closeResetModal() { 
+        document.getElementById('resetModal').classList.remove('active'); 
+        toggleBodyLock();
+    }
+    function confirmReset() {
+        items.forEach((_, index) => { document.getElementById(`qty-${index}`).value = 0; });
+        if (showOnlyHasQty) toggleFilterOnlyHasQty();
+        calculateTotals();
+        saveToLocalStorage();
+        closeResetModal();
+    }
+
+    function openBatchModal(isEditMode = false) { 
+        syncBatchSelectFromHome();
+        
+        const nextOrderNum = orderHistory.length + 1;
+        const inputElem = document.getElementById('batchOrderName');
+
+        if (!isEditMode) {
+            editingHistoryIndex = null;
+            currentBatchList = [];
+            inputElem.value = '';
+            inputElem.placeholder = `單號／名稱 (未填預設 單號 #${nextOrderNum})`;
+            document.getElementById('batchModalTitle').innerText = '⚡ 批量設定';
+            const btnSave = document.getElementById('btnSaveBatch');
+            btnSave.innerText = '+ 批量新增一單';
+            btnSave.style.backgroundColor = '#8e24aa';
+        }
+        
+        renderBatchList();
+        document.getElementById('batchModal').classList.add('active'); 
+        toggleBodyLock();
+    }
+
+    function closeBatchModal() { 
+        document.getElementById('batchModal').classList.remove('active'); 
+        toggleBodyLock();
+    }
+
+    function addBatchItem(e) {
+        if (e) e.stopPropagation();
+
+        const select = document.getElementById('batchCardSelect');
+        const qtyInput = document.getElementById('batchCardQty');
+        const itemIndex = parseInt(select.value);
+        const qty = parseInt(qtyInput.value) || 0;
+
+        if (qty <= 0) return;
+
+        const currentName = document.getElementById(`name-${itemIndex}`).value.trim() || `項目 #${itemIndex + 1}`;
+        const currentPrice = parseFloat(document.getElementById(`price-${itemIndex}`).value) || 0;
+
+        const exist = currentBatchList.find(i => i.index === itemIndex);
+        if (exist) {
+            exist.qty += qty;
+            exist.name = currentName;
+            exist.price = currentPrice;
+        } else {
+            currentBatchList.push({ index: itemIndex, name: currentName, price: currentPrice, qty });
+        }
+
+        qtyInput.value = 1;
+        renderBatchList();
+    }
+
+    function removeBatchItem(idx) {
+        currentBatchList.splice(idx, 1);
+        renderBatchList();
+    }
+
+    function renderBatchList() {
+        const box = document.getElementById('batchListBox');
+        if (currentBatchList.length === 0) {
+            box.innerHTML = '<div style="color: #aaa; text-align: center; padding: 25px 0;">暫無項目，請由上方新增</div>';
+            return;
+        }
+        box.innerHTML = '';
+        currentBatchList.forEach((item, idx) => {
+            const row = document.createElement('div');
+            row.className = 'batch-item-row';
+            row.innerHTML = `
+                <span>${item.name} × ${item.qty} (${item.price * item.qty}元)</span>
+                <button class="btn-del-item" type="button" onclick="removeBatchItem(${idx})">✕</button>
+            `;
+            box.appendChild(row);
+        });
+    }
+
+    function saveBatchOrder() {
+        if (currentBatchList.length === 0) {
+            showMsgModal("名單為空，請先加入卡片項目！");
+            return;
+        }
+
+        let orderQty = 0;
+        let orderAmt = 0;
+        currentBatchList.forEach(item => {
+            orderQty += item.qty;
+            orderAmt += item.price * item.qty;
+        });
+
+        const customTitle = document.getElementById('batchOrderName').value.trim();
+        const isEditing = (editingHistoryIndex !== null);
+
+        if (isEditing) {
+            const origId = orderHistory[editingHistoryIndex].id;
+            const finalTitle = customTitle || `單號 #${origId}`;
+            
+            orderHistory[editingHistoryIndex] = {
+                id: origId,
+                title: finalTitle,
+                items: JSON.parse(JSON.stringify(currentBatchList)),
+                totalQty: orderQty,
+                totalAmt: orderAmt
+            };
+        } else {
+            const nextId = orderHistory.length + 1;
+            const finalTitle = customTitle || `單號 #${nextId}`;
+
+            orderHistory.push({
+                id: nextId,
+                title: finalTitle,
+                items: JSON.parse(JSON.stringify(currentBatchList)),
+                totalQty: orderQty,
+                totalAmt: orderAmt
+            });
+        }
+
+        saveToLocalStorage();
+        currentBatchList = [];
+        document.getElementById('batchOrderName').value = '';
+        editingHistoryIndex = null;
+        renderBatchList();
+        closeBatchModal();
+
+        if (isEditing) {
+            showMsgModal("已成功套用修改！", "提示", function() {
+                openHistoryModal();
+            });
+        } else {
+            showMsgModal("已成功新增一單至紀錄！", "提示", function() {
+                openBatchModal();
+            });
+        }
+    }
+
+    function openHistoryModal() {
+        renderHistoryList();
+        document.getElementById('historyModal').classList.add('active');
+        toggleBodyLock();
+    }
+    function closeHistoryModal() { 
+        document.getElementById('historyModal').classList.remove('active'); 
+        toggleBodyLock();
+    }
+
+    function renderHistoryList() {
+        const box = document.getElementById('historyListBox');
+        
+        let historyTotalOrders = orderHistory.length;
+        let historyTotalQty = 0;
+        let historyTotalAmt = 0;
+        
+        orderHistory.forEach(order => {
+            historyTotalQty += order.totalQty || 0;
+            historyTotalAmt += order.totalAmt || 0;
+        });
+
+        document.getElementById('historyTotalOrders').innerText = historyTotalOrders;
+        document.getElementById('historyTotalQuantity').innerText = historyTotalQty;
+        document.getElementById('historyTotalAmount').innerText = historyTotalAmt.toLocaleString();
+
+        if (orderHistory.length === 0) {
+            box.innerHTML = '<div style="color: #aaa; text-align: center; padding: 30px 0;">尚無新增紀錄，請先透過「批量設定」新增一單</div>';
+            return;
+        }
+
+        box.innerHTML = '';
+        orderHistory.forEach((order, historyIdx) => {
+            const card = document.createElement('div');
+            card.className = 'order-card';
+
+            const detailsHtml = order.items.map(i => `${i.name} × ${i.qty}`).join('<br>');
+
+            card.innerHTML = `
+                <div class="order-header">
+                    <span class="order-title-text">${order.title}</span>
+                    <div class="order-action-btns">
+                        <button class="btn-icon" type="button" onclick="editHistoryOrder(${historyIdx})" title="編輯此單">✏️</button>
+                        <button class="btn-del-item" type="button" onclick="promptDeleteHistoryOrder(${historyIdx})" title="刪除此單">✕</button>
+                    </div>
+                </div>
+                <div class="order-detail">${detailsHtml}</div>
+                <div class="order-summary">該單小計: ${order.totalQty}張 / ${order.totalAmt.toLocaleString()}元</div>
+            `;
+            box.appendChild(card);
+        });
+    }
+
+    function editHistoryOrder(index) {
+        const order = orderHistory[index];
+        if (!order) return;
+
+        editingHistoryIndex = index;
+        currentBatchList = JSON.parse(JSON.stringify(order.items));
+        
+        closeHistoryModal();
+        
+        document.getElementById('batchOrderName').value = order.title;
+        document.getElementById('batchModalTitle').innerText = '✏️ 編輯歷史紀錄';
+        
+        const btnSave = document.getElementById('btnSaveBatch');
+        btnSave.innerText = '💾 套用修改';
+        btnSave.style.backgroundColor = '#2196F3';
+
+        openBatchModal(true);
+    }
+
+    function promptDeleteHistoryOrder(index) {
+        const order = orderHistory[index];
+        if (!order) return;
+        pendingDeleteHistoryIndex = index;
+        document.getElementById('deleteSingleOrderText').innerHTML = `確定要刪除「<b>${order.title}</b>」嗎？<br>（此操作無法復原）`;
+        document.getElementById('deleteSingleOrderModal').classList.add('active');
+        toggleBodyLock();
+    }
+
+    function closeDeleteSingleOrderModal() {
+        pendingDeleteHistoryIndex = null;
+        document.getElementById('deleteSingleOrderModal').classList.remove('active');
+        toggleBodyLock();
+    }
+
+    function confirmDeleteSingleOrder() {
+        if (pendingDeleteHistoryIndex !== null) {
+            orderHistory.splice(pendingDeleteHistoryIndex, 1);
+            saveToLocalStorage();
+            renderHistoryList();
+            closeDeleteSingleOrderModal();
+        }
+    }
+
+    function openResetHistoryModal() {
+        if (orderHistory.length === 0) {
+            showMsgModal("目前沒有紀錄可清空！");
+            return;
+        }
+        document.getElementById('resetHistoryModal').classList.add('active');
+        toggleBodyLock();
+    }
+    function closeResetHistoryModal() {
+        document.getElementById('resetHistoryModal').classList.remove('active');
+        toggleBodyLock();
+    }
+    function confirmResetHistory() {
+        orderHistory = [];
+        saveToLocalStorage();
+        renderHistoryList();
+        closeResetHistoryModal();
+        showMsgModal("已成功清空所有歷史紀錄！");
+    }
+
+    function syncHistoryToHome() {
+        if (orderHistory.length === 0) {
+            showMsgModal("尚無可同步的歷史紀錄！");
+            return;
+        }
+
+        items.forEach((_, index) => {
+            document.getElementById(`qty-${index}`).value = 0;
+        });
+
+        orderHistory.forEach(order => {
+            order.items.forEach(item => {
+                const qtyInput = document.getElementById(`qty-${item.index}`);
+                if (qtyInput) {
+                    let current = parseInt(qtyInput.value) || 0;
+                    qtyInput.value = current + item.qty;
+                }
+            });
+        });
+
+        calculateTotals();
+        saveToLocalStorage();
+        closeHistoryModal();
+        showMsgModal("已成功將所有紀錄同步更新至首頁！");
+    }
+
+    // 產生分享／複製所需的文字內容
+    function generateHistoryText() {
+        let lines = ["📜 批量歷史紀錄\n"];
+        let totalQty = 0;
+        let totalAmt = 0;
+
+        orderHistory.forEach((order, index) => {
+            lines.push(`【${order.title}】`);
+            order.items.forEach(item => {
+                lines.push(`${item.name} × ${item.qty}`);
+            });
+            lines.push(`小計: ${order.totalQty}張 / $${order.totalAmt.toLocaleString()}元\n`);
+            if (index < orderHistory.length - 1) {
+                lines.push("--------------------");
+            }
+
+            totalQty += order.totalQty || 0;
+            totalAmt += order.totalAmt || 0;
+        });
+
+        lines.push("====================");
+        lines.push("📊 總計概覽");
+        lines.push(`總單數：${orderHistory.length} 單`);
+        lines.push(`總數量：${totalQty} 張`);
+        lines.push(`總金額：$${totalAmt.toLocaleString()} 元`);
+
+        return lines.join("\n");
+    }
+
+    // 📤 原生分享 ( Web Share API )
+    function shareHistoryOrders() {
+        if (orderHistory.length === 0) {
+            showMsgModal("尚無可分享的歷史紀錄！");
+            return;
+        }
+
+        const shareText = generateHistoryText();
+
+        if (navigator.share) {
+            navigator.share({
+                title: '卡片費用計算器 - 批量歷史紀錄',
+                text: shareText
+            }).catch(err => {
+                if (err.name !== 'AbortError') {
+                    copyToClipboard(shareText);
+                }
+            });
+        } else {
+            // 不支援原生分享時自動走複製流程
+            copyToClipboard(shareText);
+        }
+    }
+
+    // 📋 直接複製 ( Clipboard API )
+    function copyHistoryOrders() {
+        if (orderHistory.length === 0) {
+            showMsgModal("尚無可複製的歷史紀錄！");
+            return;
+        }
+        const shareText = generateHistoryText();
+        copyToClipboard(shareText);
+    }
+
+    function copyToClipboard(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(() => {
+                showMsgModal("已成功複製所有歷史紀錄至剪貼簿！");
+            }).catch(() => {
+                fallbackCopyText(text);
+            });
+        } else {
+            fallbackCopyText(text);
+        }
+    }
+
+    function fallbackCopyText(text) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showMsgModal("已成功複製所有歷史紀錄至剪貼簿！");
+        } catch (err) {
+            showMsgModal("複製失敗，請手動複製。");
+        }
+        document.body.removeChild(textArea);
+    }
+
+    function adjustSize(delta) {
+        currentFontSize += delta;
+        if (currentFontSize < 1) currentFontSize = 1;
+
+        const paddingV = Math.round(currentFontSize * 0.5);
+        const paddingH = Math.round(currentFontSize * 0.4);
+        const inputHeight = Math.round(currentFontSize * 1.8);
+        const btnSize = Math.round(currentFontSize * 1.8);
+        const priceWidth = Math.round(currentFontSize * 4.3);
+        const qtyWidth = Math.round(currentFontSize * 2.6);
+
+        const root = document.documentElement.style;
+        root.setProperty('--font-size', `${currentFontSize}px`);
+        root.setProperty('--padding-v', `${paddingV}px`);
+        root.setProperty('--padding-h', `${paddingH}px`);
+        root.setProperty('--input-height', `${inputHeight}px`);
+        root.setProperty('--btn-size', `${btnSize}px`);
+        root.setProperty('--price-width', `${priceWidth}px`);
+        root.setProperty('--qty-width', `${qtyWidth}px`);
+    }
+
+    function resetSize() {
+        currentFontSize = 15;
+        document.documentElement.removeAttribute('style');
+    }
+</script>
+
+</body>
+</html>
