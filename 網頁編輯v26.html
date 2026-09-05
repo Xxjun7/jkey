@@ -732,11 +732,11 @@
             <label class="auto-run-label" title="修改後自動運行">
               <input type="checkbox" id="autoRunCheck" checked>
               <span>自動運行</span>
+              <input type="text" id="quickSearchInput" placeholder="🔍 快速搜尋" title="輸入關鍵字即自動跳轉到找到的地方" oninput="handleQuickSearch(this.value)" onkeydown="handleQuickSearchKey(event)">
             </label>
               
           </div>
           <div class="actions">
-            <input type="text" id="quickSearchInput" placeholder="🔍 快速搜尋" title="輸入關鍵字即自動跳轉到找到的地方" oninput="handleQuickSearch(this.value)" onkeydown="handleQuickSearchKey(event)">
             <button class="mini-btn" onclick="pasteCodeFromClipboard()" title="貼上剪貼簿內容">貼上</button>
             <button class="mini-btn" onclick="copyCodeToClipboard()" title="複製編輯器全部程式碼">複製</button>
             <button onclick="toggleRangeMode()" title="點擊後，在編輯器中點兩行來決定範圍"><span id="rangeBtnText">📍 範圍選取</span></button>
