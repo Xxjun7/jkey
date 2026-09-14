@@ -24,6 +24,12 @@
             opacity: 0.4;
             transform: scale(0.98);
         }
+
+        body {
+        /* 允許上下捲動，但禁止雙指縮放與雙擊縮放 */
+        touch-action: pan-y;
+        }
+        
     </style>
 </head>
 <body id="pageBody" class="bg-[#F4F5FA] text-[#3F3D56] font-sans min-h-screen flex flex-col items-center py-3 px-4 selection:bg-[#D4D1F3] transition-colors duration-300">
