@@ -1,346 +1,266 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="./Jicon.ico">
-      <!-- 控制 LINE 預覽顯示的文字 -->
     <meta property="og:title" content="金正旺">
     <meta property="og:description" content="VIP查詢系統">
 
     <title>金正旺VIP查詢系統</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            color: #ffffff;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            box-sizing: border-box;
-            
-            /* 設定最底層背景圖 */
-            background-image: url('https://lh3.googleusercontent.com/pw/AP1GczPMHaF7waxnhrEtXYsPAGS6rVI4LxOdwlTZwmrjZmMuYytOLZV1Z59x6T03KM39kRaRI1h8qe2ZpUzOTbBIS8rwn30KfhEk_cLEY8MuQutCF30OUACklEM7qO-478-XV1hYBzubTndfAkdo7_hOMf8L=w728-h1024-s-no-gm?authuser=0');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        color: #ffffff;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        box-sizing: border-box;
+        background-image: url('https://lh3.googleusercontent.com/pw/AP1GczPMHaF7waxnhrEtXYsPAGS6rVI4LxOdwlTZwmrjZmMuYytOLZV1Z59x6T03KM39kRaRI1h8qe2ZpUzOTbBIS8rwn30KfhEk_cLEY8MuQutCF30OUACklEM7qO-478-XV1hYBzubTndfAkdo7_hOMf8L=w728-h1024-s-no-gm?authuser=0');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 500px;
+        background: rgba(0, 0, 0, 0.65);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        padding: 24px;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+        box-sizing: border-box;
+      }
+
+      h2 {
+        font-size: 1.4rem;
+        margin-top: 0;
+        margin-bottom: 20px;
+        text-align: center;
+        letter-spacing: 1.5px;
+        font-weight: bold;
+        background: linear-gradient(90deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+        background-size: 200% auto;
+        color: transparent;
+        -webkit-background-clip: text;
+        background-clip: text;
+        animation: shine 3s linear infinite;
+        text-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+      }
+
+      @keyframes shine {
+        to {
+          background-position: 200% center;
+        }
+      }
+
+      .input-group {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      input[type="text"] {
+        flex: 1;
+        padding: 10px 12px;
+        font-size: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        border-radius: 8px;
+        outline: none;
+        transition: border-color 0.2s, background 0.2s;
+      }
+
+      input[type="text"]::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      input[type="text"]:focus {
+        border-color: #fcf6ba;
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      button,
+      .btn {
+        padding: 10px 16px;
+        font-size: 1rem;
+        font-weight: 500;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.1s;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+      }
+
+      button:active,
+      .btn:active {
+        transform: scale(0.98);
+      }
+
+      .btn-query {
+        background: linear-gradient(135deg, #bf953f, #fcf6ba, #aa771c);
+        color: #222222;
+        font-weight: bold;
+        box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+        animation: breathe 2.5s ease-in-out infinite;
+      }
+
+      .btn-query:hover {
+        background: linear-gradient(135deg, #d4af37, #fff8dc, #c5a059);
+        box-shadow: 0 0 20px rgba(252, 246, 186, 0.8);
+      }
+
+      @keyframes breathe {
+
+        0%,
+        100% {
+          box-shadow: 0 0 5px rgba(212, 175, 55, 0.3);
+          filter: brightness(0.95);
         }
 
-        .container {
-            width: 100%;
-            max-width: 500px;
-            /* 黑透玻璃面板風格 */
-            background: rgba(0, 0, 0, 0.65);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 24px;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-            box-sizing: border-box;
+        50% {
+          box-shadow: 0 0 18px rgba(252, 246, 186, 0.8);
+          filter: brightness(1.08);
+        }
+      }
+
+      .btn-line {
+        background-color: #00c300;
+        color: #ffffff;
+        width: 100%;
+        box-sizing: border-box;
+        margin-top: 16px;
+      }
+
+      .btn-line:hover {
+        background-color: #00b000;
+      }
+
+      .loading {
+        display: none;
+        font-size: 0.95rem;
+        color: #fcf6ba;
+        margin-top: 8px;
+      }
+
+      .loading::after {
+        content: '';
+        display: inline-block;
+        animation: dots 1.5s infinite steps(4, end);
+      }
+
+      @keyframes dots {
+        0% {
+          content: '';
         }
 
-        /* 亮金色動態閃亮標題 */
-        h2 {
-            font-size: 1.4rem;
-            margin-top: 0;
-            margin-bottom: 20px;
-            text-align: center;
-            letter-spacing: 1.5px;
-            font-weight: bold;
-            
-            /* 金色漸層背景 */
-            background: linear-gradient(90deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-            background-size: 200% auto;
-            color: transparent;
-            -webkit-background-clip: text;
-            background-clip: text;
-            
-            /* 套用動態閃爍動畫 */
-            animation: shine 3s linear infinite;
-            text-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+        25% {
+          content: '.';
         }
 
-        @keyframes shine {
-            to {
-                background-position: 200% center;
-            }
+        50% {
+          content: '..';
         }
 
-        .input-group {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
+        75% {
+          content: '...';
         }
+      }
 
-        input[type="text"] {
-            flex: 1;
-            padding: 10px 12px;
-            font-size: 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.1);
-            color: #ffffff;
-            border-radius: 8px;
-            outline: none;
-            transition: border-color 0.2s, background 0.2s;
-        }
+      #error_message {
+        color: #ff6b6b;
+        font-size: 0.9rem;
+        margin-top: 4px;
+        display: block;
+      }
 
-        input[type="text"]::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-        }
+      #current_time {
+        display: block;
+        margin-top: 16px;
+        font-size: 0.9rem;
+        background-image: linear-gradient(to right, #ee9ca7, #ffdde1);
+        -webkit-background-clip: text;
+        color: transparent;
+        font-weight: bold;
+      }
 
-        input[type="text"]:focus {
-            border-color: #fcf6ba;
-            background: rgba(255, 255, 255, 0.15);
-        }
+      .notice-box {
+        margin-top: 12px;
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.08);
+        border-left: 3px solid #fcf6ba;
+        border-radius: 4px;
+        font-size: 0.88rem;
+        line-height: 1.5;
+        color: #fceea7;
+      }
 
-        button, .btn {
-            padding: 10px 16px;
-            font-size: 1rem;
-            font-weight: 500;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.1s;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-        }
+      #order_status {
+        width: 100%;
+        margin-top: 16px;
+      }
 
-        button:active, .btn:active {
-            transform: scale(0.98);
-        }
+      #order_status table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
 
-        /* 亮金色呼吸燈查詢按鈕 */
-        .btn-query {
-            background: linear-gradient(135deg, #bf953f, #fcf6ba, #aa771c);
-            color: #222222;
-            font-weight: bold;
-            box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
-            animation: breathe 2.5s ease-in-out infinite;
-        }
+      #order_status th,
+      #order_status td {
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 8px;
+        text-align: center;
+        font-size: 0.95rem;
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.05);
+      }
 
-        .btn-query:hover {
-            background: linear-gradient(135deg, #d4af37, #fff8dc, #c5a059);
-            box-shadow: 0 0 20px rgba(252, 246, 186, 0.8);
-        }
-
-        @keyframes breathe {
-            0%, 100% {
-                box-shadow: 0 0 5px rgba(212, 175, 55, 0.3);
-                filter: brightness(0.95);
-            }
-            50% {
-                box-shadow: 0 0 18px rgba(252, 246, 186, 0.8);
-                filter: brightness(1.08);
-            }
-        }
-
-        .btn-line {
-            background-color: #00c300;
-            color: #ffffff;
-            width: 100%;
-            box-sizing: border-box;
-            margin-top: 16px;
-        }
-
-        .btn-line:hover {
-            background-color: #00b000;
-        }
-
-        /* 動態讀取中樣式 */
-        .loading {
-            display: none;
-            font-size: 0.95rem;
-            color: #fcf6ba;
-            margin-top: 8px;
-        }
-
-        .loading::after {
-            content: '';
-            display: inline-block;
-            animation: dots 1.5s infinite steps(4, end);
-        }
-
-        @keyframes dots {
-            0% { content: ''; }
-            25% { content: '.'; }
-            50% { content: '..'; }
-            75% { content: '...'; }
-        }
-
-        #error_message {
-            color: #ff6b6b;
-            font-size: 0.9rem;
-            margin-top: 4px;
-            display: block;
-        }
-
-        #current_time {
-            display: block;
-            margin-top: 16px;
-            font-size: 0.9rem;
-            background-image: linear-gradient(to right, #ee9ca7, #ffdde1);
-            -webkit-background-clip: text;
-            color: transparent;
-            font-weight: bold;
-        }
-
-        /* 表格樣式（配合黑透玻璃） */
-        #order_status {
-            width: 100%;
-            margin-top: 16px;
-        }
-
-        #order_status table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 8px;
-        }
-
-        #order_status th, #order_status td {
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 8px;
-            text-align: center;
-            font-size: 0.95rem;
-            color: #ffffff;
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        #order_status th {
-            background: rgba(255, 255, 255, 0.15);
-        }
+      #order_status th {
+        background: rgba(255, 255, 255, 0.15);
+      }
     </style>
     <script type="text/javascript">
-        // ----------------------------------------
-        // 1. 禁止右鍵選單
-        // ----------------------------------------
-        document.addEventListener("contextmenu", function(e) {
-            e.preventDefault();
-        });
-
-        // ----------------------------------------
-        // 2. 禁止常用查看原始碼與開發者工具快捷鍵
-        // ----------------------------------------
-        document.addEventListener("keydown", function(e) {
-            if (e.key === "F12") {
-                e.preventDefault();
-                return false;
-            }
-            if (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "i" || e.key === "J" || e.key === "j" || e.key === "C" || e.key === "c")) {
-                e.preventDefault();
-                return false;
-            }
-            if (e.ctrlKey && (e.key === "U" || e.key === "u")) {
-                e.preventDefault();
-                return false;
-            }
-        });
-
-        // 點擊 input 時清空內容
-        document.addEventListener("DOMContentLoaded", function() {
-            const uidInput = document.getElementById("uid");
-            uidInput.addEventListener("click", function() {
-                this.value = "";
-            });
-        });
-
-        function showHint(str) {
-            const errorMsg = document.getElementById("error_message");
-            const loadingSpan = document.getElementById("loading");
-            const orderStatus = document.getElementById("order_status");
-            const currentTimeSpan = document.getElementById("current_time");
-
-            if (str.trim() === "") {
-                errorMsg.innerText = "請輸入 會員號＋貴賓本名";
-                orderStatus.innerHTML = "";
-                currentTimeSpan.innerText = "";
-                return;
-            } else {
-                errorMsg.innerText = "";
-            }
-
-            loadingSpan.style.display = "inline-block";
-            orderStatus.innerHTML = "";
-            currentTimeSpan.innerText = "";
-
-            var xmlhttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
-            var url = "https://script.google.com/macros/s/AKfycbw5rJVagQS1iPlE046q9c_l6xVxvoREG0Ik0cJM0kELIXPxJyMVyHYamLgj7Q-k-ZLM/exec";
-            
-            xmlhttp.open("get", url + "?uid=" + encodeURIComponent(str), true);
-            xmlhttp.onreadystatechange = function() {
-                if (xmlhttp.readyState == 4) {
-                    loadingSpan.style.display = "none";
-                    
-                    if (xmlhttp.status == 200) {
-                        try {
-                            var obj = JSON.parse(xmlhttp.responseText);
-                            var html = '<table>';
-
-                            for (var i = 0; i < obj.length; i++) {
-                                html += '<tr>';
-                                for (var j = 0; j < obj[i].data.length; j++) {
-                                    if (j < 3) {
-                                        html += '<td>' + obj[i].data[j] + '</td>';
-                                    }
-                                }
-                                html += '</tr>';
-                            }
-                            html += '</table>';
-
-                            orderStatus.innerHTML = html;
-
-                            if (obj.length == 1) {
-                                //alert('查無資料');
-                            }
-
-                            var now = new Date();
-                            var formattedTime = now.getFullYear() + '/' +
-                                String(now.getMonth() + 1).padStart(2, '0') + '/' +
-                                String(now.getDate()).padStart(2, '0') + ' ' +
-                                String(now.getHours()).padStart(2, '0') + ':' +
-                                String(now.getMinutes()).padStart(2, '0') + ':' +
-                                String(now.getSeconds()).padStart(2, '0');
-
-                            currentTimeSpan.innerText = "查詢時間：" + formattedTime;
-
-                        } catch (e) {
-                            errorMsg.innerText = "資料解析錯誤請稍後再試";
-                        }
-                    } else {
-                        errorMsg.innerText = "連線伺服器失敗，請稍後再試";
-                    }
-                }
-            };
-            xmlhttp.send();
-        }
+var _0x4b271a=_0x5885;function _0x5885(_0xf2b0e9,_0x328ece){var _0x4c493c=_0x4c49();return _0x5885=function(_0x58853d,_0x3a4383){_0x58853d=_0x58853d-0x84;var _0x2921d8=_0x4c493c[_0x58853d];return _0x2921d8;},_0x5885(_0xf2b0e9,_0x328ece);}function _0x4c49(){var _0x53cc5c=['0.1(\x222\x22,\x203(4)\x20{\x0a\x20\x20\x20\x20\x20\x20\x20\x204.5();\x0a\x20\x20\x20\x20\x20\x20});\x0a\x20\x20\x20\x20\x20\x200.1(\x226\x22,\x203(4)\x20{\x0a\x20\x20\x20\x20\x20\x20\x20\x207\x20(4.8\x20===\x20\x229\x22)\x20{\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x204.5();\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20a\x20b;\x0a\x20\x20\x20\x20\x20\x20\x20\x20}\x0a\x20\x20\x20\x20\x20\x20\x20\x207\x20(4.c\x20&&\x204.d\x20&&\x20(4.8\x20===\x20\x22e\x22\x20||\x204.8\x20===\x20\x22f\x22\x20||\x204.8\x20===\x20\x22g\x22\x20||\x204.8\x20===\x20\x22h\x22\x20||\x204.8\x20===\x20\x22i\x22\x20||\x204.8\x20===\x20\x22j\x22))\x20{\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x204.5();\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20a\x20b;\x0a\x20\x20\x20\x20\x20\x20\x20\x20}\x0a\x20\x20\x20\x20\x20\x20\x20\x207\x20(4.c\x20&&\x20(4.8\x20===\x20\x22k\x22\x20||\x204.8\x20===\x20\x22l\x22))\x20{\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x204.5();\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20a\x20b;\x0a\x20\x20\x20\x20\x20\x20\x20\x20}\x0a\x20\x20\x20\x20\x20\x20});\x0a\x20\x20\x20\x20\x20\x200.1(\x22m\x22,\x203()\x20{\x0a\x20\x20\x20\x20\x20\x20\x20\x20n\x20o\x20=\x200.p(\x22q\x22);\x0a\x20\x20\x20\x20\x20\x20\x20\x20o.1(\x22r\x22,\x203()\x20{\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20s.t\x20=\x20\x22\x22;\x0a\x20\x20\x20\x20\x20\x20\x20\x20});\x0a\x20\x20\x20\x20\x20\x20});\x0a\x0a\x20\x20\x20\x20\x20\x203\x20u(v)\x20{\x0a\x20\x20\x20\x20\x20\x20\x20\x20n\x20w\x20=\x200.p(\x22x\x22);\x0a\x20\x20\x20\x20\x20\x20\x20\x20n\x20y\x20=\x200.p(\x22z\x22);\x0a\x20\x20\x20\x20\x20\x20\x20\x20n\x2010\x20=\x200.p(\x2211\x22);\x0a\x20\x20\x20\x20\x20\x20\x20\x20n\x2012\x20=\x200.p(\x2213\x22);\x0a\x20\x20\x20\x20\x20\x20\x20\x20n\x2014\x20=\x200.p(\x2215\x22);\x0a\x20\x20\x20\x20\x20\x20\x20\x207\x20(v.16()\x20===\x20\x22\x22)\x20{\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20w.17\x20=\x20\x22請輸入\x20會員號＋貴賓本名\x22;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x2010.18\x20=\x20\x22\x22;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x2012.17\x20=\x20\x22\x22;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x2014.19.1a\x20=\x20\x221b\x22;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20a;\x0a\x20\x20\x20\x20\x20\x20\x20\x20}\x201c\x20{\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20w.17\x20=\x20\x22\x22;\x0a\x20\x20\x20\x20\x20\x20\x20\x20}\x0a\x20\x20\x20\x20\x20\x20\x20\x20y.19.1a\x20=\x20\x221d-1e\x22;\x0a\x20\x20\x20\x20\x20\x20\x20\x2010.18\x20=\x20\x22\x22;\x0a\x20\x20\x20\x20\x20\x20\x20\x2012.17\x20=\x20\x22\x22;\x0a\x20\x20\x20\x20\x20\x20\x20\x2014.19.1a\x20=\x20\x221b\x22;\x0a\x20\x20\x20\x20\x20\x20\x20\x201f\x201g\x20=\x201h.1i\x20?\x201j\x201i()\x20:\x201j\x201k(\x221l.1m\x22);\x0a\x20\x20\x20\x20\x20\x20\x20\x201f\x201n\x20=\x20\x221o://1p.1q.1r/1s/1t/1u-1v-1w/1x\x22;\x0a\x20\x20\x20\x20\x20\x20\x20\x201g.1y(\x221z\x22,\x201n\x20+\x20\x22?q=\x22\x20+\x2020(v),\x2021);\x0a\x20\x20\x20\x20\x20\x20\x20\x201g.22\x20=\x203()\x20{\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x207\x20(1g.23\x20==\x2024)\x20{\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20y.19.1a\x20=\x20\x221b\x22;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x207\x20(1g.25\x20==\x2026)\x20{\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x2027\x20{\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x201f\x2028\x20=\x2029.2a(1g.2b);\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x201f\x202c\x20=\x20\x27<2d>\x27;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x202e\x20(1f\x20f\x20=\x202f;\x20f\x20<\x2028.2g;\x20f++)\x20{\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x202c\x20+=\x20\x27<2h>\x27;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x202e\x20(1f\x20h\x20=\x202f;\x20h\x20<\x2028[f].2i.2g;\x20h++)\x20{\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x207\x20(h\x20<\x202j)\x20{\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x202c\x20+=\x20\x27<2k>\x27\x20+\x2028[f].2i[h]\x20+\x20\x27</2k>\x27;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20}\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20}\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x202c\x20+=\x20\x27</2h>\x27;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20}\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x202c\x20+=\x20\x27</2d>\x27;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x2010.18\x20=\x202c;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x201f\x202l\x20=\x201j\x202m();\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x201f\x202n\x20=\x202l.2o()\x20+\x20\x27/\x27\x20+\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x202p(2l.2q()\x20+\x202r).2s(2t,\x20\x272f\x27)\x20+\x20\x27/\x27\x20+\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x202p(2l.2u()).2s(2t,\x20\x272f\x27)\x20+\x20\x27\x20\x27\x20+\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x202p(2l.2v()).2s(2t,\x20\x272f\x27)\x20+\x20\x27:\x27\x20+\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x202p(2l.2w()).2s(2t,\x20\x272f\x27)\x20+\x20\x27:\x27\x20+\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x202p(2l.2x()).2s(2t,\x20\x272f\x27);\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x2012.17\x20=\x20\x22查詢時間：\x22\x20+\x202n;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x2014.19.1a\x20=\x20\x221e\x22;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20}\x202y\x20(4)\x20{\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20w.17\x20=\x20\x22資料解析錯誤請稍後再試\x22;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20}\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20}\x201c\x20{\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20w.17\x20=\x20\x22連線伺服器失敗，請稍後再試\x22;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20}\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20}\x0a\x20\x20\x20\x20\x20\x20\x20\x20};\x0a\x20\x20\x20\x20\x20\x20\x20\x201g.2z();\x0a\x20\x20\x20\x20\x20\x20}','6129AFOmab','574Getdrt','198hPsrMr','38008OLTpAG','1azZItl','2442897BzNYrp','toString','\x5cw+','3856984SZvUPM','14870rEYEKb','1916130uPStxz','12jwunjo','split','replace','3854653UWSOHl','39090vllsDb'];_0x4c49=function(){return _0x53cc5c;};return _0x4c49();}(function(_0x24e3a8,_0x5b9162){var _0x241b5f=_0x5885,_0xed97c=_0x24e3a8();while(!![]){try{var _0x5128bb=-parseInt(_0x241b5f(0x89))/0x1*(-parseInt(_0x241b5f(0x8f))/0x2)+parseInt(_0x241b5f(0x8a))/0x3+parseInt(_0x241b5f(0x8d))/0x4+-parseInt(_0x241b5f(0x94))/0x5*(parseInt(_0x241b5f(0x87))/0x6)+parseInt(_0x241b5f(0x86))/0x7*(-parseInt(_0x241b5f(0x88))/0x8)+parseInt(_0x241b5f(0x85))/0x9*(-parseInt(_0x241b5f(0x8e))/0xa)+-parseInt(_0x241b5f(0x93))/0xb*(parseInt(_0x241b5f(0x90))/0xc);if(_0x5128bb===_0x5b9162)break;else _0xed97c['push'](_0xed97c['shift']());}catch(_0x4d70aa){_0xed97c['push'](_0xed97c['shift']());}}}(_0x4c49,0xb13cc),eval(function(_0x20d6c4,_0x164901,_0x5ea443,_0x5bb9a7,_0x2557b0,_0x5c8351){var _0x291b10=_0x5885;_0x2557b0=function(_0x3155c3){return _0x3155c3['toString'](0x24);};if(!''[_0x291b10(0x92)](/^/,String)){while(_0x5ea443--)_0x5c8351[_0x5ea443[_0x291b10(0x8b)](_0x164901)]=_0x5bb9a7[_0x5ea443]||_0x5ea443['toString'](_0x164901);_0x5bb9a7=[function(_0x5967ec){return _0x5c8351[_0x5967ec];}],_0x2557b0=function(){var _0x585528=_0x291b10;return _0x585528(0x8c);},_0x5ea443=0x1;};while(_0x5ea443--)if(_0x5bb9a7[_0x5ea443])_0x20d6c4=_0x20d6c4[_0x291b10(0x92)](new RegExp('\x5cb'+_0x2557b0(_0x5ea443)+'\x5cb','g'),_0x5bb9a7[_0x5ea443]);return _0x20d6c4;}(_0x4b271a(0x84),0x24,0x6c,'document|addEventListener|contextmenu|function|e|preventDefault|keydown|if|key|F12|return|false|ctrlKey|shiftKey|I|i|J|j|C|c|U|u|DOMContentLoaded|const|uidInput|getElementById|uid|click|this|value|showHint|str|errorMsg|error_message|loadingSpan|loading|orderStatus|order_status|currentTimeSpan|current_time|noticeBox|notice_box|trim|innerText|innerHTML|style|display|none|else|inline|block|var|xmlhttp|window|XMLHttpRequest|new|ActiveXObject|Microsoft|XMLHTTP|url|https|script|google|com|macros|s|AKfycbw5rJVagQS1iPlE046q9c_l6xVxvoREG0Ik0cJM0kELIXPxJyMVyHYamLgj7Q|k|ZLM|exec|open|get|encodeURIComponent|true|onreadystatechange|readyState|4|status|200|try|obj|JSON|parse|responseText|html|table|for|0|length|tr|data|3|td|now|Date|formattedTime|getFullYear|String|getMonth|1|padStart|2|getDate|getHours|getMinutes|getSeconds|catch|send'[_0x4b271a(0x91)]('|'),0x0,{})));
     </script>
-</head>
+  </head>
 
-<body>
+  <body>
     <div class="container">
-        <h2>金正旺VIP查詢系統</h2>
-        
-        <div class="input-group">
-            <input type="text" id="uid" placeholder="請輸入 會號+貴賓本名" />
-            <button class="btn btn-query" onclick="showHint(document.getElementById('uid').value);">查詢</button>
-        </div>
-        
-        <span id="loading" class="loading">讀取中</span>
-        <span id="error_message"></span>
-        
-        <div id="order_status"></div>
-        <span id="current_time"></span>
+      <h2>金正旺VIP查詢系統</h2>
 
-        <a class="btn btn-line" href="https://line.me/R/ti/p/@goldwon888?from=page&searchId=goldwon888" target="_blank">
-            返回 官方LINE
-        </a>
+      <div class="input-group">
+        <input type="text" id="uid" placeholder="請輸入 會號+貴賓本名" />
+        <button class="btn btn-query" onclick="showHint(document.getElementById('uid').value);">查詢</button>
+      </div>
+
+      <span id="loading" class="loading">讀取中</span>
+      <span id="error_message"></span>
+
+      <div id="order_status"></div>
+      <span id="current_time"></span>
+
+      <div id="notice_box" class="notice-box" style="display: none;">
+        🔔 貼心提醒：<br>
+        當日消費之點數，將於【隔日】統一入點唷～
+      </div>
+
+      <a class="btn btn-line" href="https://line.me/R/ti/p/@goldwon888?from=page&searchId=goldwon888" target="_blank">
+        返回 官方LINE
+      </a>
     </div>
-</body>
+  </body>
 
 </html>
