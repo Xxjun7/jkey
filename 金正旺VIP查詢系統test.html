@@ -172,7 +172,7 @@
         }
     }
 
-    /* 修改 LINE 按鈕改為靠左自適應寬度 */
+    /* LINE 按鈕改為靠左自適應寬度 */
     .btn-line {
         background-color: #00c300;
         color: #ffffff;
@@ -372,7 +372,7 @@
     }, { passive: false });
 
     // ----------------------------------------
-    // 6. 點擊 input 時清空內容與 API 預熱
+    // 6. 進入頁面立即預熱 API 與點擊清空內容
     // ----------------------------------------
     document.addEventListener("DOMContentLoaded", function () {
 
@@ -382,7 +382,7 @@
             this.value = "";
         });
 
-        // 頁面載入後自動在背景預熱 API，減少首次查詢等待時間
+        // 進入頁面就立即在背景預熱 API
         fetch("/j808/API/J.json?v=" + Date.now(), { cache: "no-store" })
             .then(response => response.json())
             .then(config => {
