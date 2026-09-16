@@ -3,10 +3,10 @@
 
 <head>
     <meta charset="UTF-8" />
-    <!-- 修正 1：加上 user-scalable=no 防止點兩下放大 -->
+    <!-- 修正 1：加上 maximum-scale 與 user-scalable=no 禁止畫面縮放 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="icon" type="image/x-icon" href="./Jicon.ico">
-    <!-- 控制 LINE 預覽顯示的文字 -->
+      <!-- 控制 LINE 預覽顯示的文字 -->
     <meta property="og:title" content="金正旺">
     <meta property="og:description" content="VIP查詢系統">
 
@@ -21,9 +21,12 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            /* 修正 2：改用 100dvh 解決行動裝置上下滑動出現白邊的問題 */
-            min-height: 100dvh;
+            min-height: 100vh;
             box-sizing: border-box;
+            
+            /* 修正 2：防止手機雙擊縮放與文字自動調整大小 */
+            touch-action: manipulation;
+            -webkit-text-size-adjust: 100%;
             
             /* 設定最底層背景圖 */
             background-image: url('https://lh3.googleusercontent.com/pw/AP1GczPMHaF7waxnhrEtXYsPAGS6rVI4LxOdwlTZwmrjZmMuYytOLZV1Z59x6T03KM39kRaRI1h8qe2ZpUzOTbBIS8rwn30KfhEk_cLEY8MuQutCF30OUACklEM7qO-478-XV1hYBzubTndfAkdo7_hOMf8L=w728-h1024-s-no-gm?authuser=0');
@@ -83,7 +86,7 @@
         input[type="text"] {
             flex: 1;
             padding: 10px 12px;
-            font-size: 1rem;
+            font-size: 1rem; /* 若手機上點擊輸入框會自動放大，可將此處字體改為 16px 以上 */
             border: 1px solid rgba(255, 255, 255, 0.3);
             background: rgba(255, 255, 255, 0.1);
             color: #ffffff;
@@ -112,6 +115,8 @@
             text-decoration: none;
             display: inline-block;
             text-align: center;
+            /* 避免按鈕點擊觸發縮放 */
+            touch-action: manipulation;
         }
 
         button:active, .btn:active {
