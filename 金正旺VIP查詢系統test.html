@@ -32,6 +32,10 @@
         /* 防止 iPhone 瀏覽器手勢造成整頁縮放 */
         touch-action: pan-x pan-y;
 
+        /* 防止點擊或觸發時被框選文字 */
+        -webkit-user-select: none;
+        user-select: none;
+
         /* 設定最底層背景圖 */
         background-image: url('https://lh3.googleusercontent.com/pw/AP1GczPMHaF7waxnhrEtXYsPAGS6rVI4LxOdwlTZwmrjZmMuYytOLZV1Z59x6T03KM39kRaRI1h8qe2ZpUzOTbBIS8rwn30KfhEk_cLEY8MuQutCF30OUACklEM7qO-478-XV1hYBzubTndfAkdo7_hOMf8L=w728-h1024-s-no-gm?authuser=0');
         background-size: cover;
@@ -102,6 +106,10 @@
         outline: none;
         transition: border-color 0.2s, background 0.2s;
         -webkit-appearance: none;
+
+        /* 輸入框維持可以點擊選取文字輸入 */
+        -webkit-user-select: text;
+        user-select: text;
 
         /* 防止 iPhone 點擊輸入框時自動放大 */
         touch-action: manipulation;
