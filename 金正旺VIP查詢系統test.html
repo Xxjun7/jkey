@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-
 <html lang="zh-TW">
-
 <head>
     <meta charset="UTF-8" />
 
@@ -265,6 +263,18 @@
     #order_status th {
         background: rgba(255, 255, 255, 0.15);
     }
+
+    /* 版權宣告樣式 */
+    .copyright {
+        position: fixed;
+        bottom: 8px;
+        right: 12px;
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.5);
+        letter-spacing: 0.5px;
+        pointer-events: none;
+        z-index: 999;
+    }
 </style>
 
 <script type="text/javascript">
@@ -352,7 +362,7 @@
     }, { passive: false });
 
     // ----------------------------------------
-    // 6. 點擊 input 時清空內容
+    // 6. 點擊 input 時清空內容與 API 預熱
     // ----------------------------------------
     document.addEventListener("DOMContentLoaded", function () {
 
@@ -362,12 +372,23 @@
             this.value = "";
         });
 
+        // 頁面載入後自動在背景預熱 API，減少首次查詢等待時間
+        fetch("/j808/API/J.json?v=" + Date.now(), { cache: "no-store" })
+            .then(response => response.json())
+            .then(config => {
+                if (config && config.apiUrl) {
+                    fetch(config.apiUrl.trim() + "?warmup=true", { method: "GET", mode: "no-cors" })
+                        .catch(() => {});
+                }
+            })
+            .catch(() => {});
+
     });
 
     // ----------------------------------------
     // 7. 查詢功能
     // ----------------------------------------
-    function showHint(str) {
+    async function showHint(str) {
 
         const errorMsg = document.getElementById("error_message");
         const loadingSpan = document.getElementById("loading");
@@ -375,7 +396,12 @@
         const currentTimeSpan = document.getElementById("current_time");
         const noticeBox = document.getElementById("notice_box");
 
-        if (str.trim() === "") {
+        // ----------------------------------------
+        // 檢查輸入內容
+        // ----------------------------------------
+        str = str.trim();
+
+        if (str === "") {
 
             errorMsg.innerText = "請輸入 會員號＋貴賓本名";
             orderStatus.innerHTML = "";
@@ -383,96 +409,215 @@
             noticeBox.style.display = "none";
 
             return;
-
-        } else {
-
-            errorMsg.innerText = "";
-
         }
+
+        errorMsg.innerText = "";
 
         loadingSpan.style.display = "inline-block";
         orderStatus.innerHTML = "";
         currentTimeSpan.innerText = "";
         noticeBox.style.display = "none";
 
-        var xmlhttp = window.XMLHttpRequest
-            ? new XMLHttpRequest()
-            : new ActiveXObject("Microsoft.XMLHTTP");
+        try {
 
-        var url = "https://script.google.com/macros/s/AKfycbw5rJVagQS1iPlE046q9c_l6xVxvoREG0Ik0cJM0kELIXPxJyMVyHYamLgj7Q-k-ZLM/exec";
+            // ----------------------------------------
+            // 先讀取 API/J.json
+            // ----------------------------------------
+            // 使用時間參數避免瀏覽器快取舊的 GAS 網址
+            const configResponse = await fetch(
+                "/j808/API/J.json?v=" + Date.now(),
+                {
+                    method: "GET",
+                    cache: "no-store"
+                }
+            );
 
-        xmlhttp.open(
-            "get",
-            url + "?uid=" + encodeURIComponent(str),
-            true
-        );
+            if (!configResponse.ok) {
+                throw new Error("API_CONFIG_LOAD_ERROR");
+            }
 
-        xmlhttp.onreadystatechange = function () {
+            const config = await configResponse.json();
 
-            if (xmlhttp.readyState == 4) {
+            // ----------------------------------------
+            // 檢查 apiUrl 是否存在
+            // ----------------------------------------
+            if (
+                !config ||
+                typeof config.apiUrl !== "string" ||
+                config.apiUrl.trim() === ""
+            ) {
+                throw new Error("API_CONFIG_INVALID");
+            }
+
+            const apiUrl = config.apiUrl.trim();
+
+            // ----------------------------------------
+            // 建立 GAS 查詢網址
+            // ----------------------------------------
+            const separator = apiUrl.indexOf("?") === -1 ? "?" : "&";
+
+            const requestUrl =
+                apiUrl +
+                separator +
+                "uid=" +
+                encodeURIComponent(str);
+
+            // ----------------------------------------
+            // 使用 XMLHttpRequest 呼叫 GAS
+            // ----------------------------------------
+            var xmlhttp = window.XMLHttpRequest
+                ? new XMLHttpRequest()
+                : new ActiveXObject("Microsoft.XMLHTTP");
+
+            xmlhttp.open(
+                "get",
+                requestUrl,
+                true
+            );
+
+            xmlhttp.onreadystatechange = function () {
+
+                if (xmlhttp.readyState == 4) {
+
+                    loadingSpan.style.display = "none";
+
+                    if (xmlhttp.status == 200) {
+
+                        try {
+
+                            var obj = JSON.parse(xmlhttp.responseText);
+
+                            var html = '<table>';
+
+                            for (var i = 0; i < obj.length; i++) {
+
+                                html += '<tr>';
+
+                                if (
+                                    obj[i] &&
+                                    Array.isArray(obj[i].data)
+                                ) {
+
+                                    for (
+                                        var j = 0;
+                                        j < obj[i].data.length;
+                                        j++
+                                    ) {
+
+                                        if (j < 3) {
+
+                                            html +=
+                                                '<td>' +
+                                                obj[i].data[j] +
+                                                '</td>';
+
+                                        }
+
+                                    }
+
+                                }
+
+                                html += '</tr>';
+                            }
+
+                            html += '</table>';
+
+                            orderStatus.innerHTML = html;
+
+                            // ----------------------------------------
+                            // 顯示查詢時間
+                            // ----------------------------------------
+                            var now = new Date();
+
+                            var formattedTime =
+                                now.getFullYear() + '/' +
+                                String(now.getMonth() + 1).padStart(2, '0') + '/' +
+                                String(now.getDate()).padStart(2, '0') + ' ' +
+                                String(now.getHours()).padStart(2, '0') + ':' +
+                                String(now.getMinutes()).padStart(2, '0') + ':' +
+                                String(now.getSeconds()).padStart(2, '0');
+
+                            currentTimeSpan.innerText =
+                                "查詢時間：" + formattedTime;
+
+                            // ----------------------------------------
+                            // 顯示貼心提醒
+                            // ----------------------------------------
+                            noticeBox.style.display = "block";
+
+                        } catch (e) {
+
+                            console.error(
+                                "GAS 回傳資料解析錯誤：",
+                                e
+                            );
+
+                            errorMsg.innerText =
+                                "資料解析錯誤請稍後再試";
+
+                            orderStatus.innerHTML = "";
+                            currentTimeSpan.innerText = "";
+                            noticeBox.style.display = "none";
+
+                        }
+
+                    } else {
+
+                        errorMsg.innerText =
+                            "連線伺服器失敗，請稍後再試";
+
+                        orderStatus.innerHTML = "";
+                        currentTimeSpan.innerText = "";
+                        noticeBox.style.display = "none";
+
+                    }
+                }
+            };
+
+            xmlhttp.onerror = function () {
 
                 loadingSpan.style.display = "none";
 
-                if (xmlhttp.status == 200) {
+                errorMsg.innerText =
+                    "連線伺服器失敗，請稍後再試";
 
-                    try {
+                orderStatus.innerHTML = "";
+                currentTimeSpan.innerText = "";
+                noticeBox.style.display = "none";
+            };
 
-                        var obj = JSON.parse(xmlhttp.responseText);
+            xmlhttp.send();
 
-                        var html = '<table>';
+        } catch (error) {
 
-                        for (var i = 0; i < obj.length; i++) {
+            console.error(
+                "API 設定讀取錯誤：",
+                error
+            );
 
-                            html += '<tr>';
+            loadingSpan.style.display = "none";
 
-                            for (var j = 0; j < obj[i].data.length; j++) {
+            if (error.message === "API_CONFIG_LOAD_ERROR") {
 
-                                if (j < 3) {
-                                    html += '<td>' + obj[i].data[j] + '</td>';
-                                }
+                errorMsg.innerText =
+                    "無法讀取 API 設定，請稍後再試";
 
-                            }
+            } else if (error.message === "API_CONFIG_INVALID") {
 
-                            html += '</tr>';
-                        }
+                errorMsg.innerText =
+                    "API 設定錯誤，請聯絡管理員";
 
-                        html += '</table>';
+            } else {
 
-                        orderStatus.innerHTML = html;
+                errorMsg.innerText =
+                    "系統連線錯誤，請稍後再試";
 
-                        var now = new Date();
-
-                        var formattedTime =
-                            now.getFullYear() + '/' +
-                            String(now.getMonth() + 1).padStart(2, '0') + '/' +
-                            String(now.getDate()).padStart(2, '0') + ' ' +
-                            String(now.getHours()).padStart(2, '0') + ':' +
-                            String(now.getMinutes()).padStart(2, '0') + ':' +
-                            String(now.getSeconds()).padStart(2, '0');
-
-                        currentTimeSpan.innerText =
-                            "查詢時間：" + formattedTime;
-
-                        // 顯示貼心提醒
-                        noticeBox.style.display = "block";
-
-                    } catch (e) {
-
-                        errorMsg.innerText =
-                            "資料解析錯誤請稍後再試";
-
-                    }
-
-                } else {
-
-                    errorMsg.innerText =
-                        "連線伺服器失敗，請稍後再試";
-
-                }
             }
-        };
 
-        xmlhttp.send();
+            orderStatus.innerHTML = "";
+            currentTimeSpan.innerText = "";
+            noticeBox.style.display = "none";
+        }
     }
 
 </script>
@@ -532,6 +677,7 @@
 
 </div>
 
-</body>
+<div class="copyright">Copyright © 2026 ｊLINE: jimi102</div>
 
+</body>
 </html>
