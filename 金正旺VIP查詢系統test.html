@@ -3,10 +3,10 @@
 
 <head>
     <meta charset="UTF-8" />
-    <!-- 修正 1：加上 maximum-scale 與 user-scalable=no 禁止畫面縮放 -->
+    <!-- 3. 禁止雙指拉大縮小與設定手機畫面比例 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="icon" type="image/x-icon" href="./Jicon.ico">
-      <!-- 控制 LINE 預覽顯示的文字 -->
+    <!-- 控制 LINE 預覽顯示的文字 -->
     <meta property="og:title" content="金正旺">
     <meta property="og:description" content="VIP查詢系統">
 
@@ -16,17 +16,13 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             color: #ffffff;
             margin: 0;
-            padding: 20px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             box-sizing: border-box;
-            
-            /* 修正 2：防止手機雙擊縮放與文字自動調整大小 */
-            touch-action: manipulation;
-            -webkit-text-size-adjust: 100%;
             
             /* 設定最底層背景圖 */
             background-image: url('https://lh3.googleusercontent.com/pw/AP1GczPMHaF7waxnhrEtXYsPAGS6rVI4LxOdwlTZwmrjZmMuYytOLZV1Z59x6T03KM39kRaRI1h8qe2ZpUzOTbBIS8rwn30KfhEk_cLEY8MuQutCF30OUACklEM7qO-478-XV1hYBzubTndfAkdo7_hOMf8L=w728-h1024-s-no-gm?authuser=0');
@@ -39,12 +35,14 @@
         .container {
             width: 100%;
             max-width: 500px;
+            /* 2. 自動調整並填滿手機螢幕寬度 */
+            width: 100%;
             /* 黑透玻璃面板風格 */
             background: rgba(0, 0, 0, 0.65);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 24px;
+            padding: 20px;
             border-radius: 16px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
             box-sizing: border-box;
@@ -85,14 +83,15 @@
 
         input[type="text"] {
             flex: 1;
-            padding: 10px 12px;
-            font-size: 1rem; /* 若手機上點擊輸入框會自動放大，可將此處字體改為 16px 以上 */
+            padding: 12px;
+            font-size: 1rem;
             border: 1px solid rgba(255, 255, 255, 0.3);
             background: rgba(255, 255, 255, 0.1);
             color: #ffffff;
             border-radius: 8px;
             outline: none;
             transition: border-color 0.2s, background 0.2s;
+            -webkit-appearance: none; /* 防止 iOS 內建樣式影響 */
         }
 
         input[type="text"]::placeholder {
@@ -105,17 +104,16 @@
         }
 
         button, .btn {
-            padding: 10px 16px;
+            padding: 12px 16px;
             font-size: 1rem;
             font-weight: 500;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            transition: transform 0.1s;
             text-decoration: none;
             display: inline-block;
             text-align: center;
-            /* 避免按鈕點擊觸發縮放 */
+            /* 1. 解決手機點擊按鈕放大或雙擊觸發縮放的問題 */
             touch-action: manipulation;
         }
 
@@ -214,6 +212,7 @@
         #order_status {
             width: 100%;
             margin-top: 16px;
+            overflow-x: auto; /* 防止表格撐破螢幕 */
         }
 
         #order_status table {
