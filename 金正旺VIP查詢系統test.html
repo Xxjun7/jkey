@@ -518,7 +518,7 @@
 
 
     /* ========================================
-       獎品背景讀取狀態
+       獎品讀取狀態
        ======================================== */
 
     .reward-ready-text {
@@ -696,6 +696,28 @@
       background: #222222;
 
       color: #ffffff;
+    }
+
+
+    /*
+       ★ 分類分界線
+       例如：
+       ----mycard點數區----
+       ------產包區--------
+
+       這些 option 會：
+       1. 顯示
+       2. 不可選
+       3. 不會加入獎品
+    */
+
+    #reward_select option.reward-category {
+
+      color: #fcf6ba;
+
+      font-weight: bold;
+
+      background: #151515;
     }
 
 
@@ -1075,8 +1097,8 @@
     // ========================================
     // 獎品快取
     //
-    // 查詢會員時就開始讀取
-    // 點開兌換時直接使用
+    // ★ 查詢按下去就開始讀取
+    // ★ 點開兌換時直接使用
     // ========================================
 
     let REWARDS_CACHE = [];
@@ -1093,6 +1115,54 @@
     // ========================================
 
     let SELECTED_REWARDS = {};
+
+
+    // ========================================
+    // 判斷是否為分類分界線
+    //
+    // 支援：
+    // ----mycard點數區----
+    // ------產包區--------
+    //
+    // 也支援其他：
+    // ----XXX----
+    // ------XXX--------
+    // ========================================
+
+    function isRewardCategory(
+      reward
+    ) {
+
+      const value =
+        String(
+          reward || ""
+        ).trim();
+
+
+      if (
+        value === ""
+      ) {
+
+        return false;
+
+      }
+
+
+      /*
+        只要是由連續的 -
+        包住文字
+        就視為分類標題。
+
+        例如：
+        ----mycard點數區----
+        ------產包區--------
+      */
+
+      return /^-{2,}.+-{2,}$/.test(
+        value
+      );
+
+    }
 
 
     // ========================================
@@ -1377,7 +1447,6 @@
 
     async function preloadRewards() {
 
-      // 已經成功讀取過
       if (
         REWARDS_READY
       ) {
@@ -1387,7 +1456,6 @@
       }
 
 
-      // 已經正在讀取
       if (
         REWARDS_LOADING_PROMISE
       ) {
@@ -1540,7 +1608,7 @@
 
 
     // ========================================
-    // 更新獎品讀取狀態文字
+    // 更新獎品讀取狀態
     // ========================================
 
     function updateRewardReadyStatus() {
@@ -1606,6 +1674,9 @@
 
     // ========================================
     // 填入獎品選單
+    //
+    // ★ 分界線不可選
+    // ★ 分界線不會加入獎品
     // ========================================
 
     function fillRewardSelect(
@@ -1627,11 +1698,28 @@
       }
 
 
-      select.innerHTML =
+      select.innerHTML = "";
 
-        '<option value="">' +
-        '-- 點此選擇品項直接加入 --' +
-        '</option>';
+
+      // 預設提示
+
+      const defaultOption =
+        document.createElement(
+          "option"
+        );
+
+
+      defaultOption.value =
+        "";
+
+
+      defaultOption.textContent =
+        "-- 點此選擇品項直接加入 --";
+
+
+      select.appendChild(
+        defaultOption
+      );
 
 
       rewards.forEach(
@@ -1643,12 +1731,55 @@
             );
 
 
-          option.value =
-            reward;
+          const category =
+            isRewardCategory(
+              reward
+            );
 
 
-          option.textContent =
-            reward;
+          if (
+            category
+          ) {
+
+            /*
+              ★ 分界線
+
+              disabled = true
+              所以使用者不能點選
+
+              但仍然會顯示
+            */
+
+            option.value =
+              "";
+
+
+            option.textContent =
+              reward;
+
+
+            option.disabled =
+              true;
+
+
+            option.className =
+              "reward-category";
+
+
+          } else {
+
+            /*
+              ★ 正常獎品
+            */
+
+            option.value =
+              reward;
+
+
+            option.textContent =
+              reward;
+
+          }
 
 
           select.appendChild(
@@ -1663,6 +1794,8 @@
 
     // ========================================
     // 會員查詢
+    //
+    // ★ 按下查詢就同時背景讀獎品
     // ========================================
 
     async function showHint(str) {
@@ -1801,7 +1934,7 @@
 
 
       // ====================================
-      // ★ 每次新查詢重新準備獎品快取
+      // ★ 每次新會員查詢重新準備獎品
       // ====================================
 
       REWARDS_CACHE =
@@ -1823,8 +1956,6 @@
       updateRewardReadyStatus();
 
 
-      // 關閉舊 Modal
-
       closeRewardModal();
 
 
@@ -1844,12 +1975,11 @@
 
 
         // ==================================
-        // ★ 查詢開始就背景讀獎品
+        // ★ 非同步背景讀取獎品
         //
         // 不 await
         //
-        // 所以會員資料查詢不會被獎品
-        // 讀取卡住
+        // 會員查詢與獎品讀取同時進行
         // ==================================
 
         preloadRewards()
@@ -2080,7 +2210,7 @@
 
 
         // ==================================
-        // ★ 顯示兌換按鈕
+        // 顯示兌換按鈕
         // ==================================
 
         rewardButtonArea.style.display =
@@ -2141,7 +2271,6 @@
     // ========================================
     // 開啟兌換獎品
     //
-    // ★ 不會每次都重新 API
     // ★ 優先使用查詢時已經讀好的獎品
     // ========================================
 
@@ -2172,12 +2301,6 @@
       const error =
         document.getElementById(
           "reward_error"
-        );
-
-
-      const select =
-        document.getElementById(
-          "reward_select"
         );
 
 
@@ -2293,6 +2416,9 @@
 
     // ========================================
     // 選單選擇獎品
+    //
+    // ★ 分界線即使被程式觸發
+    // ★ 也不允許加入
     // ========================================
 
     function addRewardFromSelect() {
@@ -2308,9 +2434,33 @@
         select.value;
 
 
+      // 沒選
+
       if (
         !reward
       ) {
+
+        return;
+
+      }
+
+
+      // ====================================
+      // ★ 安全檢查
+      //
+      // 如果是分類分界線
+      // 直接拒絕
+      // ====================================
+
+      if (
+        isRewardCategory(
+          reward
+        )
+      ) {
+
+        select.value =
+          "";
+
 
         return;
 
@@ -2356,6 +2506,17 @@
 
 
       if (
+        isRewardCategory(
+          reward
+        )
+      ) {
+
+        return;
+
+      }
+
+
+      if (
         !Object.prototype.hasOwnProperty.call(
           SELECTED_REWARDS,
           reward
@@ -2384,6 +2545,17 @@
     function decreaseReward(
       reward
     ) {
+
+
+      if (
+        isRewardCategory(
+          reward
+        )
+      ) {
+
+        return;
+
+      }
 
 
       if (
@@ -2424,6 +2596,17 @@
     ) {
 
 
+      if (
+        isRewardCategory(
+          reward
+        )
+      ) {
+
+        return;
+
+      }
+
+
       delete SELECTED_REWARDS[
         reward
       ];
@@ -2455,6 +2638,34 @@
 
       box.innerHTML =
         "";
+
+
+      /*
+        ★ 保險處理
+
+        如果舊資料中不小心存在分類分界線
+        直接清掉，不讓它進入兌換清單
+      */
+
+      Object.keys(
+        SELECTED_REWARDS
+      ).forEach(
+        function(reward) {
+
+          if (
+            isRewardCategory(
+              reward
+            )
+          ) {
+
+            delete SELECTED_REWARDS[
+              reward
+            ];
+
+          }
+
+        }
+      );
 
 
       const rewards =
@@ -2711,8 +2922,8 @@
     // ========================================
     // 建立分享文字
     //
-    // ★ 這裡就是 LINE 最終送出去的內容
-    // ★ 不會有 text= 出現在訊息前面
+    // ★ 最終 LINE 訊息
+    // ★ 不包含 text=
     // ========================================
 
     function buildRewardMessage() {
@@ -2721,6 +2932,14 @@
       const rewards =
         Object.keys(
           SELECTED_REWARDS
+        ).filter(
+          function(reward) {
+
+            return !isRewardCategory(
+              reward
+            );
+
+          }
         );
 
 
@@ -2742,7 +2961,7 @@
 
 
       // ====================================
-      // ★ 目前點數
+      // 目前點數
       // ====================================
 
       message +=
@@ -2792,7 +3011,7 @@
     // ========================================
     // 即時預覽
     //
-    // ★ 與 LINE 實際分享文字完全一致
+    // ★ 與 LINE 實際分享完全一致
     // ========================================
 
     function updateRewardPreview() {
@@ -2807,6 +3026,14 @@
       const rewards =
         Object.keys(
           SELECTED_REWARDS
+        ).filter(
+          function(reward) {
+
+            return !isRewardCategory(
+              reward
+            );
+
+          }
         );
 
 
@@ -2838,6 +3065,14 @@
       const rewards =
         Object.keys(
           SELECTED_REWARDS
+        ).filter(
+          function(reward) {
+
+            return !isRewardCategory(
+              reward
+            );
+
+          }
         );
 
 
@@ -2862,10 +3097,13 @@
       // ====================================
       // LINE 分享 URL
       //
-      // encodeURIComponent 後：
+      // 注意：
       //
-      // text=只存在 URL 的參數名稱
-      // 不會成為 LINE 訊息內容
+      // text= 是 URL 的參數名稱
+      // 不會放進訊息本身。
+      //
+      // 真正送出的 message
+      // 從頭到尾都沒有 text=
       // ====================================
 
       const lineShareUrl =
@@ -3070,8 +3308,6 @@
         🎁 兌換獎品
       </button>
 
-
-      <!-- ★ 查詢後背景讀取獎品 -->
 
       <span
         id="reward_ready_status"
