@@ -3055,78 +3055,65 @@
     }
 
 
-    // ========================================
-    // LINE 分享
-    // ========================================
+// ========================================
+// LINE 分享
+//
+// ★ 不讓 text= 出現在分享內容
+// ========================================
 
-    function sendRewardToLine() {
+function sendRewardToLine() {
 
-
-      const rewards =
-        Object.keys(
-          SELECTED_REWARDS
-        ).filter(
-          function(reward) {
-
-            return !isRewardCategory(
-              reward
-            );
-
-          }
-        );
+  const rewards =
+    Object.keys(
+      SELECTED_REWARDS
+    );
 
 
-      // ====================================
-      // 檢查
-      // ====================================
+  // ====================================
+  // 檢查
+  // ====================================
 
-      if (
-        !CURRENT_UID ||
-        rewards.length === 0
-      ) {
+  if (
+    !CURRENT_UID ||
+    rewards.length === 0
+  ) {
 
-        return;
+    return;
 
-      }
-
-
-      const message =
-        buildRewardMessage();
+  }
 
 
-      // ====================================
-      // LINE 分享 URL
-      //
-      // 注意：
-      //
-      // text= 是 URL 的參數名稱
-      // 不會放進訊息本身。
-      //
-      // 真正送出的 message
-      // 從頭到尾都沒有 text=
-      // ====================================
+  // ====================================
+  // 建立最終分享文字
+  // ====================================
 
-      const lineShareUrl =
-
-        "https://line.me/R/msg/text/?" +
-
-        "text=" +
-
-        encodeURIComponent(
-          message
-        );
+  const message =
+    buildRewardMessage();
 
 
-      // ====================================
-      // 開啟 LINE
-      // ====================================
+  // ====================================
+  // LINE 分享
+  //
+  // 使用 LINE 官方分享格式
+  // 參數名稱 text 不會放進實際訊息
+  // ====================================
 
-      window.open(
-        lineShareUrl,
-        "_blank"
-      );
+  const lineShareUrl =
+    "https://line.me/R/msg/text/?" +
+    encodeURIComponent(message);
 
-    }
+
+  // ====================================
+  // 開啟 LINE
+  // ====================================
+
+  window.open(
+    lineShareUrl,
+    "_blank"
+  );
+
+}
+
 
 
     // ========================================
