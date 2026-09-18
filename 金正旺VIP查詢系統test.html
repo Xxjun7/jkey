@@ -3,7 +3,7 @@
 
 <head>
 
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
 
   <meta
     name="viewport"
@@ -24,6 +24,11 @@
        基本
        ======================================== */
 
+    * {
+      box-sizing: border-box;
+    }
+
+
     body {
 
       font-family:
@@ -42,13 +47,12 @@
 
       display: flex;
       flex-direction: column;
+
       align-items: center;
       justify-content: center;
 
       min-height: 100vh;
       min-height: 100dvh;
-
-      box-sizing: border-box;
 
       touch-action: pan-x pan-y;
 
@@ -90,8 +94,6 @@
       box-shadow:
         0 8px 32px
         rgba(0, 0, 0, 0.37);
-
-      box-sizing: border-box;
 
       touch-action: manipulation;
     }
@@ -167,6 +169,8 @@
 
       flex: 1;
 
+      min-width: 0;
+
       padding: 12px;
 
       font-size: 16px;
@@ -183,10 +187,6 @@
       border-radius: 8px;
 
       outline: none;
-
-      transition:
-        border-color 0.2s,
-        background 0.2s;
 
       -webkit-appearance: none;
 
@@ -206,7 +206,8 @@
 
     input[type="text"]:focus {
 
-      border-color: #fcf6ba;
+      border-color:
+        #fcf6ba;
 
       background:
         rgba(255, 255, 255, 0.15);
@@ -214,7 +215,7 @@
 
 
     /* ========================================
-       一般按鈕
+       按鈕
        ======================================== */
 
     button,
@@ -239,8 +240,6 @@
       text-align: center;
 
       touch-action: manipulation;
-
-      box-sizing: border-box;
     }
 
 
@@ -278,19 +277,13 @@
     }
 
 
-    .btn-query:hover {
+    .btn-query:disabled {
 
-      background:
-        linear-gradient(
-          135deg,
-          #d4af37,
-          #fff8dc,
-          #c5a059
-        );
+      cursor: not-allowed;
 
-      box-shadow:
-        0 0 20px
-        rgba(252, 246, 186, 0.8);
+      opacity: 0.6;
+
+      filter: grayscale(30%);
     }
 
 
@@ -315,74 +308,6 @@
         filter: brightness(1.08);
       }
 
-    }
-
-
-    /* ========================================
-       LINE
-       ======================================== */
-
-    .btn-line {
-
-      background-color: #00c300;
-
-      color: #ffffff;
-
-      width: auto;
-
-      box-sizing: border-box;
-
-      margin-top: 16px;
-
-      display: inline-block;
-    }
-
-
-    .btn-line:hover {
-
-      background-color: #00b000;
-    }
-
-
-    /* ========================================
-       兌換獎品按鈕
-       ======================================== */
-
-    .btn-reward {
-
-      width: 100%;
-
-      margin-top: 12px;
-
-      padding: 13px 16px;
-
-      background:
-        linear-gradient(
-          135deg,
-          #8b5a2b,
-          #d4af37,
-          #8b5a2b
-        );
-
-      color: #fff;
-
-      font-weight: bold;
-
-      border:
-        1px solid
-        rgba(255, 255, 255, 0.25);
-
-      box-shadow:
-        0 0 12px
-        rgba(212, 175, 55, 0.35);
-    }
-
-
-    .btn-reward:hover {
-
-      box-shadow:
-        0 0 20px
-        rgba(252, 246, 186, 0.65);
     }
 
 
@@ -557,100 +482,124 @@
 
 
     /* ========================================
-       查詢按鈕鎖定
+       兌換按鈕
        ======================================== */
 
-    .btn-query:disabled {
+    #reward_button_area {
 
-      cursor: not-allowed;
+      display: none;
 
-      opacity: 0.6;
+      margin-top: 14px;
 
-      filter: grayscale(30%);
+      text-align: center;
+    }
+
+
+    .btn-reward {
+
+      width: 100%;
+
+      background:
+        linear-gradient(
+          135deg,
+          #d4af37,
+          #fff3a6,
+          #b8860b
+        );
+
+      color: #222222;
+
+      font-weight: bold;
+
+      box-shadow:
+        0 0 12px
+        rgba(212, 175, 55, 0.35);
     }
 
 
     /* ========================================
-       兌換 UI 遮罩
+       LINE
        ======================================== */
 
-    .reward-overlay {
+    .btn-line {
+
+      background-color:
+        #00c300;
+
+      color: #ffffff;
+
+      margin-top: 16px;
+    }
+
+
+    .btn-line:hover {
+
+      background-color:
+        #00b000;
+    }
+
+
+    /* ========================================
+       Modal
+       ======================================== */
+
+    #reward_modal {
+
+      display: none;
 
       position: fixed;
 
       inset: 0;
 
+      z-index: 5000;
+
       background:
-        rgba(0, 0, 0, 0.72);
+        rgba(0, 0, 0, 0.78);
 
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
-
-      display: none;
+      padding: 18px;
 
       align-items: center;
+
       justify-content: center;
-
-      padding: 16px;
-
-      box-sizing: border-box;
-
-      z-index: 5000;
     }
 
 
-    .reward-overlay.show {
-
-      display: flex;
-    }
-
-
-    /* ========================================
-       兌換面板
-       ======================================== */
-
-    .reward-modal {
+    .reward-panel {
 
       width: 100%;
 
-      max-width: 460px;
+      max-width: 450px;
 
-      max-height: 90dvh;
+      max-height: 90vh;
 
       overflow-y: auto;
 
       background:
-        linear-gradient(
-          180deg,
-          rgba(25, 20, 10, 0.97),
-          rgba(0, 0, 0, 0.97)
-        );
+        rgba(20, 20, 20, 0.98);
 
       border:
         1px solid
-        rgba(252, 246, 186, 0.35);
+        rgba(255, 255, 255, 0.18);
 
       border-radius: 18px;
 
       padding: 20px;
 
-      box-sizing: border-box;
-
       box-shadow:
-        0 20px 60px
+        0 15px 45px
         rgba(0, 0, 0, 0.65);
     }
 
 
     /* ========================================
-       兌換標題
+       Modal 標題
        ======================================== */
 
     .reward-title {
 
       text-align: center;
 
-      font-size: 1.25rem;
+      font-size: 1.3rem;
 
       font-weight: bold;
 
@@ -661,52 +610,26 @@
 
 
     /* ========================================
-       關閉
-       ======================================== */
-
-    .reward-close {
-
-      position: absolute;
-
-      margin-left: -42px;
-
-      margin-top: -8px;
-
-      width: 34px;
-      height: 34px;
-
-      padding: 0;
-
-      border-radius: 50%;
-
-      background:
-        rgba(255, 255, 255, 0.12);
-
-      color: #ffffff;
-
-      font-size: 20px;
-
-      line-height: 34px;
-
-      text-align: center;
-    }
-
-
-    /* ========================================
        選擇品項文字
        ======================================== */
 
     .reward-label {
 
-      display: block;
+      color: #ffffff;
+
+      font-size: 0.95rem;
 
       margin-bottom: 8px;
 
-      color: #fceea7;
+      line-height: 1.5;
+    }
 
-      font-size: 0.92rem;
 
-      font-weight: bold;
+    .reward-label span {
+
+      color: #fcf6ba;
+
+      font-size: 0.85rem;
     }
 
 
@@ -720,30 +643,30 @@
 
       padding: 13px 12px;
 
-      border-radius: 10px;
+      font-size: 16px;
 
       border:
         1px solid
         rgba(255, 255, 255, 0.25);
 
+      border-radius: 10px;
+
       background:
-        rgba(255, 255, 255, 0.1);
+        rgba(255, 255, 255, 0.08);
 
       color: #ffffff;
 
-      font-size: 16px;
-
       outline: none;
 
-      box-sizing: border-box;
+      margin-bottom: 16px;
     }
 
 
     #reward_select option {
 
-      color: #222222;
+      background: #222222;
 
-      background: #ffffff;
+      color: #ffffff;
     }
 
 
@@ -753,49 +676,49 @@
 
     .selected-title {
 
-      margin-top: 18px;
-
-      margin-bottom: 8px;
-
-      color: #fceea7;
-
-      font-size: 0.92rem;
+      color: #fcf6ba;
 
       font-weight: bold;
+
+      font-size: 0.98rem;
+
+      margin-bottom: 8px;
     }
 
 
     #selectedItemsBox {
 
-      min-height: 45px;
+      display: flex;
 
-      padding: 10px;
+      flex-direction: column;
 
-      border-radius: 10px;
+      gap: 8px;
 
-      background:
-        rgba(255, 255, 255, 0.06);
-
-      border:
-        1px solid
-        rgba(255, 255, 255, 0.15);
-
-      box-sizing: border-box;
+      min-height: 10px;
     }
 
 
-    .empty-selected {
+    .selected-empty {
 
       color:
-        rgba(255, 255, 255, 0.45);
+        rgba(255, 255, 255, 0.5);
 
       font-size: 0.88rem;
 
-      text-align: center;
+      padding: 10px;
 
-      padding: 5px;
+      border-radius: 8px;
+
+      background:
+        rgba(255, 255, 255, 0.05);
+
+      text-align: center;
     }
 
+
+    /* ========================================
+       已選品項列
+       ======================================== */
 
     .selected-item {
 
@@ -803,54 +726,114 @@
 
       align-items: center;
 
-      justify-content: space-between;
-
       gap: 8px;
 
-      padding: 9px 10px;
+      padding: 10px;
 
-      margin-bottom: 7px;
+      border-radius: 10px;
 
       background:
-        rgba(212, 175, 55, 0.13);
+        rgba(255, 255, 255, 0.07);
 
       border:
         1px solid
-        rgba(212, 175, 55, 0.3);
+        rgba(255, 255, 255, 0.12);
+    }
 
-      border-radius: 8px;
+
+    .selected-item-name {
+
+      flex: 1;
+
+      min-width: 0;
 
       color: #ffffff;
 
       font-size: 0.92rem;
+
+      word-break: break-word;
     }
 
 
-    .selected-item:last-child {
+    /* ========================================
+       數量控制
+       ======================================== */
 
-      margin-bottom: 0;
-    }
+    .quantity-control {
 
+      display: flex;
 
-    .remove-item {
+      align-items: center;
+
+      gap: 5px;
 
       flex-shrink: 0;
+    }
 
-      width: 28px;
-      height: 28px;
+
+    .quantity-btn {
+
+      width: 30px;
+
+      height: 30px;
 
       padding: 0;
 
-      border-radius: 50%;
+      border-radius: 7px;
 
       background:
-        rgba(255, 107, 107, 0.2);
+        rgba(212, 175, 55, 0.22);
 
-      color: #ff8d8d;
+      color: #fcf6ba;
 
-      font-size: 16px;
+      border:
+        1px solid
+        rgba(252, 246, 186, 0.35);
 
-      line-height: 28px;
+      font-size: 1.1rem;
+
+      font-weight: bold;
+
+      line-height: 30px;
+    }
+
+
+    .quantity-number {
+
+      min-width: 28px;
+
+      text-align: center;
+
+      color: #ffffff;
+
+      font-weight: bold;
+
+      font-size: 0.95rem;
+    }
+
+
+    /* ========================================
+       刪除
+       ======================================== */
+
+    .remove-item {
+
+      width: 30px;
+
+      height: 30px;
+
+      padding: 0;
+
+      border-radius: 7px;
+
+      background:
+        rgba(255, 80, 80, 0.15);
+
+      color: #ff8b8b;
+
+      font-size: 0.95rem;
+
+      flex-shrink: 0;
     }
 
 
@@ -858,84 +841,111 @@
        即時預覽
        ======================================== */
 
+    .preview-box {
+
+      margin-top: 16px;
+
+      padding: 14px;
+
+      border-radius: 12px;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(212, 175, 55, 0.12),
+          rgba(255, 255, 255, 0.05)
+        );
+
+      border:
+        1px solid
+        rgba(212, 175, 55, 0.25);
+    }
+
+
     .preview-title {
 
-      margin-top: 18px;
+      color: #fcf6ba;
 
-      margin-bottom: 8px;
-
-      color: #fceea7;
-
-      font-size: 0.92rem;
+      font-size: 0.98rem;
 
       font-weight: bold;
+
+      margin-bottom: 10px;
     }
 
 
     #reward_preview {
 
-      padding: 13px;
-
-      min-height: 70px;
-
-      box-sizing: border-box;
-
-      border-radius: 10px;
-
-      background:
-        rgba(255, 255, 255, 0.05);
-
-      border:
-        1px solid
-        rgba(255, 255, 255, 0.15);
+      white-space: pre-line;
 
       color: #ffffff;
 
-      white-space: pre-line;
-
-      line-height: 1.6;
-
       font-size: 0.9rem;
+
+      line-height: 1.65;
+
+      word-break: break-word;
     }
 
 
     /* ========================================
-       LINE 發送
+       Modal 按鈕
        ======================================== */
+
+    .reward-actions {
+
+      display: flex;
+
+      gap: 8px;
+
+      margin-top: 18px;
+    }
+
+
+    .reward-actions button {
+
+      flex: 1;
+
+      min-width: 0;
+    }
+
+
+    .btn-close-reward {
+
+      background:
+        rgba(255, 255, 255, 0.12);
+
+      color: #ffffff;
+    }
+
 
     .btn-send-line {
 
-      width: 100%;
-
-      margin-top: 16px;
-
       background:
-        linear-gradient(
-          135deg,
-          #00c300,
-          #00a900
-        );
+        #00c300;
 
       color: #ffffff;
 
       font-weight: bold;
 
       box-shadow:
-        0 0 12px
-        rgba(0, 195, 0, 0.3);
+        0 0 10px
+        rgba(0, 195, 0, 0.25);
     }
 
 
     .btn-send-line:disabled {
 
-      opacity: 0.45;
+      opacity: 0.4;
 
       cursor: not-allowed;
+
+      box-shadow: none;
     }
 
 
     /* ========================================
-       兌換讀取中
+       Loading / Error
        ======================================== */
 
     .reward-loading {
@@ -944,9 +954,17 @@
 
       color: #fcf6ba;
 
-      padding: 18px 5px;
+      padding: 20px 0;
+    }
 
-      font-size: 0.95rem;
+
+    .reward-error {
+
+      text-align: center;
+
+      color: #ff6b6b;
+
+      padding: 10px 0;
     }
 
 
@@ -979,23 +997,25 @@
        手機
        ======================================== */
 
-    @media (max-width: 480px) {
+    @media (max-width: 420px) {
 
-      .container {
+      .reward-panel {
 
-        padding: 18px;
+        padding: 16px;
       }
 
-      .reward-modal {
 
-        padding: 18px;
+      .selected-item {
 
-        max-height: 88dvh;
+        flex-wrap: wrap;
       }
 
-      .reward-close {
 
-        margin-left: -40px;
+      .selected-item-name {
+
+        width: 100%;
+
+        flex-basis: 100%;
       }
 
     }
@@ -1004,6 +1024,7 @@
 
 
   <script>
+
 
     // ========================================
     // 全域 API
@@ -1018,18 +1039,20 @@
     // 目前會員
     // ========================================
 
-    let currentMemberUid = "";
-
-    let currentMemberPoints = "";
+    let CURRENT_UID = "";
 
 
     // ========================================
-    // 兌換獎品
+    // 多選獎品
+    //
+    // 格式：
+    //
+    // {
+    //   "獎品名稱": 2
+    // }
     // ========================================
 
-    let rewards = [];
-
-    let selectedItems = [];
+    let SELECTED_REWARDS = {};
 
 
     // ========================================
@@ -1059,6 +1082,7 @@
           e.preventDefault();
 
           return false;
+
         }
 
 
@@ -1078,6 +1102,7 @@
           e.preventDefault();
 
           return false;
+
         }
 
 
@@ -1092,6 +1117,7 @@
           e.preventDefault();
 
           return false;
+
         }
 
       }
@@ -1109,7 +1135,9 @@
         e.preventDefault();
 
       },
-      { passive: false }
+      {
+        passive: false
+      }
     );
 
 
@@ -1120,7 +1148,9 @@
         e.preventDefault();
 
       },
-      { passive: false }
+      {
+        passive: false
+      }
     );
 
 
@@ -1131,7 +1161,9 @@
         e.preventDefault();
 
       },
-      { passive: false }
+      {
+        passive: false
+      }
     );
 
 
@@ -1149,7 +1181,9 @@
         }
 
       },
-      { passive: false }
+      {
+        passive: false
+      }
     );
 
 
@@ -1164,7 +1198,8 @@
       "touchend",
       function(e) {
 
-        const now = Date.now();
+        const now =
+          Date.now();
 
 
         if (
@@ -1179,12 +1214,14 @@
         lastTouchEnd = now;
 
       },
-      { passive: false }
+      {
+        passive: false
+      }
     );
 
 
     // ========================================
-    // DOM 載入
+    // DOM 完成
     // ========================================
 
     document.addEventListener(
@@ -1195,52 +1232,31 @@
           document.getElementById("uid");
 
 
-        uidInput.addEventListener(
-          "click",
-          function() {
+        if (uidInput) {
 
-            this.value = "";
+          uidInput.addEventListener(
+            "click",
+            function() {
 
-          }
-        );
-
-
-        const rewardSelect =
-          document.getElementById("reward_select");
-
-
-        rewardSelect.addEventListener(
-          "change",
-          function() {
-
-            const value =
-              this.value.trim();
-
-
-            if (value === "") {
-
-              return;
+              this.value = "";
 
             }
+          );
+
+        }
 
 
-            // ==================================
-            // 可選多個
-            // 同一個獎品不重複加入
-            // ==================================
+        document.addEventListener(
+          "keydown",
+          function(e) {
 
             if (
-              !selectedItems.includes(value)
+              e.key === "Escape"
             ) {
 
-              selectedItems.push(value);
+              closeRewardModal();
 
             }
-
-
-            this.value = "";
-
-            renderSelectedItems();
 
           }
         );
@@ -1254,6 +1270,7 @@
     // ========================================
 
     async function showHint(str) {
+
 
       const errorMsg =
         document.getElementById(
@@ -1291,40 +1308,23 @@
         );
 
 
-      // ====================================
-      // 清除空白
-      // ====================================
+      const rewardButtonArea =
+        document.getElementById(
+          "reward_button_area"
+        );
 
-      str = str.trim();
 
-
-      // ====================================
-      // 沒輸入
-      // ====================================
-
-      if (str === "") {
-
-        errorMsg.innerText =
-          "請輸入 會員號＋貴賓本名";
-
-        orderStatus.innerHTML = "";
-
-        currentTimeSpan.innerText = "";
-
-        noticeBox.style.display =
-          "none";
-
-        hideRewardButton();
-
-        return;
-      }
+      str =
+        str.trim();
 
 
       // ====================================
       // 防止重複查詢
       // ====================================
 
-      if (queryButton.disabled) {
+      if (
+        queryButton.disabled
+      ) {
 
         return;
 
@@ -1332,30 +1332,84 @@
 
 
       // ====================================
-      // 開始查詢
+      // 沒有輸入
       // ====================================
 
-      queryButton.disabled = true;
+      if (
+        str === ""
+      ) {
 
-      errorMsg.innerText = "";
+        errorMsg.innerText =
+          "請輸入 會員號＋貴賓本名";
+
+
+        orderStatus.innerHTML =
+          "";
+
+
+        currentTimeSpan.innerText =
+          "";
+
+
+        noticeBox.style.display =
+          "none";
+
+
+        rewardButtonArea.style.display =
+          "none";
+
+
+        return;
+
+      }
+
+
+      // ====================================
+      // 查詢開始
+      // ====================================
+
+      queryButton.disabled =
+        true;
+
+
+      errorMsg.innerText =
+        "";
+
 
       loadingSpan.style.display =
         "inline-block";
 
-      orderStatus.innerHTML = "";
 
-      currentTimeSpan.innerText = "";
+      orderStatus.innerHTML =
+        "";
+
+
+      currentTimeSpan.innerText =
+        "";
+
 
       noticeBox.style.display =
         "none";
 
-      hideRewardButton();
+
+      rewardButtonArea.style.display =
+        "none";
+
+
+      CURRENT_UID =
+        "";
+
+
+      // 關閉舊 Modal
+
+      closeRewardModal();
 
 
       try {
 
+
         // ==================================
-        // 取得 API 設定
+        // 讀取 API 設定
         // ==================================
 
         const configResponse =
@@ -1369,7 +1423,9 @@
           );
 
 
-        if (!configResponse.ok) {
+        if (
+          !configResponse.ok
+        ) {
 
           throw new Error(
             "API_CONFIG_LOAD_ERROR"
@@ -1398,7 +1454,9 @@
         API_URL =
           config.apiUrl.trim();
 
-        API_READY = true;
+
+        API_READY =
+          true;
 
 
         // ==================================
@@ -1418,11 +1476,13 @@
             mode: "no-cors"
           }
         )
-        .catch(function() {});
+        .catch(
+          function() {}
+        );
 
 
         // ==================================
-        // 會員查詢
+        // 查詢網址
         // ==================================
 
         const separator =
@@ -1435,8 +1495,14 @@
           API_URL +
           separator +
           "uid=" +
-          encodeURIComponent(str);
+          encodeURIComponent(
+            str
+          );
 
+
+        // ==================================
+        // 呼叫 GAS
+        // ==================================
 
         const response =
           await fetch(
@@ -1448,7 +1514,9 @@
           );
 
 
-        if (!response.ok) {
+        if (
+          !response.ok
+        ) {
 
           throw new Error(
             "GAS_REQUEST_ERROR"
@@ -1465,20 +1533,30 @@
         // 查無會員
         // ==================================
 
-        if (!result.success) {
+        if (
+          !result.success
+        ) {
 
           errorMsg.innerText =
             result.message ||
             "查無會員";
 
-          orderStatus.innerHTML = "";
 
-          currentTimeSpan.innerText = "";
+          orderStatus.innerHTML =
+            "";
+
+
+          currentTimeSpan.innerText =
+            "";
+
 
           noticeBox.style.display =
             "none";
 
-          hideRewardButton();
+
+          rewardButtonArea.style.display =
+            "none";
+
 
           return;
 
@@ -1486,25 +1564,30 @@
 
 
         // ==================================
-        // 保存目前會員
+        // 保存會員
         // ==================================
 
-        currentMemberUid =
-          String(result.uid || str);
-
-        currentMemberPoints =
-          result.points;
+        CURRENT_UID =
+          String(
+            result.uid ||
+            str
+          );
 
 
         // ==================================
-        // 顯示會員結果
+        // 點數
         // ==================================
 
         const points =
           result.points;
 
 
+        // ==================================
+        // 顯示結果
+        // ==================================
+
         orderStatus.innerHTML =
+
           "<table>" +
 
             "<tr>" +
@@ -1518,15 +1601,23 @@
             "<tr>" +
 
               "<td>" +
-              escapeHtml(
-                String(result.uid)
-              ) +
+
+                escapeHtml(
+                  String(
+                    result.uid
+                  )
+                ) +
+
               "</td>" +
 
               "<td>" +
-              escapeHtml(
-                String(points)
-              ) +
+
+                escapeHtml(
+                  String(
+                    points
+                  )
+                ) +
+
               "</td>" +
 
             "</tr>" +
@@ -1543,24 +1634,34 @@
 
 
         const formattedTime =
+
           now.getFullYear() +
           "/" +
+
           String(
             now.getMonth() + 1
           ).padStart(2, "0") +
+
           "/" +
+
           String(
             now.getDate()
           ).padStart(2, "0") +
+
           " " +
+
           String(
             now.getHours()
           ).padStart(2, "0") +
+
           ":" +
+
           String(
             now.getMinutes()
           ).padStart(2, "0") +
+
           ":" +
+
           String(
             now.getSeconds()
           ).padStart(2, "0");
@@ -1572,7 +1673,7 @@
 
 
         // ==================================
-        // 顯示提醒
+        // 提醒
         // ==================================
 
         noticeBox.style.display =
@@ -1580,17 +1681,15 @@
 
 
         // ==================================
-        // 查詢成功
-        // 顯示兌換獎品按鈕
-        //
-        // 注意：
-        // 這裡「沒有」讀兌換DM API
+        // 顯示兌換按鈕
         // ==================================
 
-        showRewardButton();
+        rewardButtonArea.style.display =
+          "block";
 
 
       } catch (error) {
+
 
         console.error(
           "API 查詢錯誤：",
@@ -1602,52 +1701,39 @@
           "連線伺服器失敗，請稍後再試";
 
 
-        orderStatus.innerHTML = "";
+        orderStatus.innerHTML =
+          "";
 
-        currentTimeSpan.innerText = "";
+
+        currentTimeSpan.innerText =
+          "";
+
 
         noticeBox.style.display =
           "none";
 
-        hideRewardButton();
+
+        rewardButtonArea.style.display =
+          "none";
 
 
       } finally {
 
-        // ==================================
-        // 查詢完成
-        // ==================================
 
         loadingSpan.style.display =
           "none";
 
-        queryButton.disabled = false;
 
-        API_READY = false;
-
-        API_URL = "";
-
-      }
-
-    }
+        queryButton.disabled =
+          false;
 
 
-    // ========================================
-    // 顯示兌換按鈕
-    // ========================================
-
-    function showRewardButton() {
-
-      const button =
-        document.getElementById(
-          "reward_button"
-        );
+        API_READY =
+          false;
 
 
-      if (button) {
-
-        button.style.display =
-          "block";
+        API_URL =
+          "";
 
       }
 
@@ -1655,51 +1741,24 @@
 
 
     // ========================================
-    // 隱藏兌換按鈕
-    // ========================================
-
-    function hideRewardButton() {
-
-      const button =
-        document.getElementById(
-          "reward_button"
-        );
-
-
-      if (button) {
-
-        button.style.display =
-          "none";
-
-      }
-
-    }
-
-
-    // ========================================
-    // 開啟兌換 UI
+    // 開啟兌換獎品
     // ========================================
 
     async function openRewardModal() {
 
-      // ==================================
-      // 必須先有會員
-      // ==================================
 
-      if (!currentMemberUid) {
-
-        alert(
-          "請先查詢會員"
-        );
+      if (
+        !CURRENT_UID
+      ) {
 
         return;
 
       }
 
 
-      const overlay =
+      const modal =
         document.getElementById(
-          "reward_overlay"
+          "reward_modal"
         );
 
 
@@ -1721,50 +1780,55 @@
         );
 
 
-      // ==================================
-      // 打開 UI
-      // ==================================
+      // ====================================
+      // 清除舊選擇
+      // ====================================
 
-      overlay.classList.add("show");
+      SELECTED_REWARDS =
+        {};
 
+
+      renderSelectedRewards();
+
+
+      // ====================================
+      // 清除下拉選單
+      // ====================================
 
       select.innerHTML =
-        '<option value="">讀取獎品中...</option>';
+
+        '<option value="">' +
+        '-- 點此選擇品項直接加入 --' +
+        '</option>';
 
 
-      select.disabled = true;
+      error.innerText =
+        "";
 
 
       loading.style.display =
         "block";
 
 
-      error.innerText = "";
-
-
-      // ==================================
-      // 清空上一次選擇
-      // ==================================
-
-      selectedItems = [];
-
-      renderSelectedItems();
+      modal.style.display =
+        "flex";
 
 
       try {
 
+
         // ==================================
-        // 如果 API_URL 是空的
-        // 重新取得 J.json
-        //
-        // 這不會查會員
+        // 取得 API
         // ==================================
 
         let apiUrl =
           API_URL;
 
 
-        if (!apiUrl) {
+        if (
+          !apiUrl
+        ) {
+
 
           const configResponse =
             await fetch(
@@ -1777,7 +1841,9 @@
             );
 
 
-          if (!configResponse.ok) {
+          if (
+            !configResponse.ok
+          ) {
 
             throw new Error(
               "API_CONFIG_LOAD_ERROR"
@@ -1810,14 +1876,7 @@
 
 
         // ==================================
-        // 呼叫 GAS
-        //
-        // action=rewards
-        //
-        // GAS：
-        // getRewards()
-        // ↓
-        // 讀取「兌換DM」
+        // rewards API
         // ==================================
 
         const separator =
@@ -1842,7 +1901,9 @@
           );
 
 
-        if (!response.ok) {
+        if (
+          !response.ok
+        ) {
 
           throw new Error(
             "REWARD_REQUEST_ERROR"
@@ -1856,41 +1917,39 @@
 
 
         if (
-          !result ||
           !result.success
         ) {
 
           throw new Error(
             result.message ||
-            "讀取獎品失敗"
+            "獎品讀取失敗"
           );
 
         }
 
 
-        // ==================================
-        // 取得獎品
-        // ==================================
-
-        rewards =
-          Array.isArray(result.rewards)
+        const rewards =
+          Array.isArray(
+            result.rewards
+          )
             ? result.rewards
             : [];
+
+
+        loading.style.display =
+          "none";
 
 
         // ==================================
         // 沒有獎品
         // ==================================
 
-        if (rewards.length === 0) {
-
-          select.innerHTML =
-            '<option value="">目前沒有可兌換獎品</option>';
-
-          select.disabled = true;
+        if (
+          rewards.length === 0
+        ) {
 
           error.innerText =
-            "目前沒有可兌換獎品";
+            "目前沒有可兌換的獎品";
 
           return;
 
@@ -1898,15 +1957,15 @@
 
 
         // ==================================
-        // 建立選單
+        // 建立獎品選單
         // ==================================
 
-        select.innerHTML =
-          '<option value="">-- 點此選擇品項直接加入 --</option>';
-
-
         rewards.forEach(
-          function(item) {
+          function(reward) {
+
+            const rewardName =
+              String(reward);
+
 
             const option =
               document.createElement(
@@ -1914,9 +1973,12 @@
               );
 
 
-            option.value = item;
+            option.value =
+              rewardName;
 
-            option.textContent = item;
+
+            option.textContent =
+              rewardName;
 
 
             select.appendChild(
@@ -1927,204 +1989,192 @@
         );
 
 
-        select.disabled = false;
+      } catch (err) {
 
-
-        // ==================================
-        // 更新預覽
-        // ==================================
-
-        updatePreview();
-
-
-      } catch (error) {
 
         console.error(
-          "兌換獎品 API 錯誤：",
-          error
+          "獎品讀取錯誤：",
+          err
         );
 
-
-        select.innerHTML =
-          '<option value="">讀取獎品失敗</option>';
-
-
-        select.disabled = true;
-
-
-        error.innerText =
-          "讀取獎品失敗，請稍後再試";
-
-
-      } finally {
 
         loading.style.display =
           "none";
 
+
+        error.innerText =
+          "獎品讀取失敗，請稍後再試";
+
       }
 
     }
 
 
     // ========================================
-    // 關閉兌換 UI
+    // 選單選擇獎品
     // ========================================
 
-    function closeRewardModal() {
+    function addRewardFromSelect() {
 
-      const overlay =
+
+      const select =
         document.getElementById(
-          "reward_overlay"
+          "reward_select"
         );
 
 
-      overlay.classList.remove(
-        "show"
-      );
+      const reward =
+        select.value;
 
-    }
-
-
-    // ========================================
-    // 點遮罩關閉
-    // ========================================
-
-    function overlayClick(e) {
 
       if (
-        e.target ===
-        document.getElementById(
-          "reward_overlay"
-        )
+        !reward
       ) {
 
-        closeRewardModal();
+        return;
 
       }
 
+
+      // ====================================
+      // 已存在 → 數量 +1
+      // ====================================
+
+      if (
+        Object.prototype.hasOwnProperty.call(
+          SELECTED_REWARDS,
+          reward
+        )
+      ) {
+
+        SELECTED_REWARDS[reward] += 1;
+
+      } else {
+
+        SELECTED_REWARDS[reward] = 1;
+
+      }
+
+
+      // ====================================
+      // 更新畫面
+      // ====================================
+
+      renderSelectedRewards();
+
+
+      // ====================================
+      // 選完後回到提示
+      // ====================================
+
+      select.value =
+        "";
+
     }
 
 
     // ========================================
-    // 顯示已選品項
+    // 增加數量
     // ========================================
 
-    function renderSelectedItems() {
+    function increaseReward(
+      reward
+    ) {
+
+
+      if (
+        !Object.prototype.hasOwnProperty.call(
+          SELECTED_REWARDS,
+          reward
+        )
+      ) {
+
+        SELECTED_REWARDS[reward] =
+          1;
+
+      } else {
+
+        SELECTED_REWARDS[reward] += 1;
+
+      }
+
+
+      renderSelectedRewards();
+
+    }
+
+
+    // ========================================
+    // 減少數量
+    // ========================================
+
+    function decreaseReward(
+      reward
+    ) {
+
+
+      if (
+        !Object.prototype.hasOwnProperty.call(
+          SELECTED_REWARDS,
+          reward
+        )
+      ) {
+
+        return;
+
+      }
+
+
+      SELECTED_REWARDS[reward] -= 1;
+
+
+      // 數量為 0 → 移除
+
+      if (
+        SELECTED_REWARDS[reward] <= 0
+      ) {
+
+        delete SELECTED_REWARDS[reward];
+
+      }
+
+
+      renderSelectedRewards();
+
+    }
+
+
+    // ========================================
+    // 移除獎品
+    // ========================================
+
+    function removeReward(
+      reward
+    ) {
+
+
+      delete SELECTED_REWARDS[
+        reward
+      ];
+
+
+      renderSelectedRewards();
+
+    }
+
+
+    // ========================================
+    // 顯示已選獎品
+    // ========================================
+
+    function renderSelectedRewards() {
+
 
       const box =
         document.getElementById(
           "selectedItemsBox"
         );
 
-
-      if (!box) {
-
-        return;
-
-      }
-
-
-      if (
-        selectedItems.length === 0
-      ) {
-
-        box.innerHTML =
-          '<div class="empty-selected">' +
-          '尚未選擇品項' +
-          '</div>';
-
-        updatePreview();
-
-        return;
-
-      }
-
-
-      box.innerHTML = "";
-
-
-      selectedItems.forEach(
-        function(item, index) {
-
-          const row =
-            document.createElement(
-              "div"
-            );
-
-
-          row.className =
-            "selected-item";
-
-
-          const text =
-            document.createElement(
-              "span"
-            );
-
-
-          text.textContent =
-            "🎁 " + item;
-
-
-          const removeButton =
-            document.createElement(
-              "button"
-            );
-
-
-          removeButton.type =
-            "button";
-
-
-          removeButton.className =
-            "remove-item";
-
-
-          removeButton.textContent =
-            "×";
-
-
-          removeButton.title =
-            "移除";
-
-
-          removeButton.onclick =
-            function() {
-
-              selectedItems.splice(
-                index,
-                1
-              );
-
-
-              renderSelectedItems();
-
-            };
-
-
-          row.appendChild(text);
-
-          row.appendChild(
-            removeButton
-          );
-
-
-          box.appendChild(row);
-
-        }
-      );
-
-
-      updatePreview();
-
-    }
-
-
-    // ========================================
-    // 即時預覽
-    // ========================================
-
-    function updatePreview() {
 
       const preview =
         document.getElementById(
@@ -2138,11 +2188,35 @@
         );
 
 
+      box.innerHTML =
+        "";
+
+
+      const rewards =
+        Object.keys(
+          SELECTED_REWARDS
+        );
+
+
+      // ====================================
+      // 沒有選擇
+      // ====================================
+
       if (
-        selectedItems.length === 0
+        rewards.length === 0
       ) {
 
-        preview.textContent =
+
+        box.innerHTML =
+
+          '<div class="selected-empty">' +
+
+          '尚未選擇任何獎品' +
+
+          '</div>';
+
+
+        preview.innerText =
           "尚未選擇兌換品項";
 
 
@@ -2155,46 +2229,218 @@
       }
 
 
-      let text =
-        "🎁 兌換獎品\n\n";
+      // ====================================
+      // 有選擇
+      // ====================================
+
+      rewards.forEach(
+        function(reward) {
 
 
-      text +=
-        "會員：" +
-        currentMemberUid +
-        "\n";
+          const quantity =
+            SELECTED_REWARDS[
+              reward
+            ];
 
 
-      text +=
-        "目前點數：" +
-        currentMemberPoints +
-        "\n\n";
+          const item =
+            document.createElement(
+              "div"
+            );
 
 
-      text +=
-        "兌換品項：\n";
+          item.className =
+            "selected-item";
 
 
-      selectedItems.forEach(
-        function(item, index) {
+          // 品名
 
-          text +=
-            (index + 1) +
-            ". " +
-            item +
-            "\n";
+          const name =
+            document.createElement(
+              "div"
+            );
+
+
+          name.className =
+            "selected-item-name";
+
+
+          name.innerText =
+            reward;
+
+
+          // 數量控制
+
+          const quantityControl =
+            document.createElement(
+              "div"
+            );
+
+
+          quantityControl.className =
+            "quantity-control";
+
+
+          // 減少
+
+          const minus =
+            document.createElement(
+              "button"
+            );
+
+
+          minus.type =
+            "button";
+
+
+          minus.className =
+            "quantity-btn";
+
+
+          minus.innerText =
+            "−";
+
+
+          minus.onclick =
+            function() {
+
+              decreaseReward(
+                reward
+              );
+
+            };
+
+
+          // 數字
+
+          const number =
+            document.createElement(
+              "span"
+            );
+
+
+          number.className =
+            "quantity-number";
+
+
+          number.innerText =
+            quantity;
+
+
+          // 增加
+
+          const plus =
+            document.createElement(
+              "button"
+            );
+
+
+          plus.type =
+            "button";
+
+
+          plus.className =
+            "quantity-btn";
+
+
+          plus.innerText =
+            "+";
+
+
+          plus.onclick =
+            function() {
+
+              increaseReward(
+                reward
+              );
+
+            };
+
+
+          quantityControl.appendChild(
+            minus
+          );
+
+
+          quantityControl.appendChild(
+            number
+          );
+
+
+          quantityControl.appendChild(
+            plus
+          );
+
+
+          // 刪除
+
+          const remove =
+            document.createElement(
+              "button"
+            );
+
+
+          remove.type =
+            "button";
+
+
+          remove.className =
+            "remove-item";
+
+
+          remove.innerText =
+            "✕";
+
+
+          remove.title =
+            "移除";
+
+
+          remove.onclick =
+            function() {
+
+              removeReward(
+                reward
+              );
+
+            };
+
+
+          // 組合
+
+          item.appendChild(
+            name
+          );
+
+
+          item.appendChild(
+            quantityControl
+          );
+
+
+          item.appendChild(
+            remove
+          );
+
+
+          box.appendChild(
+            item
+          );
 
         }
       );
 
 
-      text +=
-        "\n請官方協助確認兌換，謝謝！";
+      // ====================================
+      // 更新即時預覽
+      // ====================================
+
+      updateRewardPreview();
 
 
-      preview.textContent =
-        text;
-
+      // ====================================
+      // 啟用分享
+      // ====================================
 
       sendButton.disabled =
         false;
@@ -2203,111 +2449,268 @@
 
 
     // ========================================
-    // 發送給官方 LINE@
-    //
-    // 注意：
-    // LINE 開啟後
-    // 使用者仍然要自己按「送出」
+    // 建立分享文字
     // ========================================
 
-    function sendToOfficialLine() {
+    function buildRewardMessage() {
 
-      if (
-        selectedItems.length === 0
-      ) {
 
-        alert(
-          "請先選擇兌換獎品"
+      const rewards =
+        Object.keys(
+          SELECTED_REWARDS
         );
 
-        return;
-
-      }
-
-
-      // ==================================
-      // 建立 LINE 訊息
-      // ==================================
 
       let message =
-        "🎁 兌換獎品\n\n";
 
-
-      message +=
-        "會員：" +
-        currentMemberUid +
-        "\n";
-
-
-      message +=
-        "目前點數：" +
-        currentMemberPoints +
+        "🎁 兌換獎品" +
         "\n\n";
 
 
       message +=
-        "兌換品項：\n";
+
+        "會員：" +
+        CURRENT_UID +
+        "\n\n";
 
 
-      selectedItems.forEach(
-        function(item, index) {
+      message +=
+        "兌換品項：";
+
+
+      rewards.forEach(
+        function(reward, index) {
 
           message +=
+
+            "\n" +
             (index + 1) +
             ". " +
-            item +
-            "\n";
+            reward +
+            " × " +
+            SELECTED_REWARDS[
+              reward
+            ];
 
         }
       );
 
 
       message +=
-        "\n請官方協助確認兌換，謝謝！";
+
+        "\n\n" +
+        "請協助確認兌換，謝謝。";
 
 
-      // ==================================
-      // LINE 官方帳號
-      // ==================================
-
-      const lineUrl =
-        "https://line.me/R/ti/p/@goldwon888?text=" +
-        encodeURIComponent(message);
-
-
-      // ==================================
-      // 開啟 LINE
-      // ==================================
-
-      window.location.href =
-        lineUrl;
+      return message;
 
     }
 
 
     // ========================================
-    // HTML Escape
+    // 即時預覽
+    // ========================================
+
+    function updateRewardPreview() {
+
+
+      const preview =
+        document.getElementById(
+          "reward_preview"
+        );
+
+
+      const rewards =
+        Object.keys(
+          SELECTED_REWARDS
+        );
+
+
+      if (
+        rewards.length === 0
+      ) {
+
+        preview.innerText =
+          "尚未選擇兌換品項";
+
+        return;
+
+      }
+
+
+      let text =
+
+        "🎁 兌換獎品\n\n" +
+
+        "會員：" +
+        CURRENT_UID +
+        "\n\n" +
+
+        "兌換品項：";
+
+
+      rewards.forEach(
+        function(reward, index) {
+
+          text +=
+
+            "\n" +
+            (index + 1) +
+            ". " +
+            reward +
+            " × " +
+            SELECTED_REWARDS[
+              reward
+            ];
+
+        }
+      );
+
+
+      preview.innerText =
+        text;
+
+    }
+
+
+    // ========================================
+    // LINE 分享
+    // ========================================
+
+    function sendRewardToLine() {
+
+
+      const rewards =
+        Object.keys(
+          SELECTED_REWARDS
+        );
+
+
+      // ====================================
+      // 檢查
+      // ====================================
+
+      if (
+        !CURRENT_UID ||
+        rewards.length === 0
+      ) {
+
+        return;
+
+      }
+
+
+      const message =
+        buildRewardMessage();
+
+
+      // ====================================
+      // LINE 分享 URL
+      //
+      // 這裡不再指定官方 LINE 帳號
+      // 而是使用 LINE 分享功能
+      //
+      // 使用者可以在 LINE 分享畫面
+      // 選擇官方 LINE@ 或其他聊天室
+      // ====================================
+
+      const lineShareUrl =
+
+        "https://line.me/R/msg/text/?" +
+
+        "text=" +
+
+        encodeURIComponent(
+          message
+        );
+
+
+      // ====================================
+      // 開啟 LINE
+      // ====================================
+
+      window.open(
+        lineShareUrl,
+        "_blank"
+      );
+
+    }
+
+
+    // ========================================
+    // 關閉 Modal
+    // ========================================
+
+    function closeRewardModal() {
+
+
+      const modal =
+        document.getElementById(
+          "reward_modal"
+        );
+
+
+      if (
+        modal
+      ) {
+
+        modal.style.display =
+          "none";
+
+      }
+
+    }
+
+
+    // ========================================
+    // Modal 背景關閉
+    // ========================================
+
+    function rewardModalBackgroundClick(
+      event
+    ) {
+
+
+      if (
+        event.target.id ===
+        "reward_modal"
+      ) {
+
+        closeRewardModal();
+
+      }
+
+    }
+
+
+    // ========================================
+    // HTML 安全處理
     // ========================================
 
     function escapeHtml(value) {
 
-      return value
+      return String(value)
+
         .replace(
           /&/g,
           "&amp;"
         )
+
         .replace(
           /</g,
           "&lt;"
         )
+
         .replace(
           />/g,
           "&gt;"
         )
+
         .replace(
           /"/g,
           "&quot;"
         )
+
         .replace(
           /'/g,
           "&#039;"
@@ -2323,6 +2726,10 @@
 <body>
 
 
+  <!-- ======================================
+       主畫面
+       ====================================== -->
+
   <div class="container">
 
 
@@ -2332,7 +2739,7 @@
 
 
     <!-- ====================================
-         會員查詢
+         會員輸入
          ==================================== -->
 
     <div class="input-group">
@@ -2345,18 +2752,24 @@
         autocorrect="off"
         autocapitalize="off"
         spellcheck="false"
-      />
+      >
 
 
       <button
         class="btn btn-query"
-        onclick="showHint(document.getElementById('uid').value);"
+        onclick="
+          showHint(
+            document.getElementById('uid').value
+          );
+        "
       >
         查詢
       </button>
 
     </div>
 
+
+    <!-- Loading -->
 
     <span
       id="loading"
@@ -2366,36 +2779,44 @@
     </span>
 
 
-    <span id="error_message"></span>
+    <!-- 錯誤 -->
+
+    <span
+      id="error_message"
+    ></span>
+
+
+    <!-- 查詢結果 -->
+
+    <div
+      id="order_status"
+    ></div>
+
+
+    <!-- 查詢時間 -->
+
+    <span
+      id="current_time"
+    ></span>
 
 
     <!-- ====================================
-         查詢結果
+         兌換獎品按鈕
          ==================================== -->
 
-    <div id="order_status"></div>
-
-
-    <!-- ====================================
-         查詢時間
-         ==================================== -->
-
-    <span id="current_time"></span>
-
-
-    <!-- ====================================
-         🎁 兌換獎品
-         查詢成功後才出現
-         ==================================== -->
-
-    <button
-      id="reward_button"
-      class="btn btn-reward"
-      style="display:none;"
-      onclick="openRewardModal();"
+    <div
+      id="reward_button_area"
     >
-      🎁 兌換獎品
-    </button>
+
+      <button
+        type="button"
+        class="btn btn-reward"
+        onclick="openRewardModal();"
+      >
+        🎁 兌換獎品
+      </button>
+
+    </div>
 
 
     <!-- ====================================
@@ -2405,18 +2826,19 @@
     <div
       id="notice_box"
       class="notice-box"
-      style="display:none;"
+      style="display: none;"
     >
 
       🔔 貼心提醒：<br>
 
-      當日消費之點數，將於【隔日】統一入點唷～
+      當日消費之點數，
+      將於【隔日】統一入點唷～
 
     </div>
 
 
     <!-- ====================================
-         返回官方 LINE@
+         官方 LINE@
          ==================================== -->
 
     <a
@@ -2432,79 +2854,48 @@
 
 
   <!-- ======================================
-       🎁 兌換獎品 UI
+       兌換獎品 Modal
        ====================================== -->
 
   <div
-    id="reward_overlay"
-    class="reward-overlay"
-    onclick="overlayClick(event);"
+    id="reward_modal"
+    onclick="rewardModalBackgroundClick(event);"
   >
 
 
-    <div class="reward-modal">
+    <div
+      class="reward-panel"
+    >
 
 
       <!-- 標題 -->
 
-      <div class="reward-title">
-
+      <div
+        class="reward-title"
+      >
         🎁 請選擇兌換獎品
-
       </div>
 
 
-      <!-- 關閉 -->
-
-      <button
-        type="button"
-        class="reward-close"
-        onclick="closeRewardModal();"
-      >
-        ×
-      </button>
-
-
       <!-- ==================================
-           Loading
+           選擇品項
            ================================== -->
 
       <div
-        id="reward_loading"
-        class="reward-loading"
-      >
-
-        正在讀取兌換獎品...
-
-      </div>
-
-
-      <div
-        id="reward_error"
-        style="
-          color:#ff6b6b;
-          font-size:0.88rem;
-          margin-bottom:8px;
-        "
-      ></div>
-
-
-      <!-- ==================================
-           選單
-           ================================== -->
-
-      <label
         class="reward-label"
-        for="reward_select"
       >
 
-        選擇品項（點擊即可加入，可選多個）：
+        選擇品項
+        <span>
+          （點擊即可加入，可選多個）
+        </span>
 
-      </label>
+      </div>
 
 
       <select
         id="reward_select"
+        onchange="addRewardFromSelect();"
       >
 
         <option value="">
@@ -2518,19 +2909,21 @@
            已選品項
            ================================== -->
 
-      <div class="selected-title">
-
-        已選擇品項：
-
+      <div
+        class="selected-title"
+      >
+        🎁 已選擇品項
       </div>
 
 
-      <div id="selectedItemsBox">
+      <div
+        id="selectedItemsBox"
+      >
 
-        <div class="empty-selected">
-
-          尚未選擇品項
-
+        <div
+          class="selected-empty"
+        >
+          尚未選擇任何獎品
         </div>
 
       </div>
@@ -2540,35 +2933,75 @@
            即時預覽
            ================================== -->
 
-      <div class="preview-title">
+      <div
+        class="preview-box"
+      >
 
-        即時預覽：
+        <div
+          class="preview-title"
+        >
+          👀 即時預覽
+        </div>
+
+
+        <div
+          id="reward_preview"
+        >
+          尚未選擇兌換品項
+        </div>
 
       </div>
 
 
-      <div id="reward_preview">
+      <!-- Loading -->
 
-        尚未選擇兌換品項
-
+      <div
+        id="reward_loading"
+        class="reward-loading"
+        style="display: none;"
+      >
+        獎品讀取中...
       </div>
+
+
+      <!-- Error -->
+
+      <div
+        id="reward_error"
+        class="reward-error"
+      ></div>
 
 
       <!-- ==================================
-           發送 LINE
+           按鈕
            ================================== -->
 
-      <button
-        id="send_line_button"
-        type="button"
-        class="btn btn-send-line"
-        disabled
-        onclick="sendToOfficialLine();"
+      <div
+        class="reward-actions"
       >
 
-        💬 發送給官方 LINE@
 
-      </button>
+        <button
+          type="button"
+          class="btn-close-reward"
+          onclick="closeRewardModal();"
+        >
+          關閉
+        </button>
+
+
+        <button
+          type="button"
+          id="send_line_button"
+          class="btn-send-line"
+          disabled
+          onclick="sendRewardToLine();"
+        >
+          💬 分享給官方 LINE@
+        </button>
+
+
+      </div>
 
 
     </div>
@@ -2576,10 +3009,12 @@
   </div>
 
 
-  <div class="copyright">
+  <!-- Copyright -->
 
+  <div
+    class="copyright"
+  >
     Copyright © 2026 ｊLINE: jimi102
-
   </div>
 
 
