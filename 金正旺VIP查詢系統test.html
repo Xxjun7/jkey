@@ -518,6 +518,35 @@
 
 
     /* ========================================
+       獎品背景讀取狀態
+       ======================================== */
+
+    .reward-ready-text {
+
+      display: block;
+
+      margin-top: 6px;
+
+      font-size: 0.78rem;
+
+      color:
+        rgba(255, 255, 255, 0.55);
+    }
+
+
+    .reward-ready-text.ready {
+
+      color: #8ff0a4;
+    }
+
+
+    .reward-ready-text.error {
+
+      color: #ff8b8b;
+    }
+
+
+    /* ========================================
        LINE
        ======================================== */
 
@@ -1025,7 +1054,6 @@
 
   <script>
 
-
     // ========================================
     // 全域 API
     // ========================================
@@ -1041,15 +1069,27 @@
 
     let CURRENT_UID = "";
 
+    let CURRENT_POINTS = "";
+
+
+    // ========================================
+    // 獎品快取
+    //
+    // 查詢會員時就開始讀取
+    // 點開兌換時直接使用
+    // ========================================
+
+    let REWARDS_CACHE = [];
+
+    let REWARDS_LOADING_PROMISE = null;
+
+    let REWARDS_READY = false;
+
+    let REWARDS_ERROR = "";
+
 
     // ========================================
     // 多選獎品
-    //
-    // 格式：
-    //
-    // {
-    //   "獎品名稱": 2
-    // }
     // ========================================
 
     let SELECTED_REWARDS = {};
@@ -1266,6 +1306,362 @@
 
 
     // ========================================
+    // 讀取 API 設定
+    // ========================================
+
+    async function getApiUrl() {
+
+      if (
+        API_URL
+      ) {
+
+        return API_URL;
+
+      }
+
+
+      const configResponse =
+        await fetch(
+          "/j808/API/J.json?v=" +
+          Date.now(),
+          {
+            method: "GET",
+            cache: "no-store"
+          }
+        );
+
+
+      if (
+        !configResponse.ok
+      ) {
+
+        throw new Error(
+          "API_CONFIG_LOAD_ERROR"
+        );
+
+      }
+
+
+      const config =
+        await configResponse.json();
+
+
+      if (
+        !config ||
+        typeof config.apiUrl !== "string" ||
+        config.apiUrl.trim() === ""
+      ) {
+
+        throw new Error(
+          "API_CONFIG_INVALID"
+        );
+
+      }
+
+
+      API_URL =
+        config.apiUrl.trim();
+
+
+      return API_URL;
+
+    }
+
+
+    // ========================================
+    // 讀取獎品
+    //
+    // ★ 查詢時就會呼叫
+    // ★ 只讀一次並快取
+    // ========================================
+
+    async function preloadRewards() {
+
+      // 已經成功讀取過
+      if (
+        REWARDS_READY
+      ) {
+
+        return REWARDS_CACHE;
+
+      }
+
+
+      // 已經正在讀取
+      if (
+        REWARDS_LOADING_PROMISE
+      ) {
+
+        return REWARDS_LOADING_PROMISE;
+
+      }
+
+
+      REWARDS_ERROR =
+        "";
+
+
+      REWARDS_LOADING_PROMISE =
+        (async function() {
+
+          try {
+
+            const apiUrl =
+              await getApiUrl();
+
+
+            const separator =
+              apiUrl.indexOf("?") === -1
+                ? "?"
+                : "&";
+
+
+            const rewardUrl =
+              apiUrl +
+              separator +
+              "action=rewards";
+
+
+            const response =
+              await fetch(
+                rewardUrl,
+                {
+                  method: "GET",
+                  cache: "no-store"
+                }
+              );
+
+
+            if (
+              !response.ok
+            ) {
+
+              throw new Error(
+                "REWARD_REQUEST_ERROR"
+              );
+
+            }
+
+
+            const result =
+              await response.json();
+
+
+            if (
+              !result.success
+            ) {
+
+              throw new Error(
+                result.message ||
+                "獎品讀取失敗"
+              );
+
+            }
+
+
+            const rewards =
+              Array.isArray(
+                result.rewards
+              )
+                ? result.rewards
+                    .map(
+                      function(reward) {
+
+                        return String(
+                          reward
+                        );
+
+                      }
+                    )
+                    .filter(
+                      function(reward) {
+
+                        return reward.trim() !== "";
+
+                      }
+                    )
+                : [];
+
+
+            REWARDS_CACHE =
+              rewards;
+
+
+            REWARDS_READY =
+              true;
+
+
+            REWARDS_ERROR =
+              "";
+
+
+            updateRewardReadyStatus();
+
+
+            return REWARDS_CACHE;
+
+
+          } catch (err) {
+
+
+            console.error(
+              "獎品讀取錯誤：",
+              err
+            );
+
+
+            REWARDS_READY =
+              false;
+
+
+            REWARDS_ERROR =
+              "獎品讀取失敗";
+
+
+            updateRewardReadyStatus();
+
+
+            throw err;
+
+
+          } finally {
+
+            REWARDS_LOADING_PROMISE =
+              null;
+
+          }
+
+        })();
+
+
+      return REWARDS_LOADING_PROMISE;
+
+    }
+
+
+    // ========================================
+    // 更新獎品讀取狀態文字
+    // ========================================
+
+    function updateRewardReadyStatus() {
+
+      const status =
+        document.getElementById(
+          "reward_ready_status"
+        );
+
+
+      if (
+        !status
+      ) {
+
+        return;
+
+      }
+
+
+      if (
+        REWARDS_READY
+      ) {
+
+        status.innerText =
+          "✓ 獎品已讀取完成";
+
+
+        status.className =
+          "reward-ready-text ready";
+
+
+        return;
+
+      }
+
+
+      if (
+        REWARDS_ERROR
+      ) {
+
+        status.innerText =
+          "獎品讀取失敗，開啟時可重新讀取";
+
+
+        status.className =
+          "reward-ready-text error";
+
+
+        return;
+
+      }
+
+
+      status.innerText =
+        "獎品讀取中...";
+
+
+      status.className =
+        "reward-ready-text";
+
+    }
+
+
+    // ========================================
+    // 填入獎品選單
+    // ========================================
+
+    function fillRewardSelect(
+      rewards
+    ) {
+
+      const select =
+        document.getElementById(
+          "reward_select"
+        );
+
+
+      if (
+        !select
+      ) {
+
+        return;
+
+      }
+
+
+      select.innerHTML =
+
+        '<option value="">' +
+        '-- 點此選擇品項直接加入 --' +
+        '</option>';
+
+
+      rewards.forEach(
+        function(reward) {
+
+          const option =
+            document.createElement(
+              "option"
+            );
+
+
+          option.value =
+            reward;
+
+
+          option.textContent =
+            reward;
+
+
+          select.appendChild(
+            option
+          );
+
+        }
+      );
+
+    }
+
+
+    // ========================================
     // 會員查詢
     // ========================================
 
@@ -1400,6 +1796,33 @@
         "";
 
 
+      CURRENT_POINTS =
+        "";
+
+
+      // ====================================
+      // ★ 每次新查詢重新準備獎品快取
+      // ====================================
+
+      REWARDS_CACHE =
+        [];
+
+
+      REWARDS_READY =
+        false;
+
+
+      REWARDS_ERROR =
+        "";
+
+
+      REWARDS_LOADING_PROMISE =
+        null;
+
+
+      updateRewardReadyStatus();
+
+
       // 關閉舊 Modal
 
       closeRewardModal();
@@ -1409,50 +1832,11 @@
 
 
         // ==================================
-        // 讀取 API 設定
+        // 讀取 API
         // ==================================
 
-        const configResponse =
-          await fetch(
-            "/j808/API/J.json?v=" +
-            Date.now(),
-            {
-              method: "GET",
-              cache: "no-store"
-            }
-          );
-
-
-        if (
-          !configResponse.ok
-        ) {
-
-          throw new Error(
-            "API_CONFIG_LOAD_ERROR"
-          );
-
-        }
-
-
-        const config =
-          await configResponse.json();
-
-
-        if (
-          !config ||
-          typeof config.apiUrl !== "string" ||
-          config.apiUrl.trim() === ""
-        ) {
-
-          throw new Error(
-            "API_CONFIG_INVALID"
-          );
-
-        }
-
-
-        API_URL =
-          config.apiUrl.trim();
+        const apiUrl =
+          await getApiUrl();
 
 
         API_READY =
@@ -1460,13 +1844,28 @@
 
 
         // ==================================
+        // ★ 查詢開始就背景讀獎品
+        //
+        // 不 await
+        //
+        // 所以會員資料查詢不會被獎品
+        // 讀取卡住
+        // ==================================
+
+        preloadRewards()
+          .catch(
+            function() {}
+          );
+
+
+        // ==================================
         // GAS 預熱
         // ==================================
 
         fetch(
-          API_URL +
+          apiUrl +
           (
-            API_URL.indexOf("?") === -1
+            apiUrl.indexOf("?") === -1
               ? "?"
               : "&"
           ) +
@@ -1486,13 +1885,13 @@
         // ==================================
 
         const separator =
-          API_URL.indexOf("?") === -1
+          apiUrl.indexOf("?") === -1
             ? "?"
             : "&";
 
 
         const requestUrl =
-          API_URL +
+          apiUrl +
           separator +
           "uid=" +
           encodeURIComponent(
@@ -1578,7 +1977,7 @@
         // 點數
         // ==================================
 
-        const points =
+        CURRENT_POINTS =
           result.points;
 
 
@@ -1614,7 +2013,7 @@
 
                 escapeHtml(
                   String(
-                    points
+                    result.points
                   )
                 ) +
 
@@ -1681,11 +2080,14 @@
 
 
         // ==================================
-        // 顯示兌換按鈕
+        // ★ 顯示兌換按鈕
         // ==================================
 
         rewardButtonArea.style.display =
           "block";
+
+
+        updateRewardReadyStatus();
 
 
       } catch (error) {
@@ -1731,10 +2133,6 @@
         API_READY =
           false;
 
-
-        API_URL =
-          "";
-
       }
 
     }
@@ -1742,6 +2140,9 @@
 
     // ========================================
     // 開啟兌換獎品
+    //
+    // ★ 不會每次都重新 API
+    // ★ 優先使用查詢時已經讀好的獎品
     // ========================================
 
     async function openRewardModal() {
@@ -1762,12 +2163,6 @@
         );
 
 
-      const select =
-        document.getElementById(
-          "reward_select"
-        );
-
-
       const loading =
         document.getElementById(
           "reward_loading"
@@ -1777,6 +2172,12 @@
       const error =
         document.getElementById(
           "reward_error"
+        );
+
+
+      const select =
+        document.getElementById(
+          "reward_select"
         );
 
 
@@ -1791,158 +2192,73 @@
       renderSelectedRewards();
 
 
-      // ====================================
-      // 清除下拉選單
-      // ====================================
-
-      select.innerHTML =
-
-        '<option value="">' +
-        '-- 點此選擇品項直接加入 --' +
-        '</option>';
-
-
       error.innerText =
         "";
 
 
-      loading.style.display =
-        "block";
-
+      // ====================================
+      // 先打開 Modal
+      // ====================================
 
       modal.style.display =
         "flex";
 
 
+      // ====================================
+      // 已經讀好了
+      // ====================================
+
+      if (
+        REWARDS_READY
+      ) {
+
+        loading.style.display =
+          "none";
+
+
+        fillRewardSelect(
+          REWARDS_CACHE
+        );
+
+
+        if (
+          REWARDS_CACHE.length === 0
+        ) {
+
+          error.innerText =
+            "目前沒有可兌換的獎品";
+
+        }
+
+
+        return;
+
+      }
+
+
+      // ====================================
+      // 還在讀取
+      // ====================================
+
+      loading.style.display =
+        "block";
+
+
       try {
 
 
-        // ==================================
-        // 取得 API
-        // ==================================
-
-        let apiUrl =
-          API_URL;
-
-
-        if (
-          !apiUrl
-        ) {
-
-
-          const configResponse =
-            await fetch(
-              "/j808/API/J.json?v=" +
-              Date.now(),
-              {
-                method: "GET",
-                cache: "no-store"
-              }
-            );
-
-
-          if (
-            !configResponse.ok
-          ) {
-
-            throw new Error(
-              "API_CONFIG_LOAD_ERROR"
-            );
-
-          }
-
-
-          const config =
-            await configResponse.json();
-
-
-          if (
-            !config ||
-            typeof config.apiUrl !== "string" ||
-            config.apiUrl.trim() === ""
-          ) {
-
-            throw new Error(
-              "API_CONFIG_INVALID"
-            );
-
-          }
-
-
-          apiUrl =
-            config.apiUrl.trim();
-
-        }
-
-
-        // ==================================
-        // rewards API
-        // ==================================
-
-        const separator =
-          apiUrl.indexOf("?") === -1
-            ? "?"
-            : "&";
-
-
-        const rewardUrl =
-          apiUrl +
-          separator +
-          "action=rewards";
-
-
-        const response =
-          await fetch(
-            rewardUrl,
-            {
-              method: "GET",
-              cache: "no-store"
-            }
-          );
-
-
-        if (
-          !response.ok
-        ) {
-
-          throw new Error(
-            "REWARD_REQUEST_ERROR"
-          );
-
-        }
-
-
-        const result =
-          await response.json();
-
-
-        if (
-          !result.success
-        ) {
-
-          throw new Error(
-            result.message ||
-            "獎品讀取失敗"
-          );
-
-        }
-
-
         const rewards =
-          Array.isArray(
-            result.rewards
-          )
-            ? result.rewards
-            : [];
+          await preloadRewards();
 
 
         loading.style.display =
           "none";
 
 
-        // ==================================
-        // 沒有獎品
-        // ==================================
+        fillRewardSelect(
+          rewards
+        );
+
 
         if (
           rewards.length === 0
@@ -1951,49 +2267,14 @@
           error.innerText =
             "目前沒有可兌換的獎品";
 
-          return;
-
         }
-
-
-        // ==================================
-        // 建立獎品選單
-        // ==================================
-
-        rewards.forEach(
-          function(reward) {
-
-            const rewardName =
-              String(reward);
-
-
-            const option =
-              document.createElement(
-                "option"
-              );
-
-
-            option.value =
-              rewardName;
-
-
-            option.textContent =
-              rewardName;
-
-
-            select.appendChild(
-              option
-            );
-
-          }
-        );
 
 
       } catch (err) {
 
 
         console.error(
-          "獎品讀取錯誤：",
+          "開啟獎品時讀取錯誤：",
           err
         );
 
@@ -2056,16 +2337,8 @@
       }
 
 
-      // ====================================
-      // 更新畫面
-      // ====================================
-
       renderSelectedRewards();
 
-
-      // ====================================
-      // 選完後回到提示
-      // ====================================
 
       select.value =
         "";
@@ -2128,8 +2401,6 @@
       SELECTED_REWARDS[reward] -= 1;
 
 
-      // 數量為 0 → 移除
-
       if (
         SELECTED_REWARDS[reward] <= 0
       ) {
@@ -2176,12 +2447,6 @@
         );
 
 
-      const preview =
-        document.getElementById(
-          "reward_preview"
-        );
-
-
       const sendButton =
         document.getElementById(
           "send_line_button"
@@ -2216,8 +2481,7 @@
           '</div>';
 
 
-        preview.innerText =
-          "尚未選擇兌換品項";
+        updateRewardPreview();
 
 
         sendButton.disabled =
@@ -2432,15 +2696,11 @@
 
 
       // ====================================
-      // 更新即時預覽
+      // 即時預覽
       // ====================================
 
       updateRewardPreview();
 
-
-      // ====================================
-      // 啟用分享
-      // ====================================
 
       sendButton.disabled =
         false;
@@ -2450,6 +2710,9 @@
 
     // ========================================
     // 建立分享文字
+    //
+    // ★ 這裡就是 LINE 最終送出去的內容
+    // ★ 不會有 text= 出現在訊息前面
     // ========================================
 
     function buildRewardMessage() {
@@ -2467,12 +2730,31 @@
         "\n\n";
 
 
+      // ====================================
+      // 會員
+      // ====================================
+
       message +=
 
         "會員：" +
         CURRENT_UID +
+        "\n";
+
+
+      // ====================================
+      // ★ 目前點數
+      // ====================================
+
+      message +=
+
+        "目前點數 : " +
+        CURRENT_POINTS +
         "\n\n";
 
+
+      // ====================================
+      // 兌換品項
+      // ====================================
 
       message +=
         "兌換品項：";
@@ -2509,6 +2791,8 @@
 
     // ========================================
     // 即時預覽
+    //
+    // ★ 與 LINE 實際分享文字完全一致
     // ========================================
 
     function updateRewardPreview() {
@@ -2538,37 +2822,8 @@
       }
 
 
-      let text =
-
-        "🎁 兌換獎品\n\n" +
-
-        "會員：" +
-        CURRENT_UID +
-        "\n\n" +
-
-        "兌換品項：";
-
-
-      rewards.forEach(
-        function(reward, index) {
-
-          text +=
-
-            "\n" +
-            (index + 1) +
-            ". " +
-            reward +
-            " × " +
-            SELECTED_REWARDS[
-              reward
-            ];
-
-        }
-      );
-
-
       preview.innerText =
-        text;
+        buildRewardMessage();
 
     }
 
@@ -2607,11 +2862,10 @@
       // ====================================
       // LINE 分享 URL
       //
-      // 這裡不再指定官方 LINE 帳號
-      // 而是使用 LINE 分享功能
+      // encodeURIComponent 後：
       //
-      // 使用者可以在 LINE 分享畫面
-      // 選擇官方 LINE@ 或其他聊天室
+      // text=只存在 URL 的參數名稱
+      // 不會成為 LINE 訊息內容
       // ====================================
 
       const lineShareUrl =
@@ -2816,6 +3070,16 @@
         🎁 兌換獎品
       </button>
 
+
+      <!-- ★ 查詢後背景讀取獎品 -->
+
+      <span
+        id="reward_ready_status"
+        class="reward-ready-text"
+      >
+        獎品讀取中...
+      </span>
+
     </div>
 
 
@@ -2886,6 +3150,7 @@
       >
 
         選擇品項
+
         <span>
           （點擊即可加入，可選多個）
         </span>
