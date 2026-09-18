@@ -1,693 +1,2588 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
-    <meta charset="UTF-8" />
 
-<!-- 防止手機畫面縮放 -->
-<meta name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta charset="UTF-8" />
 
-<link rel="icon" type="image/x-icon" href="./Jicon.ico">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover"
+  >
 
-<!-- 控制 LINE 預覽顯示的文字 -->
-<meta property="og:title" content="金正旺">
-<meta property="og:description" content="VIP查詢系統">
+  <link rel="icon" type="image/x-icon" href="./Jicon.ico">
 
-<title>金正旺VIP查詢系統</title>
+  <meta property="og:title" content="金正旺">
+  <meta property="og:description" content="VIP查詢系統">
 
-<style>
+  <title>金正旺VIP查詢系統</title>
+
+
+  <style>
+
+    /* ========================================
+       基本
+       ======================================== */
+
     body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        color: #ffffff;
-        margin: 0;
-        padding: 16px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        min-height: 100dvh;
-        box-sizing: border-box;
 
-        /* 防止 iPhone 瀏覽器手勢造成整頁縮放 */
-        touch-action: pan-x pan-y;
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        "Helvetica Neue",
+        Arial,
+        sans-serif;
 
-        /* 防止點擊或觸發時被框選文字 */
-        -webkit-user-select: none;
-        user-select: none;
+      color: #ffffff;
 
-        /* 設定最底層背景圖 */
-        background-image: url('https://lh3.googleusercontent.com/pw/AP1GczPMHaF7waxnhrEtXYsPAGS6rVI4LxOdwlTZwmrjZmMuYytOLZV1Z59x6T03KM39kRaRI1h8qe2ZpUzOTbBIS8rwn30KfhEk_cLEY8MuQutCF30OUACklEM7qO-478-XV1hYBzubTndfAkdo7_hOMf8L=w728-h1024-s-no-gm?authuser=0');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
+      margin: 0;
+      padding: 16px;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      min-height: 100vh;
+      min-height: 100dvh;
+
+      box-sizing: border-box;
+
+      touch-action: pan-x pan-y;
+
+      -webkit-user-select: none;
+      user-select: none;
+
+      background-image:
+        url('https://lh3.googleusercontent.com/pw/AP1GczPMHaF7waxnhrEtXYsPAGS6rVI4LxOdwlTZwmrjZmMuYytOLZV1Z59x6T03KM39kRaRI1h8qe2ZpUzOTbBIS8rwn30KfhEk_cLEY8MuQutCF30OUACklEM7qO-478-XV1hYBzubTndfAkdo7_hOMf8L=w728-h1024-s-no-gm?authuser=0');
+
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
     }
+
+
+    /* ========================================
+       主容器
+       ======================================== */
 
     .container {
-        width: 100%;
-        max-width: 500px;
 
-        /* 黑透玻璃面板風格 */
-        background: rgba(0, 0, 0, 0.65);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        padding: 20px;
-        border-radius: 16px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-        box-sizing: border-box;
+      width: 100%;
+      max-width: 500px;
 
-        /* 防止容器被 Safari 手勢影響 */
-        touch-action: manipulation;
+      background: rgba(0, 0, 0, 0.65);
+
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+
+      border:
+        1px solid
+        rgba(255, 255, 255, 0.15);
+
+      padding: 20px;
+
+      border-radius: 16px;
+
+      box-shadow:
+        0 8px 32px
+        rgba(0, 0, 0, 0.37);
+
+      box-sizing: border-box;
+
+      touch-action: manipulation;
     }
 
-    /* 亮金色動態閃亮標題 */
+
+    /* ========================================
+       標題
+       ======================================== */
+
     h2 {
-        font-size: 1.4rem;
-        margin-top: 0;
-        margin-bottom: 20px;
-        text-align: center;
-        letter-spacing: 1.5px;
-        font-weight: bold;
 
-        /* 金色漸層背景 */
-        background: linear-gradient(90deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-        background-size: 200% auto;
-        color: transparent;
-        -webkit-background-clip: text;
-        background-clip: text;
+      font-size: 1.4rem;
 
-        /* 套用動態閃爍動畫 */
-        animation: shine 3s linear infinite;
-        text-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+      margin-top: 0;
+      margin-bottom: 20px;
+
+      text-align: center;
+
+      letter-spacing: 1.5px;
+
+      font-weight: bold;
+
+      background:
+        linear-gradient(
+          90deg,
+          #bf953f,
+          #fcf6ba,
+          #b38728,
+          #fbf5b7,
+          #aa771c
+        );
+
+      background-size: 200% auto;
+
+      color: transparent;
+
+      -webkit-background-clip: text;
+      background-clip: text;
+
+      animation:
+        shine 3s linear infinite;
+
+      text-shadow:
+        0 0 15px
+        rgba(212, 175, 55, 0.4);
     }
+
 
     @keyframes shine {
-        to {
-            background-position: 200% center;
-        }
+
+      to {
+        background-position: 200% center;
+      }
+
     }
+
+
+    /* ========================================
+       輸入區
+       ======================================== */
 
     .input-group {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 12px;
+
+      display: flex;
+
+      gap: 8px;
+
+      margin-bottom: 12px;
     }
+
 
     input[type="text"] {
-        flex: 1;
-        padding: 12px;
-        font-size: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        background: rgba(255, 255, 255, 0.1);
-        color: #ffffff;
-        border-radius: 8px;
-        outline: none;
-        transition: border-color 0.2s, background 0.2s;
-        -webkit-appearance: none;
 
-        /* 輸入框維持可以點擊選取文字輸入 */
-        -webkit-user-select: text;
-        user-select: text;
+      flex: 1;
 
-        /* 防止 iPhone 點擊輸入框時自動放大 */
-        touch-action: manipulation;
+      padding: 12px;
+
+      font-size: 16px;
+
+      border:
+        1px solid
+        rgba(255, 255, 255, 0.3);
+
+      background:
+        rgba(255, 255, 255, 0.1);
+
+      color: #ffffff;
+
+      border-radius: 8px;
+
+      outline: none;
+
+      transition:
+        border-color 0.2s,
+        background 0.2s;
+
+      -webkit-appearance: none;
+
+      -webkit-user-select: text;
+      user-select: text;
+
+      touch-action: manipulation;
     }
+
 
     input[type="text"]::placeholder {
-        color: rgba(255, 255, 255, 0.6);
+
+      color:
+        rgba(255, 255, 255, 0.6);
     }
 
+
     input[type="text"]:focus {
-        border-color: #fcf6ba;
-        background: rgba(255, 255, 255, 0.15);
+
+      border-color: #fcf6ba;
+
+      background:
+        rgba(255, 255, 255, 0.15);
     }
+
+
+    /* ========================================
+       一般按鈕
+       ======================================== */
 
     button,
     .btn {
-        padding: 12px 16px;
-        font-size: 1rem;
-        font-weight: 500;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-block;
-        text-align: center;
 
-        /* 解決手機點擊按鈕放大或雙擊觸發縮放的問題 */
-        touch-action: manipulation;
+      padding: 12px 16px;
+
+      font-size: 1rem;
+
+      font-weight: 500;
+
+      border: none;
+
+      border-radius: 8px;
+
+      cursor: pointer;
+
+      text-decoration: none;
+
+      display: inline-block;
+
+      text-align: center;
+
+      touch-action: manipulation;
+
+      box-sizing: border-box;
     }
+
 
     button:active,
     .btn:active {
-        transform: scale(0.98);
+
+      transform: scale(0.98);
     }
 
-    /* 亮金色呼吸燈查詢按鈕 */
+
+    /* ========================================
+       查詢按鈕
+       ======================================== */
+
     .btn-query {
-        background: linear-gradient(135deg, #bf953f, #fcf6ba, #aa771c);
-        color: #222222;
-        font-weight: bold;
-        box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
-        animation: breathe 2.5s ease-in-out infinite;
+
+      background:
+        linear-gradient(
+          135deg,
+          #bf953f,
+          #fcf6ba,
+          #aa771c
+        );
+
+      color: #222222;
+
+      font-weight: bold;
+
+      box-shadow:
+        0 0 10px
+        rgba(212, 175, 55, 0.4);
+
+      animation:
+        breathe 2.5s ease-in-out infinite;
     }
+
 
     .btn-query:hover {
-        background: linear-gradient(135deg, #d4af37, #fff8dc, #c5a059);
-        box-shadow: 0 0 20px rgba(252, 246, 186, 0.8);
+
+      background:
+        linear-gradient(
+          135deg,
+          #d4af37,
+          #fff8dc,
+          #c5a059
+        );
+
+      box-shadow:
+        0 0 20px
+        rgba(252, 246, 186, 0.8);
     }
+
 
     @keyframes breathe {
-        0%,
-        100% {
-            box-shadow: 0 0 5px rgba(212, 175, 55, 0.3);
-            filter: brightness(0.95);
-        }
 
-        50% {
-            box-shadow: 0 0 18px rgba(252, 246, 186, 0.8);
-            filter: brightness(1.08);
-        }
+      0%,
+      100% {
+
+        box-shadow:
+          0 0 5px
+          rgba(212, 175, 55, 0.3);
+
+        filter: brightness(0.95);
+      }
+
+      50% {
+
+        box-shadow:
+          0 0 18px
+          rgba(252, 246, 186, 0.8);
+
+        filter: brightness(1.08);
+      }
+
     }
 
-    /* LINE 按鈕改為靠左自適應寬度 */
+
+    /* ========================================
+       LINE
+       ======================================== */
+
     .btn-line {
-        background-color: #00c300;
-        color: #ffffff;
-        width: auto;
-        box-sizing: border-box;
-        margin-top: 16px;
-        display: inline-block;
+
+      background-color: #00c300;
+
+      color: #ffffff;
+
+      width: auto;
+
+      box-sizing: border-box;
+
+      margin-top: 16px;
+
+      display: inline-block;
     }
+
 
     .btn-line:hover {
-        background-color: #00b000;
+
+      background-color: #00b000;
     }
 
-    /* 動態讀取中樣式 */
-    .loading {
-        display: none;
-        font-size: 0.95rem;
-        color: #fcf6ba;
-        margin-top: 8px;
+
+    /* ========================================
+       兌換獎品按鈕
+       ======================================== */
+
+    .btn-reward {
+
+      width: 100%;
+
+      margin-top: 12px;
+
+      padding: 13px 16px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #8b5a2b,
+          #d4af37,
+          #8b5a2b
+        );
+
+      color: #fff;
+
+      font-weight: bold;
+
+      border:
+        1px solid
+        rgba(255, 255, 255, 0.25);
+
+      box-shadow:
+        0 0 12px
+        rgba(212, 175, 55, 0.35);
     }
+
+
+    .btn-reward:hover {
+
+      box-shadow:
+        0 0 20px
+        rgba(252, 246, 186, 0.65);
+    }
+
+
+    /* ========================================
+       Loading
+       ======================================== */
+
+    .loading {
+
+      display: none;
+
+      font-size: 0.95rem;
+
+      color: #fcf6ba;
+
+      margin-top: 8px;
+    }
+
 
     .loading::after {
-        content: '';
-        display: inline-block;
-        animation: dots 1.5s infinite steps(4, end);
+
+      content: '';
+
+      display: inline-block;
+
+      animation:
+        dots 1.5s infinite
+        steps(4, end);
     }
+
 
     @keyframes dots {
-        0% {
-            content: '';
-        }
 
-        25% {
-            content: '.';
-        }
+      0% {
+        content: '';
+      }
 
-        50% {
-            content: '..';
-        }
+      25% {
+        content: '.';
+      }
 
-        75% {
-            content: '...';
-        }
+      50% {
+        content: '..';
+      }
+
+      75% {
+        content: '...';
+      }
+
     }
+
+
+    /* ========================================
+       錯誤
+       ======================================== */
 
     #error_message {
-        color: #ff6b6b;
-        font-size: 0.9rem;
-        margin-top: 4px;
-        display: block;
+
+      color: #ff6b6b;
+
+      font-size: 0.9rem;
+
+      margin-top: 4px;
+
+      display: block;
     }
+
+
+    /* ========================================
+       查詢時間
+       ======================================== */
 
     #current_time {
-        display: block;
-        margin-top: 16px;
-        font-size: 0.9rem;
-        background-image: linear-gradient(to right, #ee9ca7, #ffdde1);
-        -webkit-background-clip: text;
-        color: transparent;
-        font-weight: bold;
+
+      display: block;
+
+      margin-top: 16px;
+
+      font-size: 0.9rem;
+
+      background-image:
+        linear-gradient(
+          to right,
+          #ee9ca7,
+          #ffdde1
+        );
+
+      -webkit-background-clip: text;
+
+      color: transparent;
+
+      font-weight: bold;
     }
 
-    /* 貼心提醒文字樣式 */
+
+    /* ========================================
+       提醒
+       ======================================== */
+
     .notice-box {
-        margin-top: 12px;
-        padding: 10px 12px;
-        background: rgba(255, 255, 255, 0.08);
-        border-left: 3px solid #fcf6ba;
-        border-radius: 4px;
-        font-size: 0.88rem;
-        line-height: 1.5;
-        color: #fceea7;
+
+      margin-top: 12px;
+
+      padding: 10px 12px;
+
+      background:
+        rgba(255, 255, 255, 0.08);
+
+      border-left:
+        3px solid
+        #fcf6ba;
+
+      border-radius: 4px;
+
+      font-size: 0.88rem;
+
+      line-height: 1.5;
+
+      color: #fceea7;
     }
 
-    /* 表格樣式（配合黑透玻璃） */
+
+    /* ========================================
+       查詢結果
+       ======================================== */
+
     #order_status {
-        width: 100%;
-        margin-top: 16px;
-        overflow-x: auto;
+
+      width: 100%;
+
+      margin-top: 16px;
+
+      overflow-x: auto;
     }
+
 
     #order_status table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 8px;
+
+      width: 100%;
+
+      border-collapse: collapse;
+
+      margin-top: 8px;
     }
+
 
     #order_status th,
     #order_status td {
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        padding: 8px;
-        text-align: center;
-        font-size: 0.95rem;
-        color: #ffffff;
-        background: rgba(255, 255, 255, 0.05);
+
+      border:
+        1px solid
+        rgba(255, 255, 255, 0.2);
+
+      padding: 8px;
+
+      text-align: center;
+
+      font-size: 0.95rem;
+
+      color: #ffffff;
+
+      background:
+        rgba(255, 255, 255, 0.05);
     }
+
 
     #order_status th {
-        background: rgba(255, 255, 255, 0.15);
+
+      background:
+        rgba(255, 255, 255, 0.15);
     }
 
-    /* 版權宣告樣式 */
+
+    /* ========================================
+       查詢按鈕鎖定
+       ======================================== */
+
+    .btn-query:disabled {
+
+      cursor: not-allowed;
+
+      opacity: 0.6;
+
+      filter: grayscale(30%);
+    }
+
+
+    /* ========================================
+       兌換 UI 遮罩
+       ======================================== */
+
+    .reward-overlay {
+
+      position: fixed;
+
+      inset: 0;
+
+      background:
+        rgba(0, 0, 0, 0.72);
+
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+
+      display: none;
+
+      align-items: center;
+      justify-content: center;
+
+      padding: 16px;
+
+      box-sizing: border-box;
+
+      z-index: 5000;
+    }
+
+
+    .reward-overlay.show {
+
+      display: flex;
+    }
+
+
+    /* ========================================
+       兌換面板
+       ======================================== */
+
+    .reward-modal {
+
+      width: 100%;
+
+      max-width: 460px;
+
+      max-height: 90dvh;
+
+      overflow-y: auto;
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(25, 20, 10, 0.97),
+          rgba(0, 0, 0, 0.97)
+        );
+
+      border:
+        1px solid
+        rgba(252, 246, 186, 0.35);
+
+      border-radius: 18px;
+
+      padding: 20px;
+
+      box-sizing: border-box;
+
+      box-shadow:
+        0 20px 60px
+        rgba(0, 0, 0, 0.65);
+    }
+
+
+    /* ========================================
+       兌換標題
+       ======================================== */
+
+    .reward-title {
+
+      text-align: center;
+
+      font-size: 1.25rem;
+
+      font-weight: bold;
+
+      color: #fcf6ba;
+
+      margin-bottom: 18px;
+    }
+
+
+    /* ========================================
+       關閉
+       ======================================== */
+
+    .reward-close {
+
+      position: absolute;
+
+      margin-left: -42px;
+
+      margin-top: -8px;
+
+      width: 34px;
+      height: 34px;
+
+      padding: 0;
+
+      border-radius: 50%;
+
+      background:
+        rgba(255, 255, 255, 0.12);
+
+      color: #ffffff;
+
+      font-size: 20px;
+
+      line-height: 34px;
+
+      text-align: center;
+    }
+
+
+    /* ========================================
+       選擇品項文字
+       ======================================== */
+
+    .reward-label {
+
+      display: block;
+
+      margin-bottom: 8px;
+
+      color: #fceea7;
+
+      font-size: 0.92rem;
+
+      font-weight: bold;
+    }
+
+
+    /* ========================================
+       下拉選單
+       ======================================== */
+
+    #reward_select {
+
+      width: 100%;
+
+      padding: 13px 12px;
+
+      border-radius: 10px;
+
+      border:
+        1px solid
+        rgba(255, 255, 255, 0.25);
+
+      background:
+        rgba(255, 255, 255, 0.1);
+
+      color: #ffffff;
+
+      font-size: 16px;
+
+      outline: none;
+
+      box-sizing: border-box;
+    }
+
+
+    #reward_select option {
+
+      color: #222222;
+
+      background: #ffffff;
+    }
+
+
+    /* ========================================
+       已選品項
+       ======================================== */
+
+    .selected-title {
+
+      margin-top: 18px;
+
+      margin-bottom: 8px;
+
+      color: #fceea7;
+
+      font-size: 0.92rem;
+
+      font-weight: bold;
+    }
+
+
+    #selectedItemsBox {
+
+      min-height: 45px;
+
+      padding: 10px;
+
+      border-radius: 10px;
+
+      background:
+        rgba(255, 255, 255, 0.06);
+
+      border:
+        1px solid
+        rgba(255, 255, 255, 0.15);
+
+      box-sizing: border-box;
+    }
+
+
+    .empty-selected {
+
+      color:
+        rgba(255, 255, 255, 0.45);
+
+      font-size: 0.88rem;
+
+      text-align: center;
+
+      padding: 5px;
+    }
+
+
+    .selected-item {
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: space-between;
+
+      gap: 8px;
+
+      padding: 9px 10px;
+
+      margin-bottom: 7px;
+
+      background:
+        rgba(212, 175, 55, 0.13);
+
+      border:
+        1px solid
+        rgba(212, 175, 55, 0.3);
+
+      border-radius: 8px;
+
+      color: #ffffff;
+
+      font-size: 0.92rem;
+    }
+
+
+    .selected-item:last-child {
+
+      margin-bottom: 0;
+    }
+
+
+    .remove-item {
+
+      flex-shrink: 0;
+
+      width: 28px;
+      height: 28px;
+
+      padding: 0;
+
+      border-radius: 50%;
+
+      background:
+        rgba(255, 107, 107, 0.2);
+
+      color: #ff8d8d;
+
+      font-size: 16px;
+
+      line-height: 28px;
+    }
+
+
+    /* ========================================
+       即時預覽
+       ======================================== */
+
+    .preview-title {
+
+      margin-top: 18px;
+
+      margin-bottom: 8px;
+
+      color: #fceea7;
+
+      font-size: 0.92rem;
+
+      font-weight: bold;
+    }
+
+
+    #reward_preview {
+
+      padding: 13px;
+
+      min-height: 70px;
+
+      box-sizing: border-box;
+
+      border-radius: 10px;
+
+      background:
+        rgba(255, 255, 255, 0.05);
+
+      border:
+        1px solid
+        rgba(255, 255, 255, 0.15);
+
+      color: #ffffff;
+
+      white-space: pre-line;
+
+      line-height: 1.6;
+
+      font-size: 0.9rem;
+    }
+
+
+    /* ========================================
+       LINE 發送
+       ======================================== */
+
+    .btn-send-line {
+
+      width: 100%;
+
+      margin-top: 16px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #00c300,
+          #00a900
+        );
+
+      color: #ffffff;
+
+      font-weight: bold;
+
+      box-shadow:
+        0 0 12px
+        rgba(0, 195, 0, 0.3);
+    }
+
+
+    .btn-send-line:disabled {
+
+      opacity: 0.45;
+
+      cursor: not-allowed;
+    }
+
+
+    /* ========================================
+       兌換讀取中
+       ======================================== */
+
+    .reward-loading {
+
+      text-align: center;
+
+      color: #fcf6ba;
+
+      padding: 18px 5px;
+
+      font-size: 0.95rem;
+    }
+
+
+    /* ========================================
+       Copyright
+       ======================================== */
+
     .copyright {
-        position: fixed;
-        bottom: 8px;
-        right: 12px;
-        font-size: 0.75rem;
-        color: rgba(255, 255, 255, 0.5);
-        letter-spacing: 0.5px;
-        pointer-events: none;
-        z-index: 999;
+
+      position: fixed;
+
+      bottom: 8px;
+
+      right: 12px;
+
+      font-size: 0.75rem;
+
+      color:
+        rgba(255, 255, 255, 0.5);
+
+      letter-spacing: 0.5px;
+
+      pointer-events: none;
+
+      z-index: 999;
     }
-</style>
 
-<script type="text/javascript">
 
-    // ----------------------------------------
-    // 1. 禁止右鍵選單
-    // ----------------------------------------
-    document.addEventListener("contextmenu", function (e) {
+    /* ========================================
+       手機
+       ======================================== */
+
+    @media (max-width: 480px) {
+
+      .container {
+
+        padding: 18px;
+      }
+
+      .reward-modal {
+
+        padding: 18px;
+
+        max-height: 88dvh;
+      }
+
+      .reward-close {
+
+        margin-left: -40px;
+      }
+
+    }
+
+  </style>
+
+
+  <script>
+
+    // ========================================
+    // 全域 API
+    // ========================================
+
+    let API_URL = "";
+
+    let API_READY = false;
+
+
+    // ========================================
+    // 目前會員
+    // ========================================
+
+    let currentMemberUid = "";
+
+    let currentMemberPoints = "";
+
+
+    // ========================================
+    // 兌換獎品
+    // ========================================
+
+    let rewards = [];
+
+    let selectedItems = [];
+
+
+    // ========================================
+    // 防止右鍵
+    // ========================================
+
+    document.addEventListener(
+      "contextmenu",
+      function(e) {
+
         e.preventDefault();
-    });
 
-    // ----------------------------------------
-    // 2. 禁止常用查看原始碼與開發者工具快捷鍵
-    // ----------------------------------------
-    document.addEventListener("keydown", function (e) {
+      }
+    );
+
+
+    // ========================================
+    // 防止快捷鍵
+    // ========================================
+
+    document.addEventListener(
+      "keydown",
+      function(e) {
 
         if (e.key === "F12") {
-            e.preventDefault();
-            return false;
+
+          e.preventDefault();
+
+          return false;
         }
+
 
         if (
-            e.ctrlKey &&
-            e.shiftKey &&
-            (
-                e.key === "I" ||
-                e.key === "i" ||
-                e.key === "J" ||
-                e.key === "j" ||
-                e.key === "C" ||
-                e.key === "c"
-            )
+          e.ctrlKey &&
+          e.shiftKey &&
+          (
+            e.key === "I" ||
+            e.key === "i" ||
+            e.key === "J" ||
+            e.key === "j" ||
+            e.key === "C" ||
+            e.key === "c"
+          )
         ) {
-            e.preventDefault();
-            return false;
+
+          e.preventDefault();
+
+          return false;
         }
 
-        if (e.ctrlKey && (e.key === "U" || e.key === "u")) {
-            e.preventDefault();
-            return false;
-        }
-    });
 
-    // ----------------------------------------
-    // 3. iPhone / Safari 禁止雙指縮放
-    // ----------------------------------------
-    document.addEventListener("gesturestart", function (e) {
-        e.preventDefault();
-    }, { passive: false });
+        if (
+          e.ctrlKey &&
+          (
+            e.key === "U" ||
+            e.key === "u"
+          )
+        ) {
 
-    document.addEventListener("gesturechange", function (e) {
-        e.preventDefault();
-    }, { passive: false });
+          e.preventDefault();
 
-    document.addEventListener("gestureend", function (e) {
-        e.preventDefault();
-    }, { passive: false });
-
-    // ----------------------------------------
-    // 4. 禁止多指觸控造成頁面縮放
-    // ----------------------------------------
-    document.addEventListener("touchmove", function (e) {
-
-        if (e.touches && e.touches.length > 1) {
-            e.preventDefault();
+          return false;
         }
 
-    }, { passive: false });
+      }
+    );
 
-    // ----------------------------------------
-    // 5. 防止雙擊縮放
-    // ----------------------------------------
+
+    // ========================================
+    // 防止手機縮放
+    // ========================================
+
+    document.addEventListener(
+      "gesturestart",
+      function(e) {
+
+        e.preventDefault();
+
+      },
+      { passive: false }
+    );
+
+
+    document.addEventListener(
+      "gesturechange",
+      function(e) {
+
+        e.preventDefault();
+
+      },
+      { passive: false }
+    );
+
+
+    document.addEventListener(
+      "gestureend",
+      function(e) {
+
+        e.preventDefault();
+
+      },
+      { passive: false }
+    );
+
+
+    document.addEventListener(
+      "touchmove",
+      function(e) {
+
+        if (
+          e.touches &&
+          e.touches.length > 1
+        ) {
+
+          e.preventDefault();
+
+        }
+
+      },
+      { passive: false }
+    );
+
+
+    // ========================================
+    // 防止雙擊放大
+    // ========================================
+
     let lastTouchEnd = 0;
 
-    document.addEventListener("touchend", function (e) {
+
+    document.addEventListener(
+      "touchend",
+      function(e) {
 
         const now = Date.now();
 
-        if (now - lastTouchEnd <= 300) {
-            e.preventDefault();
+
+        if (
+          now - lastTouchEnd <= 300
+        ) {
+
+          e.preventDefault();
+
         }
+
 
         lastTouchEnd = now;
 
-    }, { passive: false });
+      },
+      { passive: false }
+    );
 
-    // ----------------------------------------
-    // 6. 進入頁面立即預熱 API 與點擊清空內容
-    // ----------------------------------------
-    document.addEventListener("DOMContentLoaded", function () {
 
-        const uidInput = document.getElementById("uid");
+    // ========================================
+    // DOM 載入
+    // ========================================
 
-        uidInput.addEventListener("click", function () {
+    document.addEventListener(
+      "DOMContentLoaded",
+      function() {
+
+        const uidInput =
+          document.getElementById("uid");
+
+
+        uidInput.addEventListener(
+          "click",
+          function() {
+
             this.value = "";
-        });
 
-        // 進入頁面就立即在背景預熱 API
-        fetch("/j808/API/J.json?v=" + Date.now(), { cache: "no-store" })
-            .then(response => response.json())
-            .then(config => {
-                if (config && config.apiUrl) {
-                    fetch(config.apiUrl.trim() + "?warmup=true", { method: "GET", mode: "no-cors" })
-                        .catch(() => {});
-                }
-            })
-            .catch(() => {});
+          }
+        );
 
-    });
 
-    // ----------------------------------------
-    // 7. 查詢功能
-    // ----------------------------------------
+        const rewardSelect =
+          document.getElementById("reward_select");
+
+
+        rewardSelect.addEventListener(
+          "change",
+          function() {
+
+            const value =
+              this.value.trim();
+
+
+            if (value === "") {
+
+              return;
+
+            }
+
+
+            // ==================================
+            // 可選多個
+            // 同一個獎品不重複加入
+            // ==================================
+
+            if (
+              !selectedItems.includes(value)
+            ) {
+
+              selectedItems.push(value);
+
+            }
+
+
+            this.value = "";
+
+            renderSelectedItems();
+
+          }
+        );
+
+      }
+    );
+
+
+    // ========================================
+    // 會員查詢
+    // ========================================
+
     async function showHint(str) {
 
-        const errorMsg = document.getElementById("error_message");
-        const loadingSpan = document.getElementById("loading");
-        const orderStatus = document.getElementById("order_status");
-        const currentTimeSpan = document.getElementById("current_time");
-        const noticeBox = document.getElementById("notice_box");
+      const errorMsg =
+        document.getElementById(
+          "error_message"
+        );
 
-        // ----------------------------------------
-        // 檢查輸入內容
-        // ----------------------------------------
-        str = str.trim();
 
-        if (str === "") {
+      const loadingSpan =
+        document.getElementById(
+          "loading"
+        );
 
-            errorMsg.innerText = "請輸入 會員號＋貴賓本名";
-            orderStatus.innerHTML = "";
-            currentTimeSpan.innerText = "";
-            noticeBox.style.display = "none";
 
-            return;
-        }
+      const orderStatus =
+        document.getElementById(
+          "order_status"
+        );
 
-        errorMsg.innerText = "";
 
-        loadingSpan.style.display = "inline-block";
+      const currentTimeSpan =
+        document.getElementById(
+          "current_time"
+        );
+
+
+      const noticeBox =
+        document.getElementById(
+          "notice_box"
+        );
+
+
+      const queryButton =
+        document.querySelector(
+          ".btn-query"
+        );
+
+
+      // ====================================
+      // 清除空白
+      // ====================================
+
+      str = str.trim();
+
+
+      // ====================================
+      // 沒輸入
+      // ====================================
+
+      if (str === "") {
+
+        errorMsg.innerText =
+          "請輸入 會員號＋貴賓本名";
+
         orderStatus.innerHTML = "";
+
         currentTimeSpan.innerText = "";
-        noticeBox.style.display = "none";
 
-        try {
+        noticeBox.style.display =
+          "none";
 
-            // ----------------------------------------
-            // 先讀取 API/J.json
-            // ----------------------------------------
-            // 使用時間參數避免瀏覽器快取舊的 GAS 網址
-            const configResponse = await fetch(
-                "/j808/API/J.json?v=" + Date.now(),
-                {
-                    method: "GET",
-                    cache: "no-store"
-                }
-            );
+        hideRewardButton();
 
-            if (!configResponse.ok) {
-                throw new Error("API_CONFIG_LOAD_ERROR");
+        return;
+      }
+
+
+      // ====================================
+      // 防止重複查詢
+      // ====================================
+
+      if (queryButton.disabled) {
+
+        return;
+
+      }
+
+
+      // ====================================
+      // 開始查詢
+      // ====================================
+
+      queryButton.disabled = true;
+
+      errorMsg.innerText = "";
+
+      loadingSpan.style.display =
+        "inline-block";
+
+      orderStatus.innerHTML = "";
+
+      currentTimeSpan.innerText = "";
+
+      noticeBox.style.display =
+        "none";
+
+      hideRewardButton();
+
+
+      try {
+
+        // ==================================
+        // 取得 API 設定
+        // ==================================
+
+        const configResponse =
+          await fetch(
+            "/j808/API/J.json?v=" +
+            Date.now(),
+            {
+              method: "GET",
+              cache: "no-store"
             }
+          );
 
-            const config = await configResponse.json();
 
-            // ----------------------------------------
-            // 檢查 apiUrl 是否存在
-            // ----------------------------------------
-            if (
-                !config ||
-                typeof config.apiUrl !== "string" ||
-                config.apiUrl.trim() === ""
-            ) {
-                throw new Error("API_CONFIG_INVALID");
-            }
+        if (!configResponse.ok) {
 
-            const apiUrl = config.apiUrl.trim();
+          throw new Error(
+            "API_CONFIG_LOAD_ERROR"
+          );
 
-            // ----------------------------------------
-            // 建立 GAS 查詢網址
-            // ----------------------------------------
-            const separator = apiUrl.indexOf("?") === -1 ? "?" : "&";
-
-            const requestUrl =
-                apiUrl +
-                separator +
-                "uid=" +
-                encodeURIComponent(str);
-
-            // ----------------------------------------
-            // 使用 XMLHttpRequest 呼叫 GAS
-            // ----------------------------------------
-            var xmlhttp = window.XMLHttpRequest
-                ? new XMLHttpRequest()
-                : new ActiveXObject("Microsoft.XMLHTTP");
-
-            xmlhttp.open(
-                "get",
-                requestUrl,
-                true
-            );
-
-            xmlhttp.onreadystatechange = function () {
-
-                if (xmlhttp.readyState == 4) {
-
-                    loadingSpan.style.display = "none";
-
-                    if (xmlhttp.status == 200) {
-
-                        try {
-
-                            var obj = JSON.parse(xmlhttp.responseText);
-
-                            var html = '<table>';
-
-                            for (var i = 0; i < obj.length; i++) {
-
-                                html += '<tr>';
-
-                                if (
-                                    obj[i] &&
-                                    Array.isArray(obj[i].data)
-                                ) {
-
-                                    for (
-                                        var j = 0;
-                                        j < obj[i].data.length;
-                                        j++
-                                    ) {
-
-                                        if (j < 3) {
-
-                                            html +=
-                                                '<td>' +
-                                                obj[i].data[j] +
-                                                '</td>';
-
-                                        }
-
-                                    }
-
-                                }
-
-                                html += '</tr>';
-                            }
-
-                            html += '</table>';
-
-                            orderStatus.innerHTML = html;
-
-                            // ----------------------------------------
-                            // 顯示查詢時間
-                            // ----------------------------------------
-                            var now = new Date();
-
-                            var formattedTime =
-                                now.getFullYear() + '/' +
-                                String(now.getMonth() + 1).padStart(2, '0') + '/' +
-                                String(now.getDate()).padStart(2, '0') + ' ' +
-                                String(now.getHours()).padStart(2, '0') + ':' +
-                                String(now.getMinutes()).padStart(2, '0') + ':' +
-                                String(now.getSeconds()).padStart(2, '0');
-
-                            currentTimeSpan.innerText =
-                                "查詢時間：" + formattedTime;
-
-                            // ----------------------------------------
-                            // 顯示貼心提醒
-                            // ----------------------------------------
-                            noticeBox.style.display = "block";
-
-                        } catch (e) {
-
-                            console.error(
-                                "GAS 回傳資料解析錯誤：",
-                                e
-                            );
-
-                            errorMsg.innerText =
-                                "資料解析錯誤請稍後再試";
-
-                            orderStatus.innerHTML = "";
-                            currentTimeSpan.innerText = "";
-                            noticeBox.style.display = "none";
-
-                        }
-
-                    } else {
-
-                        errorMsg.innerText =
-                            "連線伺服器失敗，請稍後再試";
-
-                        orderStatus.innerHTML = "";
-                        currentTimeSpan.innerText = "";
-                        noticeBox.style.display = "none";
-
-                    }
-                }
-            };
-
-            xmlhttp.onerror = function () {
-
-                loadingSpan.style.display = "none";
-
-                errorMsg.innerText =
-                    "連線伺服器失敗，請稍後再試";
-
-                orderStatus.innerHTML = "";
-                currentTimeSpan.innerText = "";
-                noticeBox.style.display = "none";
-            };
-
-            xmlhttp.send();
-
-        } catch (error) {
-
-            console.error(
-                "API 設定讀取錯誤：",
-                error
-            );
-
-            loadingSpan.style.display = "none";
-
-            if (error.message === "API_CONFIG_LOAD_ERROR") {
-
-                errorMsg.innerText =
-                    "無法讀取 API 設定，請稍後再試";
-
-            } else if (error.message === "API_CONFIG_INVALID") {
-
-                errorMsg.innerText =
-                    "API 設定錯誤，請聯絡管理員";
-
-            } else {
-
-                errorMsg.innerText =
-                    "系統連線錯誤，請稍後再試";
-
-            }
-
-            orderStatus.innerHTML = "";
-            currentTimeSpan.innerText = "";
-            noticeBox.style.display = "none";
         }
+
+
+        const config =
+          await configResponse.json();
+
+
+        if (
+          !config ||
+          typeof config.apiUrl !== "string" ||
+          config.apiUrl.trim() === ""
+        ) {
+
+          throw new Error(
+            "API_CONFIG_INVALID"
+          );
+
+        }
+
+
+        API_URL =
+          config.apiUrl.trim();
+
+        API_READY = true;
+
+
+        // ==================================
+        // GAS 預熱
+        // ==================================
+
+        fetch(
+          API_URL +
+          (
+            API_URL.indexOf("?") === -1
+              ? "?"
+              : "&"
+          ) +
+          "warmup=true",
+          {
+            method: "GET",
+            mode: "no-cors"
+          }
+        )
+        .catch(function() {});
+
+
+        // ==================================
+        // 會員查詢
+        // ==================================
+
+        const separator =
+          API_URL.indexOf("?") === -1
+            ? "?"
+            : "&";
+
+
+        const requestUrl =
+          API_URL +
+          separator +
+          "uid=" +
+          encodeURIComponent(str);
+
+
+        const response =
+          await fetch(
+            requestUrl,
+            {
+              method: "GET",
+              cache: "no-store"
+            }
+          );
+
+
+        if (!response.ok) {
+
+          throw new Error(
+            "GAS_REQUEST_ERROR"
+          );
+
+        }
+
+
+        const result =
+          await response.json();
+
+
+        // ==================================
+        // 查無會員
+        // ==================================
+
+        if (!result.success) {
+
+          errorMsg.innerText =
+            result.message ||
+            "查無會員";
+
+          orderStatus.innerHTML = "";
+
+          currentTimeSpan.innerText = "";
+
+          noticeBox.style.display =
+            "none";
+
+          hideRewardButton();
+
+          return;
+
+        }
+
+
+        // ==================================
+        // 保存目前會員
+        // ==================================
+
+        currentMemberUid =
+          String(result.uid || str);
+
+        currentMemberPoints =
+          result.points;
+
+
+        // ==================================
+        // 顯示會員結果
+        // ==================================
+
+        const points =
+          result.points;
+
+
+        orderStatus.innerHTML =
+          "<table>" +
+
+            "<tr>" +
+
+              "<th>會員</th>" +
+
+              "<th>目前點數</th>" +
+
+            "</tr>" +
+
+            "<tr>" +
+
+              "<td>" +
+              escapeHtml(
+                String(result.uid)
+              ) +
+              "</td>" +
+
+              "<td>" +
+              escapeHtml(
+                String(points)
+              ) +
+              "</td>" +
+
+            "</tr>" +
+
+          "</table>";
+
+
+        // ==================================
+        // 查詢時間
+        // ==================================
+
+        const now =
+          new Date();
+
+
+        const formattedTime =
+          now.getFullYear() +
+          "/" +
+          String(
+            now.getMonth() + 1
+          ).padStart(2, "0") +
+          "/" +
+          String(
+            now.getDate()
+          ).padStart(2, "0") +
+          " " +
+          String(
+            now.getHours()
+          ).padStart(2, "0") +
+          ":" +
+          String(
+            now.getMinutes()
+          ).padStart(2, "0") +
+          ":" +
+          String(
+            now.getSeconds()
+          ).padStart(2, "0");
+
+
+        currentTimeSpan.innerText =
+          "查詢時間：" +
+          formattedTime;
+
+
+        // ==================================
+        // 顯示提醒
+        // ==================================
+
+        noticeBox.style.display =
+          "block";
+
+
+        // ==================================
+        // 查詢成功
+        // 顯示兌換獎品按鈕
+        //
+        // 注意：
+        // 這裡「沒有」讀兌換DM API
+        // ==================================
+
+        showRewardButton();
+
+
+      } catch (error) {
+
+        console.error(
+          "API 查詢錯誤：",
+          error
+        );
+
+
+        errorMsg.innerText =
+          "連線伺服器失敗，請稍後再試";
+
+
+        orderStatus.innerHTML = "";
+
+        currentTimeSpan.innerText = "";
+
+        noticeBox.style.display =
+          "none";
+
+        hideRewardButton();
+
+
+      } finally {
+
+        // ==================================
+        // 查詢完成
+        // ==================================
+
+        loadingSpan.style.display =
+          "none";
+
+        queryButton.disabled = false;
+
+        API_READY = false;
+
+        API_URL = "";
+
+      }
+
     }
 
-</script>
+
+    // ========================================
+    // 顯示兌換按鈕
+    // ========================================
+
+    function showRewardButton() {
+
+      const button =
+        document.getElementById(
+          "reward_button"
+        );
+
+
+      if (button) {
+
+        button.style.display =
+          "block";
+
+      }
+
+    }
+
+
+    // ========================================
+    // 隱藏兌換按鈕
+    // ========================================
+
+    function hideRewardButton() {
+
+      const button =
+        document.getElementById(
+          "reward_button"
+        );
+
+
+      if (button) {
+
+        button.style.display =
+          "none";
+
+      }
+
+    }
+
+
+    // ========================================
+    // 開啟兌換 UI
+    // ========================================
+
+    async function openRewardModal() {
+
+      // ==================================
+      // 必須先有會員
+      // ==================================
+
+      if (!currentMemberUid) {
+
+        alert(
+          "請先查詢會員"
+        );
+
+        return;
+
+      }
+
+
+      const overlay =
+        document.getElementById(
+          "reward_overlay"
+        );
+
+
+      const select =
+        document.getElementById(
+          "reward_select"
+        );
+
+
+      const loading =
+        document.getElementById(
+          "reward_loading"
+        );
+
+
+      const error =
+        document.getElementById(
+          "reward_error"
+        );
+
+
+      // ==================================
+      // 打開 UI
+      // ==================================
+
+      overlay.classList.add("show");
+
+
+      select.innerHTML =
+        '<option value="">讀取獎品中...</option>';
+
+
+      select.disabled = true;
+
+
+      loading.style.display =
+        "block";
+
+
+      error.innerText = "";
+
+
+      // ==================================
+      // 清空上一次選擇
+      // ==================================
+
+      selectedItems = [];
+
+      renderSelectedItems();
+
+
+      try {
+
+        // ==================================
+        // 如果 API_URL 是空的
+        // 重新取得 J.json
+        //
+        // 這不會查會員
+        // ==================================
+
+        let apiUrl =
+          API_URL;
+
+
+        if (!apiUrl) {
+
+          const configResponse =
+            await fetch(
+              "/j808/API/J.json?v=" +
+              Date.now(),
+              {
+                method: "GET",
+                cache: "no-store"
+              }
+            );
+
+
+          if (!configResponse.ok) {
+
+            throw new Error(
+              "API_CONFIG_LOAD_ERROR"
+            );
+
+          }
+
+
+          const config =
+            await configResponse.json();
+
+
+          if (
+            !config ||
+            typeof config.apiUrl !== "string" ||
+            config.apiUrl.trim() === ""
+          ) {
+
+            throw new Error(
+              "API_CONFIG_INVALID"
+            );
+
+          }
+
+
+          apiUrl =
+            config.apiUrl.trim();
+
+        }
+
+
+        // ==================================
+        // 呼叫 GAS
+        //
+        // action=rewards
+        //
+        // GAS：
+        // getRewards()
+        // ↓
+        // 讀取「兌換DM」
+        // ==================================
+
+        const separator =
+          apiUrl.indexOf("?") === -1
+            ? "?"
+            : "&";
+
+
+        const rewardUrl =
+          apiUrl +
+          separator +
+          "action=rewards";
+
+
+        const response =
+          await fetch(
+            rewardUrl,
+            {
+              method: "GET",
+              cache: "no-store"
+            }
+          );
+
+
+        if (!response.ok) {
+
+          throw new Error(
+            "REWARD_REQUEST_ERROR"
+          );
+
+        }
+
+
+        const result =
+          await response.json();
+
+
+        if (
+          !result ||
+          !result.success
+        ) {
+
+          throw new Error(
+            result.message ||
+            "讀取獎品失敗"
+          );
+
+        }
+
+
+        // ==================================
+        // 取得獎品
+        // ==================================
+
+        rewards =
+          Array.isArray(result.rewards)
+            ? result.rewards
+            : [];
+
+
+        // ==================================
+        // 沒有獎品
+        // ==================================
+
+        if (rewards.length === 0) {
+
+          select.innerHTML =
+            '<option value="">目前沒有可兌換獎品</option>';
+
+          select.disabled = true;
+
+          error.innerText =
+            "目前沒有可兌換獎品";
+
+          return;
+
+        }
+
+
+        // ==================================
+        // 建立選單
+        // ==================================
+
+        select.innerHTML =
+          '<option value="">-- 點此選擇品項直接加入 --</option>';
+
+
+        rewards.forEach(
+          function(item) {
+
+            const option =
+              document.createElement(
+                "option"
+              );
+
+
+            option.value = item;
+
+            option.textContent = item;
+
+
+            select.appendChild(
+              option
+            );
+
+          }
+        );
+
+
+        select.disabled = false;
+
+
+        // ==================================
+        // 更新預覽
+        // ==================================
+
+        updatePreview();
+
+
+      } catch (error) {
+
+        console.error(
+          "兌換獎品 API 錯誤：",
+          error
+        );
+
+
+        select.innerHTML =
+          '<option value="">讀取獎品失敗</option>';
+
+
+        select.disabled = true;
+
+
+        error.innerText =
+          "讀取獎品失敗，請稍後再試";
+
+
+      } finally {
+
+        loading.style.display =
+          "none";
+
+      }
+
+    }
+
+
+    // ========================================
+    // 關閉兌換 UI
+    // ========================================
+
+    function closeRewardModal() {
+
+      const overlay =
+        document.getElementById(
+          "reward_overlay"
+        );
+
+
+      overlay.classList.remove(
+        "show"
+      );
+
+    }
+
+
+    // ========================================
+    // 點遮罩關閉
+    // ========================================
+
+    function overlayClick(e) {
+
+      if (
+        e.target ===
+        document.getElementById(
+          "reward_overlay"
+        )
+      ) {
+
+        closeRewardModal();
+
+      }
+
+    }
+
+
+    // ========================================
+    // 顯示已選品項
+    // ========================================
+
+    function renderSelectedItems() {
+
+      const box =
+        document.getElementById(
+          "selectedItemsBox"
+        );
+
+
+      if (!box) {
+
+        return;
+
+      }
+
+
+      if (
+        selectedItems.length === 0
+      ) {
+
+        box.innerHTML =
+          '<div class="empty-selected">' +
+          '尚未選擇品項' +
+          '</div>';
+
+        updatePreview();
+
+        return;
+
+      }
+
+
+      box.innerHTML = "";
+
+
+      selectedItems.forEach(
+        function(item, index) {
+
+          const row =
+            document.createElement(
+              "div"
+            );
+
+
+          row.className =
+            "selected-item";
+
+
+          const text =
+            document.createElement(
+              "span"
+            );
+
+
+          text.textContent =
+            "🎁 " + item;
+
+
+          const removeButton =
+            document.createElement(
+              "button"
+            );
+
+
+          removeButton.type =
+            "button";
+
+
+          removeButton.className =
+            "remove-item";
+
+
+          removeButton.textContent =
+            "×";
+
+
+          removeButton.title =
+            "移除";
+
+
+          removeButton.onclick =
+            function() {
+
+              selectedItems.splice(
+                index,
+                1
+              );
+
+
+              renderSelectedItems();
+
+            };
+
+
+          row.appendChild(text);
+
+          row.appendChild(
+            removeButton
+          );
+
+
+          box.appendChild(row);
+
+        }
+      );
+
+
+      updatePreview();
+
+    }
+
+
+    // ========================================
+    // 即時預覽
+    // ========================================
+
+    function updatePreview() {
+
+      const preview =
+        document.getElementById(
+          "reward_preview"
+        );
+
+
+      const sendButton =
+        document.getElementById(
+          "send_line_button"
+        );
+
+
+      if (
+        selectedItems.length === 0
+      ) {
+
+        preview.textContent =
+          "尚未選擇兌換品項";
+
+
+        sendButton.disabled =
+          true;
+
+
+        return;
+
+      }
+
+
+      let text =
+        "🎁 兌換獎品\n\n";
+
+
+      text +=
+        "會員：" +
+        currentMemberUid +
+        "\n";
+
+
+      text +=
+        "目前點數：" +
+        currentMemberPoints +
+        "\n\n";
+
+
+      text +=
+        "兌換品項：\n";
+
+
+      selectedItems.forEach(
+        function(item, index) {
+
+          text +=
+            (index + 1) +
+            ". " +
+            item +
+            "\n";
+
+        }
+      );
+
+
+      text +=
+        "\n請官方協助確認兌換，謝謝！";
+
+
+      preview.textContent =
+        text;
+
+
+      sendButton.disabled =
+        false;
+
+    }
+
+
+    // ========================================
+    // 發送給官方 LINE@
+    //
+    // 注意：
+    // LINE 開啟後
+    // 使用者仍然要自己按「送出」
+    // ========================================
+
+    function sendToOfficialLine() {
+
+      if (
+        selectedItems.length === 0
+      ) {
+
+        alert(
+          "請先選擇兌換獎品"
+        );
+
+        return;
+
+      }
+
+
+      // ==================================
+      // 建立 LINE 訊息
+      // ==================================
+
+      let message =
+        "🎁 兌換獎品\n\n";
+
+
+      message +=
+        "會員：" +
+        currentMemberUid +
+        "\n";
+
+
+      message +=
+        "目前點數：" +
+        currentMemberPoints +
+        "\n\n";
+
+
+      message +=
+        "兌換品項：\n";
+
+
+      selectedItems.forEach(
+        function(item, index) {
+
+          message +=
+            (index + 1) +
+            ". " +
+            item +
+            "\n";
+
+        }
+      );
+
+
+      message +=
+        "\n請官方協助確認兌換，謝謝！";
+
+
+      // ==================================
+      // LINE 官方帳號
+      // ==================================
+
+      const lineUrl =
+        "https://line.me/R/ti/p/@goldwon888?text=" +
+        encodeURIComponent(message);
+
+
+      // ==================================
+      // 開啟 LINE
+      // ==================================
+
+      window.location.href =
+        lineUrl;
+
+    }
+
+
+    // ========================================
+    // HTML Escape
+    // ========================================
+
+    function escapeHtml(value) {
+
+      return value
+        .replace(
+          /&/g,
+          "&amp;"
+        )
+        .replace(
+          /</g,
+          "&lt;"
+        )
+        .replace(
+          />/g,
+          "&gt;"
+        )
+        .replace(
+          /"/g,
+          "&quot;"
+        )
+        .replace(
+          /'/g,
+          "&#039;"
+        );
+
+    }
+
+  </script>
 
 </head>
 
+
 <body>
 
-<div class="container">
 
-    <h2>金正旺VIP查詢系統</h2>
+  <div class="container">
+
+
+    <h2>
+      金正旺VIP查詢系統
+    </h2>
+
+
+    <!-- ====================================
+         會員查詢
+         ==================================== -->
 
     <div class="input-group">
 
-        <input
-            type="text"
-            id="uid"
-            placeholder="請輸入 會號+貴賓本名"
-            autocomplete="off"
-            autocorrect="off"
-            autocapitalize="off"
-            spellcheck="false"
-        />
+      <input
+        type="text"
+        id="uid"
+        placeholder="請輸入 會號+貴賓本名"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+      />
 
-        <button
-            class="btn btn-query"
-            onclick="showHint(document.getElementById('uid').value);"
-        >
-            查詢
-        </button>
+
+      <button
+        class="btn btn-query"
+        onclick="showHint(document.getElementById('uid').value);"
+      >
+        查詢
+      </button>
 
     </div>
 
-    <span id="loading" class="loading">讀取中</span>
+
+    <span
+      id="loading"
+      class="loading"
+    >
+      讀取中
+    </span>
+
 
     <span id="error_message"></span>
 
+
+    <!-- ====================================
+         查詢結果
+         ==================================== -->
+
     <div id="order_status"></div>
+
+
+    <!-- ====================================
+         查詢時間
+         ==================================== -->
 
     <span id="current_time"></span>
 
-    <!-- 貼心提醒文字說明 (初始隱藏，查詢成功後顯示) -->
-    <div id="notice_box" class="notice-box" style="display: none;">
 
-        🔔 貼心提醒：<br>
-        當日消費之點數，將於【隔日】統一入點唷～
+    <!-- ====================================
+         🎁 兌換獎品
+         查詢成功後才出現
+         ==================================== -->
+
+    <button
+      id="reward_button"
+      class="btn btn-reward"
+      style="display:none;"
+      onclick="openRewardModal();"
+    >
+      🎁 兌換獎品
+    </button>
+
+
+    <!-- ====================================
+         提醒
+         ==================================== -->
+
+    <div
+      id="notice_box"
+      class="notice-box"
+      style="display:none;"
+    >
+
+      🔔 貼心提醒：<br>
+
+      當日消費之點數，將於【隔日】統一入點唷～
 
     </div>
 
+
+    <!-- ====================================
+         返回官方 LINE@
+         ==================================== -->
+
     <a
-        class="btn btn-line"
-        href="https://line.me/R/ti/p/@goldwon888?from=page&searchId=goldwon888"
-        target="_blank"
+      class="btn btn-line"
+      href="https://line.me/R/ti/p/@goldwon888?from=page&searchId=goldwon888"
+      target="_blank"
     >
-        返回 官方LINE
+      返回 官方LINE@
     </a>
 
-</div>
 
-<div class="copyright">Copyright © 2026 ｊLINE: jimi102</div>
+  </div>
+
+
+  <!-- ======================================
+       🎁 兌換獎品 UI
+       ====================================== -->
+
+  <div
+    id="reward_overlay"
+    class="reward-overlay"
+    onclick="overlayClick(event);"
+  >
+
+
+    <div class="reward-modal">
+
+
+      <!-- 標題 -->
+
+      <div class="reward-title">
+
+        🎁 請選擇兌換獎品
+
+      </div>
+
+
+      <!-- 關閉 -->
+
+      <button
+        type="button"
+        class="reward-close"
+        onclick="closeRewardModal();"
+      >
+        ×
+      </button>
+
+
+      <!-- ==================================
+           Loading
+           ================================== -->
+
+      <div
+        id="reward_loading"
+        class="reward-loading"
+      >
+
+        正在讀取兌換獎品...
+
+      </div>
+
+
+      <div
+        id="reward_error"
+        style="
+          color:#ff6b6b;
+          font-size:0.88rem;
+          margin-bottom:8px;
+        "
+      ></div>
+
+
+      <!-- ==================================
+           選單
+           ================================== -->
+
+      <label
+        class="reward-label"
+        for="reward_select"
+      >
+
+        選擇品項（點擊即可加入，可選多個）：
+
+      </label>
+
+
+      <select
+        id="reward_select"
+      >
+
+        <option value="">
+          -- 點此選擇品項直接加入 --
+        </option>
+
+      </select>
+
+
+      <!-- ==================================
+           已選品項
+           ================================== -->
+
+      <div class="selected-title">
+
+        已選擇品項：
+
+      </div>
+
+
+      <div id="selectedItemsBox">
+
+        <div class="empty-selected">
+
+          尚未選擇品項
+
+        </div>
+
+      </div>
+
+
+      <!-- ==================================
+           即時預覽
+           ================================== -->
+
+      <div class="preview-title">
+
+        即時預覽：
+
+      </div>
+
+
+      <div id="reward_preview">
+
+        尚未選擇兌換品項
+
+      </div>
+
+
+      <!-- ==================================
+           發送 LINE
+           ================================== -->
+
+      <button
+        id="send_line_button"
+        type="button"
+        class="btn btn-send-line"
+        disabled
+        onclick="sendToOfficialLine();"
+      >
+
+        💬 發送給官方 LINE@
+
+      </button>
+
+
+    </div>
+
+  </div>
+
+
+  <div class="copyright">
+
+    Copyright © 2026 ｊLINE: jimi102
+
+  </div>
+
 
 </body>
+
 </html>
