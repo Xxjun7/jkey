@@ -517,6 +517,10 @@
     }
 
 
+    /* ========================================
+       獎品讀取狀態
+       ======================================== */
+
     .reward-ready-text {
 
       display: block;
@@ -954,6 +958,12 @@
     }
 
 
+    /* ========================================
+       ★ 分享給官方 LINE@
+       ★ 此按鈕外觀固定
+       ★ 分享後只改文字與 onclick
+       ======================================== */
+
     .btn-send-line {
 
       background:
@@ -1061,6 +1071,14 @@
   <script>
 
     // ========================================
+    // 官方 LINE@
+    // ========================================
+
+    const OFFICIAL_LINE_URL =
+      "https://line.me/R/ti/p/@goldwon888?from=page&searchId=goldwon888";
+
+
+    // ========================================
     // 全域 API
     // ========================================
 
@@ -1096,14 +1114,6 @@
     // ========================================
 
     let SELECTED_REWARDS = {};
-
-
-    // ========================================
-    // 官方 LINE@
-    // ========================================
-
-    const OFFICIAL_LINE_URL =
-      "https://line.me/R/ti/p/@goldwon888?from=page&searchId=goldwon888";
 
 
     // ========================================
@@ -1539,7 +1549,6 @@
 
           } catch (err) {
 
-
             console.error(
               "獎品讀取錯誤：",
               err
@@ -1748,7 +1757,6 @@
 
     async function showHint(str) {
 
-
       const errorMsg =
         document.getElementById(
           "error_message"
@@ -1892,7 +1900,6 @@
 
 
       try {
-
 
         const apiUrl =
           await getApiUrl();
@@ -2102,7 +2109,6 @@
 
       } catch (error) {
 
-
         console.error(
           "API 查詢錯誤：",
           error
@@ -2131,7 +2137,6 @@
 
       } finally {
 
-
         loadingSpan.style.display =
           "none";
 
@@ -2153,7 +2158,6 @@
     // ========================================
 
     async function openRewardModal() {
-
 
       if (
         !CURRENT_UID
@@ -2180,12 +2184,6 @@
         document.getElementById(
           "reward_error"
         );
-
-
-      // ★ 每次重新開啟兌換視窗
-      // ★ 分享按鈕恢復原本狀態
-
-      resetLineButton();
 
 
       SELECTED_REWARDS =
@@ -2237,7 +2235,6 @@
 
       try {
 
-
         const rewards =
           await preloadRewards();
 
@@ -2263,7 +2260,6 @@
 
       } catch (err) {
 
-
         console.error(
           "開啟獎品時讀取錯誤：",
           err
@@ -2287,7 +2283,6 @@
     // ========================================
 
     function addRewardFromSelect() {
-
 
       const select =
         document.getElementById(
@@ -2356,7 +2351,6 @@
       reward
     ) {
 
-
       if (
         isRewardCategory(
           reward
@@ -2397,7 +2391,6 @@
     function decreaseReward(
       reward
     ) {
-
 
       if (
         isRewardCategory(
@@ -2447,7 +2440,6 @@
       reward
     ) {
 
-
       if (
         isRewardCategory(
           reward
@@ -2474,7 +2466,6 @@
     // ========================================
 
     function renderSelectedRewards() {
-
 
       const box =
         document.getElementById(
@@ -2523,7 +2514,6 @@
         rewards.length === 0
       ) {
 
-
         box.innerHTML =
 
           '<div class="selected-empty">' +
@@ -2547,7 +2537,6 @@
 
       rewards.forEach(
         function(reward) {
-
 
           const quantity =
             SELECTED_REWARDS[
@@ -2744,7 +2733,6 @@
 
     function buildRewardMessage() {
 
-
       const rewards =
         Object.keys(
           SELECTED_REWARDS
@@ -2818,7 +2806,6 @@
 
     function updateRewardPreview() {
 
-
       const preview =
         document.getElementById(
           "reward_preview"
@@ -2858,14 +2845,20 @@
 
 
     // ========================================
-    // ★ 分享給 LINE
+    // LINE 分享
     //
-    // ★ 分享成功開啟後
-    // ★ 按鈕改成「返回 官方LINE@」
+    // ★ 第一次點擊：
+    //    分享兌換內容
+    //
+    // ★ 分享後：
+    //    同一顆按鈕外觀完全不變
+    //    文字變成「返回 官方LINE@」
+    //
+    // ★ 再點擊：
+    //    開啟官方 LINE@
     // ========================================
 
     function sendRewardToLine() {
-
 
       const rewards =
         Object.keys(
@@ -2882,7 +2875,36 @@
 
 
       // ====================================
-      // 檢查
+      // 如果按鈕已經切換成
+      // 「返回 官方LINE@」
+      // 就直接開啟官方 LINE@
+      // ====================================
+
+      const sendButton =
+        document.getElementById(
+          "send_line_button"
+        );
+
+
+      if (
+        sendButton &&
+        sendButton.dataset.mode ===
+        "return-line"
+      ) {
+
+        window.open(
+          OFFICIAL_LINE_URL,
+          "_blank"
+        );
+
+
+        return;
+
+      }
+
+
+      // ====================================
+      // 檢查會員與獎品
       // ====================================
 
       if (
@@ -2896,7 +2918,7 @@
 
 
       // ====================================
-      // 建立分享文字
+      // 建立最終分享文字
       // ====================================
 
       const message =
@@ -2904,7 +2926,7 @@
 
 
       // ====================================
-      // LINE 官方分享網址
+      // LINE 分享網址
       // ====================================
 
       const lineShareUrl =
@@ -2915,7 +2937,7 @@
 
 
       // ====================================
-      // 開啟 LINE 分享
+      // 開啟 LINE
       // ====================================
 
       window.open(
@@ -2925,14 +2947,10 @@
 
 
       // ====================================
-      // ★ 分享後立即切換按鈕
+      // ★ 分享後
+      // ★ 只修改文字與功能
+      // ★ 完全保留原本 class
       // ====================================
-
-      const sendButton =
-        document.getElementById(
-          "send_line_button"
-        );
-
 
       if (
         sendButton
@@ -2942,73 +2960,28 @@
           "返回 官方LINE@";
 
 
+        /*
+          ★ 不改成 btn-line
+          ★ 不增加其他 class
+          ★ 保留原本：
+
+             btn-send-line
+
+          所以按鈕外觀完全不變
+        */
+
         sendButton.className =
-          "btn btn-line";
+          "btn-send-line";
 
 
         sendButton.disabled =
           false;
 
 
-        sendButton.onclick =
-          function() {
-
-            window.open(
-              OFFICIAL_LINE_URL,
-              "_blank"
-            );
-
-          };
+        sendButton.dataset.mode =
+          "return-line";
 
       }
-
-    }
-
-
-    // ========================================
-    // ★ 重設 LINE 按鈕
-    //
-    // 每次重新開啟兌換視窗
-    // 恢復成：
-    // 💬 分享給官方 LINE@
-    // ========================================
-
-    function resetLineButton() {
-
-
-      const sendButton =
-        document.getElementById(
-          "send_line_button"
-        );
-
-
-      if (
-        !sendButton
-      ) {
-
-        return;
-
-      }
-
-
-      sendButton.innerText =
-        "💬 分享給官方 LINE@";
-
-
-      sendButton.className =
-        "btn-send-line";
-
-
-      sendButton.disabled =
-        true;
-
-
-      sendButton.onclick =
-        function() {
-
-          sendRewardToLine();
-
-        };
 
     }
 
@@ -3018,7 +2991,6 @@
     // ========================================
 
     function closeRewardModal() {
-
 
       const modal =
         document.getElementById(
@@ -3045,7 +3017,6 @@
     function rewardModalBackgroundClick(
       event
     ) {
-
 
       if (
         event.target.id ===
