@@ -3058,7 +3058,7 @@
 // ========================================
 // LINE 分享
 //
-// ★ 不讓 text= 出現在分享內容
+// ★ 點擊後將按鈕改成「返回 官方LINE@」
 // ========================================
 
 function sendRewardToLine() {
@@ -3093,9 +3093,6 @@ function sendRewardToLine() {
 
   // ====================================
   // LINE 分享
-  //
-  // 使用 LINE 官方分享格式
-  // 參數名稱 text 不會放進實際訊息
   // ====================================
 
   const lineShareUrl =
@@ -3112,9 +3109,49 @@ function sendRewardToLine() {
     "_blank"
   );
 
+
+  // ====================================
+  // ★ 分享後把按鈕改成
+  // 「返回 官方LINE@」
+  // ====================================
+
+  const sendButton =
+    document.getElementById(
+      "send_line_button"
+    );
+
+
+  if (
+    sendButton
+  ) {
+
+    sendButton.innerText =
+      "返回 官方LINE@";
+
+
+    // 移除原本的 onclick
+    sendButton.onclick =
+      function() {
+
+        window.open(
+          "https://line.me/R/ti/p/@goldwon888?from=page&searchId=goldwon888",
+          "_blank"
+        );
+
+      };
+
+
+    // 改成 LINE 綠色按鈕
+    sendButton.className =
+      "btn btn-line";
+
+
+    sendButton.disabled =
+      false;
+
+  }
+
 }
-
-
 
     // ========================================
     // 關閉 Modal
@@ -3509,3 +3546,5 @@ function sendRewardToLine() {
 </body>
 
 </html>
+
+幫我修改 改好給我"💬 分享給官方 LINE@" 按鈕 點完 變成 "返回 官方LINE@"按鈕
