@@ -1,14 +1,16 @@
 <!DOCTYPE html>
+
 <html lang="zh-TW">
 
 <head>
 
   <meta charset="UTF-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover"
-  >
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover"
+
+>
 
   <link rel="icon" type="image/x-icon" href="./Jicon.ico">
 
@@ -16,7 +18,6 @@
   <meta property="og:description" content="VIP查詢系統">
 
   <title>金正旺VIP查詢系統</title>
-
 
   <style>
 
@@ -500,20 +501,23 @@
       width: 100%;
 
       background:
-        linear-gradient(
-          135deg,
-          #d4af37,
-          #fff3a6,
-          #b8860b
-        );
+       linear-gradient(
+        135deg,
+        #bf953f,
+        #fcf6ba,
+        #aa771c
+       );
 
       color: #222222;
 
       font-weight: bold;
 
       box-shadow:
-        0 0 12px
-        rgba(212, 175, 55, 0.35);
+        0 0 10px
+        rgba(212, 175, 55, 0.4);
+
+      animation:
+        breathe 2.5s ease-in-out infinite;
     }
 
 
@@ -877,6 +881,67 @@
 
 
     /* ========================================
+       點數計算
+       ======================================== */
+
+    .points-box {
+
+      margin-top: 16px;
+
+      padding: 12px 14px;
+
+      border-radius: 12px;
+
+      background:
+        rgba(255, 255, 255, 0.06);
+
+      border:
+        1px solid
+        rgba(255, 255, 255, 0.12);
+
+      line-height: 1.6;
+    }
+
+
+    .points-title {
+
+      color: #fcf6ba;
+
+      font-size: 0.95rem;
+
+      font-weight: bold;
+
+      margin-bottom: 5px;
+    }
+
+
+    #points_calculation {
+
+      color: #ffffff;
+
+      font-size: 0.92rem;
+
+      word-break: break-word;
+    }
+
+
+    #points_calculation.insufficient {
+
+      color: #ff8b8b;
+
+      font-weight: bold;
+    }
+
+
+    #points_calculation.sufficient {
+
+      color: #8ff0a4;
+
+      font-weight: bold;
+    }
+
+
+    /* ========================================
        即時預覽
        ======================================== */
 
@@ -959,9 +1024,7 @@
 
 
     /* ========================================
-       ★ 分享給官方 LINE@
-       ★ 此按鈕外觀固定
-       ★ 分享後只改文字與 onclick
+       分享給官方 LINE@
        ======================================== */
 
     .btn-send-line {
@@ -1067,7 +1130,6 @@
 
   </style>
 
-
   <script>
 
     // ========================================
@@ -1142,6 +1204,423 @@
       return /^-{2,}.+-{2,}$/.test(
         value
       );
+
+    }
+
+
+    // ========================================
+    // 取得獎品點數
+    //
+    // 例如：
+    // ⚡雷神索爾2 100點
+    // 🪙mycard 150點
+    //
+    // 會取得：
+    // 100
+    // 150
+    // ========================================
+
+    function getRewardPoints(
+      reward
+    ) {
+
+      const text =
+        String(
+          reward || ""
+        );
+
+
+      const match =
+        text.match(
+          /(\d+(?:\.\d+)?)\s*點/
+        );
+
+
+      if (
+        !match
+      ) {
+
+        return null;
+
+      }
+
+
+      return Number(
+        match[1]
+      );
+
+    }
+
+
+    // ========================================
+    // 取得目前點數
+    // ========================================
+
+    function getCurrentPointsNumber() {
+
+      const points =
+        Number(
+          String(
+            CURRENT_POINTS
+          )
+          .replace(
+            /,/g,
+            ""
+          )
+        );
+
+
+      if (
+        Number.isFinite(points)
+      ) {
+
+        return points;
+
+      }
+
+
+      return 0;
+
+    }
+
+
+    // ========================================
+    // 計算已選獎品總點數
+    // ========================================
+
+    function calculateRewardPoints() {
+
+      let total =
+        0;
+
+
+      let hasInvalidPrice =
+        false;
+
+
+      Object.keys(
+        SELECTED_REWARDS
+      ).forEach(
+        function(reward) {
+
+          if (
+            isRewardCategory(
+              reward
+            )
+          ) {
+
+            return;
+
+          }
+
+
+          const price =
+            getRewardPoints(
+              reward
+            );
+
+
+          const quantity =
+            Number(
+              SELECTED_REWARDS[
+                reward
+              ]
+            ) || 0;
+
+
+          if (
+            price === null
+          ) {
+
+            hasInvalidPrice =
+              true;
+
+            return;
+
+          }
+
+
+          total +=
+            price *
+            quantity;
+
+        }
+      );
+
+
+      return {
+        total: total,
+        hasInvalidPrice: hasInvalidPrice
+      };
+
+    }
+
+
+    // ========================================
+    // 產生點數扣除算式
+    // ========================================
+
+    function buildPointsCalculation() {
+
+      const rewards =
+        Object.keys(
+          SELECTED_REWARDS
+        ).filter(
+          function(reward) {
+
+            return !isRewardCategory(
+              reward
+            );
+
+          }
+        );
+
+
+      const currentPoints =
+        getCurrentPointsNumber();
+
+
+      if (
+        rewards.length === 0
+      ) {
+
+        return {
+          text:
+            String(
+              currentPoints
+            ),
+
+          insufficient:
+            false,
+
+          hasInvalidPrice:
+            false
+        };
+
+      }
+
+
+      const calculation =
+        calculateRewardPoints();
+
+
+      if (
+        calculation.hasInvalidPrice
+      ) {
+
+        return {
+          text:
+            "部分獎品點數資料錯誤",
+
+          insufficient:
+            true,
+
+          hasInvalidPrice:
+            true
+        };
+
+      }
+
+
+      const deductions =
+        [];
+
+
+      rewards.forEach(
+        function(reward) {
+
+          const price =
+            getRewardPoints(
+              reward
+            );
+
+
+          const quantity =
+            Number(
+              SELECTED_REWARDS[
+                reward
+              ]
+            ) || 0;
+
+
+          for (
+            let i = 0;
+            i < quantity;
+            i++
+          ) {
+
+            deductions.push(
+              String(
+                price
+              )
+            );
+
+          }
+
+        }
+      );
+
+
+      const remaining =
+        currentPoints -
+        calculation.total;
+
+
+      const expression =
+        String(
+          currentPoints
+        ) +
+        (
+          deductions.length > 0
+            ? " - " +
+              deductions.join(
+                " - "
+              )
+            : ""
+        );
+
+
+      if (
+        remaining < 0
+      ) {
+
+        return {
+          text:
+            expression +
+            " = 點數不足",
+
+          insufficient:
+            true,
+
+          hasInvalidPrice:
+            false
+        };
+
+      }
+
+
+      return {
+        text:
+          expression +
+          " = " +
+          remaining,
+
+        insufficient:
+          false,
+
+        hasInvalidPrice:
+          false
+      };
+
+    }
+
+
+    // ========================================
+    // 是否可以分享
+    // ========================================
+
+    function canSendReward() {
+
+      const rewards =
+        Object.keys(
+          SELECTED_REWARDS
+        ).filter(
+          function(reward) {
+
+            return !isRewardCategory(
+              reward
+            );
+
+          }
+        );
+
+
+      if (
+        !CURRENT_UID ||
+        rewards.length === 0
+      ) {
+
+        return false;
+
+      }
+
+
+      const calculation =
+        calculateRewardPoints();
+
+
+      if (
+        calculation.hasInvalidPrice
+      ) {
+
+        return false;
+
+      }
+
+
+      const currentPoints =
+        getCurrentPointsNumber();
+
+
+      if (
+        calculation.total >
+        currentPoints
+      ) {
+
+        return false;
+
+      }
+
+
+      return true;
+
+    }
+
+
+    // ========================================
+    // 更新分享按鈕狀態
+    // ========================================
+
+    function updateSendButtonState() {
+
+      const sendButton =
+        document.getElementById(
+          "send_line_button"
+        );
+
+
+      if (
+        !sendButton
+      ) {
+
+        return;
+
+      }
+
+
+      /*
+        如果已經分享過，
+        按鈕會是「返回 官方LINE@」。
+
+        這時不因為 renderSelectedRewards()
+        而把它重新 disabled。
+      */
+
+      if (
+        sendButton.dataset.mode ===
+        "return-line"
+      ) {
+
+        sendButton.disabled =
+          false;
+
+        return;
+
+      }
+
+
+      sendButton.disabled =
+        !canSendReward();
 
     }
 
@@ -1672,7 +2151,8 @@
       }
 
 
-      select.innerHTML = "";
+      select.innerHTML =
+        "";
 
 
       const defaultOption =
@@ -2154,6 +2634,48 @@
 
 
     // ========================================
+    // 重置分享按鈕
+    //
+    // 每次重新開啟 Modal
+    // 都一定從「分享」開始
+    // ========================================
+
+    function resetRewardShareButton() {
+
+      const sendButton =
+        document.getElementById(
+          "send_line_button"
+        );
+
+
+      if (
+        !sendButton
+      ) {
+
+        return;
+
+      }
+
+
+      sendButton.innerText =
+        "💬 分享給官方 LINE@";
+
+
+      sendButton.className =
+        "btn-send-line";
+
+
+      sendButton.dataset.mode =
+        "share";
+
+
+      sendButton.disabled =
+        true;
+
+    }
+
+
+    // ========================================
     // 開啟兌換獎品
     // ========================================
 
@@ -2186,8 +2708,17 @@
         );
 
 
+      /*
+        ★ 每次重新開啟 Modal
+        ★ 都重新開始
+        ★ 不保留上一次分享狀態
+      */
+
       SELECTED_REWARDS =
         {};
+
+
+      resetRewardShareButton();
 
 
       renderSelectedRewards();
@@ -2222,6 +2753,12 @@
             "目前沒有可兌換的獎品";
 
         }
+
+
+        updateRewardPreview();
+
+
+        updateSendButtonState();
 
 
         return;
@@ -2325,11 +2862,39 @@
         )
       ) {
 
-        SELECTED_REWARDS[reward] += 1;
+        SELECTED_REWARDS[reward] +=
+          1;
 
       } else {
 
-        SELECTED_REWARDS[reward] = 1;
+        SELECTED_REWARDS[reward] =
+          1;
+
+      }
+
+
+      /*
+        如果修改了選擇內容，
+        尚未重新分享前保持 share 模式。
+      */
+
+      const sendButton =
+        document.getElementById(
+          "send_line_button"
+        );
+
+
+      if (
+        sendButton &&
+        sendButton.dataset.mode !==
+        "return-line"
+      ) {
+
+        sendButton.dataset.mode =
+          "share";
+
+        sendButton.innerText =
+          "💬 分享給官方 LINE@";
 
       }
 
@@ -2374,7 +2939,8 @@
 
       } else {
 
-        SELECTED_REWARDS[reward] += 1;
+        SELECTED_REWARDS[reward] +=
+          1;
 
       }
 
@@ -2415,14 +2981,17 @@
       }
 
 
-      SELECTED_REWARDS[reward] -= 1;
+      SELECTED_REWARDS[reward] -=
+        1;
 
 
       if (
         SELECTED_REWARDS[reward] <= 0
       ) {
 
-        delete SELECTED_REWARDS[reward];
+        delete SELECTED_REWARDS[
+          reward
+        ];
 
       }
 
@@ -2523,11 +3092,26 @@
           '</div>';
 
 
+        updatePointsCalculation();
+
+
         updateRewardPreview();
 
 
-        sendButton.disabled =
-          true;
+        if (
+          sendButton &&
+          sendButton.dataset.mode !==
+          "return-line"
+        ) {
+
+          sendButton.disabled =
+            true;
+
+        } else {
+
+          updateSendButtonState();
+
+        }
 
 
         return;
@@ -2718,11 +3302,74 @@
       );
 
 
+      updatePointsCalculation();
+
+
       updateRewardPreview();
 
 
-      sendButton.disabled =
-        false;
+      updateSendButtonState();
+
+    }
+
+
+    // ========================================
+    // 更新點數計算
+    // ========================================
+
+    function updatePointsCalculation() {
+
+      const calculationBox =
+        document.getElementById(
+          "points_calculation"
+        );
+
+
+      if (
+        !calculationBox
+      ) {
+
+        return;
+
+      }
+
+
+      const result =
+        buildPointsCalculation();
+
+
+      calculationBox.innerText =
+        result.text;
+
+
+      calculationBox.classList.remove(
+        "insufficient"
+      );
+
+
+      calculationBox.classList.remove(
+        "sufficient"
+      );
+
+
+      if (
+        result.insufficient
+      ) {
+
+        calculationBox.classList.add(
+          "insufficient"
+        );
+
+      } else {
+
+        calculationBox.classList.add(
+          "sufficient"
+        );
+
+      }
+
+
+      updateSendButtonState();
 
     }
 
@@ -2747,6 +3394,10 @@
         );
 
 
+      const pointsResult =
+        buildPointsCalculation();
+
+
       let message =
 
         "🎁 兌換獎品" +
@@ -2764,7 +3415,18 @@
 
         "目前點數 : " +
         CURRENT_POINTS +
-        "\n\n";
+        "\n";
+
+
+      message +=
+
+        " " +
+        pointsResult.text +
+        "\n";
+
+
+      message +=
+        "\n";
 
 
       message +=
@@ -2792,7 +3454,7 @@
       message +=
 
         "\n\n" +
-        "請協助確認兌換，謝謝。";
+        "請協助是否有貨確認兌換，謝謝。";
 
 
       return message;
@@ -2810,6 +3472,15 @@
         document.getElementById(
           "reward_preview"
         );
+
+
+      if (
+        !preview
+      ) {
+
+        return;
+
+      }
 
 
       const rewards =
@@ -2833,6 +3504,7 @@
         preview.innerText =
           "尚未選擇兌換品項";
 
+
         return;
 
       }
@@ -2847,44 +3519,29 @@
     // ========================================
     // LINE 分享
     //
-    // ★ 第一次點擊：
-    //    分享兌換內容
+    // 第一次點擊：
+    // 分享兌換內容
     //
-    // ★ 分享後：
-    //    同一顆按鈕外觀完全不變
-    //    文字變成「返回 官方LINE@」
+    // 分享後：
+    // 文字變成「返回 官方LINE@」
     //
-    // ★ 再點擊：
-    //    開啟官方 LINE@
+    // 再點擊：
+    // 開啟官方 LINE@
     // ========================================
 
     function sendRewardToLine() {
-
-      const rewards =
-        Object.keys(
-          SELECTED_REWARDS
-        ).filter(
-          function(reward) {
-
-            return !isRewardCategory(
-              reward
-            );
-
-          }
-        );
-
-
-      // ====================================
-      // 如果按鈕已經切換成
-      // 「返回 官方LINE@」
-      // 就直接開啟官方 LINE@
-      // ====================================
 
       const sendButton =
         document.getElementById(
           "send_line_button"
         );
 
+
+      /*
+        如果按鈕已經切換成
+        「返回 官方LINE@」
+        就直接開啟官方 LINE@
+      */
 
       if (
         sendButton &&
@@ -2903,9 +3560,23 @@
       }
 
 
-      // ====================================
-      // 檢查會員與獎品
-      // ====================================
+      const rewards =
+        Object.keys(
+          SELECTED_REWARDS
+        ).filter(
+          function(reward) {
+
+            return !isRewardCategory(
+              reward
+            );
+
+          }
+        );
+
+
+      /*
+        檢查會員與獎品
+      */
 
       if (
         !CURRENT_UID ||
@@ -2917,17 +3588,33 @@
       }
 
 
-      // ====================================
-      // 建立最終分享文字
-      // ====================================
+      /*
+        ★ 檢查點數
+        ★ 不足時完全不允許分享
+      */
+
+      if (
+        !canSendReward()
+      ) {
+
+        updatePointsCalculation();
+
+        return;
+
+      }
+
+
+      /*
+        建立最終分享文字
+      */
 
       const message =
         buildRewardMessage();
 
 
-      // ====================================
-      // LINE 分享網址
-      // ====================================
+      /*
+        LINE 分享網址
+      */
 
       const lineShareUrl =
         "https://line.me/R/msg/text/?" +
@@ -2936,9 +3623,9 @@
         );
 
 
-      // ====================================
-      // 開啟 LINE
-      // ====================================
+      /*
+        開啟 LINE
+      */
 
       window.open(
         lineShareUrl,
@@ -2946,11 +3633,11 @@
       );
 
 
-      // ====================================
-      // ★ 分享後
-      // ★ 只修改文字與功能
-      // ★ 完全保留原本 class
-      // ====================================
+      /*
+        ★ 分享後
+        ★ 只修改文字與功能
+        ★ 完全保留原本 class
+      */
 
       if (
         sendButton
@@ -2959,16 +3646,6 @@
         sendButton.innerText =
           "返回 官方LINE@";
 
-
-        /*
-          ★ 不改成 btn-line
-          ★ 不增加其他 class
-          ★ 保留原本：
-
-             btn-send-line
-
-          所以按鈕外觀完全不變
-        */
 
         sendButton.className =
           "btn-send-line";
@@ -3069,9 +3746,7 @@
 
 </head>
 
-
 <body>
-
 
   <!-- ======================================
        主畫面
@@ -3079,134 +3754,131 @@
 
   <div class="container">
 
-
-    <h2>
-      金正旺VIP查詢系統
-    </h2>
-
-
-    <!-- ====================================
-         會員輸入
-         ==================================== -->
-
-    <div class="input-group">
-
-      <input
-        type="text"
-        id="uid"
-        placeholder="請輸入 會號+貴賓本名"
-        autocomplete="off"
-        autocorrect="off"
-        autocapitalize="off"
-        spellcheck="false"
-      >
+<h2>
+  金正旺VIP查詢系統
+</h2>
 
 
-      <button
-        class="btn btn-query"
-        onclick="
-          showHint(
-            document.getElementById('uid').value
-          );
-        "
-      >
-        查詢
-      </button>
+<!-- ====================================
+     會員輸入
+     ==================================== -->
 
-    </div>
+<div class="input-group">
 
-
-    <!-- Loading -->
-
-    <span
-      id="loading"
-      class="loading"
-    >
-      讀取中
-    </span>
+  <input
+    type="text"
+    id="uid"
+    placeholder="請輸入 會號+貴賓本名"
+    autocomplete="off"
+    autocorrect="off"
+    autocapitalize="off"
+    spellcheck="false"
+  >
 
 
-    <!-- 錯誤 -->
+  <button
+    class="btn btn-query"
+    onclick="
+      showHint(
+        document.getElementById('uid').value
+      );
+    "
+  >
+    查詢
+  </button>
 
-    <span
-      id="error_message"
-    ></span>
-
-
-    <!-- 查詢結果 -->
-
-    <div
-      id="order_status"
-    ></div>
-
-
-    <!-- 查詢時間 -->
-
-    <span
-      id="current_time"
-    ></span>
+</div>
 
 
-    <!-- ====================================
-         兌換獎品按鈕
-         ==================================== -->
+<!-- Loading -->
 
-    <div
-      id="reward_button_area"
-    >
-
-      <button
-        type="button"
-        class="btn btn-reward"
-        onclick="openRewardModal();"
-      >
-        🎁 兌換獎品
-      </button>
+<span
+  id="loading"
+  class="loading"
+>
+  讀取中
+</span>
 
 
-      <span
-        id="reward_ready_status"
-        class="reward-ready-text"
-      >
-        獎品讀取中...
-      </span>
+<!-- 錯誤 -->
 
-    </div>
+<span
+  id="error_message"
+></span>
 
 
-    <!-- ====================================
-         提醒
-         ==================================== -->
+<!-- 查詢結果 -->
 
-    <div
-      id="notice_box"
-      class="notice-box"
-      style="display: none;"
-    >
-
-      🔔 貼心提醒：<br>
-
-      當日消費之點數，
-      將於【隔日】統一入點唷～
-
-    </div>
+<div
+  id="order_status"
+></div>
 
 
-    <!-- ====================================
-         官方 LINE@
-         ==================================== -->
+<!-- 查詢時間 -->
 
-    <a
-      class="btn btn-line"
-      href="https://line.me/R/ti/p/@goldwon888?from=page&searchId=goldwon888"
-      target="_blank"
-    >
-      返回 官方LINE@
-    </a>
+<span
+  id="current_time"
+></span>
 
+
+<!-- ====================================
+     兌換獎品按鈕
+     ==================================== -->
+
+<div
+  id="reward_button_area"
+>
+
+  <button
+    type="button"
+    class="btn btn-reward"
+    onclick="openRewardModal();"
+  >
+    🎁 兌換獎品
+  </button>
+
+
+  <span
+    id="reward_ready_status"
+    class="reward-ready-text"
+  >
+    獎品讀取中...
+  </span>
+
+</div>
+
+
+<!-- ====================================
+     提醒
+     ==================================== -->
+
+<div
+  id="notice_box"
+  class="notice-box"
+  style="display: none;"
+>
+
+  🔔 貼心提醒：<br>
+
+  當日消費之點數，
+  將於【隔日】統一入點唷～
+
+</div>
+
+
+<!-- ====================================
+     官方 LINE@
+     ==================================== -->
+
+<a
+  class="btn btn-line"
+  href="https://line.me/R/ti/p/@goldwon888?from=page&searchId=goldwon888"
+  target="_blank"
+>
+  返回 官方LINE@
+</a>
 
   </div>
-
 
   <!-- ======================================
        兌換獎品 Modal
@@ -3217,153 +3889,176 @@
     onclick="rewardModalBackgroundClick(event);"
   >
 
+<div
+  class="reward-panel"
+>
+
+
+  <!-- 標題 -->
+
+  <div
+    class="reward-title"
+  >
+    🎁 請選擇兌換獎品
+  </div>
+
+
+  <!-- ==================================
+       選擇品項
+       ================================== -->
+
+  <div
+    class="reward-label"
+  >
+
+    選擇品項
+
+    <span>
+      （點擊即可加入，可選多個）
+    </span>
+
+  </div>
+
+
+  <select
+    id="reward_select"
+    onchange="addRewardFromSelect();"
+  >
+
+    <option value="">
+      -- 點此選擇品項直接加入 --
+    </option>
+
+  </select>
+
+
+  <!-- ==================================
+       已選品項
+       ================================== -->
+
+  <div
+    class="selected-title"
+  >
+    🎁 已選擇品項
+  </div>
+
+
+  <div
+    id="selectedItemsBox"
+  >
 
     <div
-      class="reward-panel"
+      class="selected-empty"
     >
-
-
-      <!-- 標題 -->
-
-      <div
-        class="reward-title"
-      >
-        🎁 請選擇兌換獎品
-      </div>
-
-
-      <!-- ==================================
-           選擇品項
-           ================================== -->
-
-      <div
-        class="reward-label"
-      >
-
-        選擇品項
-
-        <span>
-          （點擊即可加入，可選多個）
-        </span>
-
-      </div>
-
-
-      <select
-        id="reward_select"
-        onchange="addRewardFromSelect();"
-      >
-
-        <option value="">
-          -- 點此選擇品項直接加入 --
-        </option>
-
-      </select>
-
-
-      <!-- ==================================
-           已選品項
-           ================================== -->
-
-      <div
-        class="selected-title"
-      >
-        🎁 已選擇品項
-      </div>
-
-
-      <div
-        id="selectedItemsBox"
-      >
-
-        <div
-          class="selected-empty"
-        >
-          尚未選擇任何獎品
-        </div>
-
-      </div>
-
-
-      <!-- ==================================
-           即時預覽
-           ================================== -->
-
-      <div
-        class="preview-box"
-      >
-
-        <div
-          class="preview-title"
-        >
-          👀 即時預覽
-        </div>
-
-
-        <div
-          id="reward_preview"
-        >
-          尚未選擇兌換品項
-        </div>
-
-      </div>
-
-
-      <!-- Loading -->
-
-      <div
-        id="reward_loading"
-        class="reward-loading"
-        style="display: none;"
-      >
-        獎品讀取中...
-      </div>
-
-
-      <!-- Error -->
-
-      <div
-        id="reward_error"
-        class="reward-error"
-      ></div>
-
-
-      <!-- ==================================
-           按鈕
-           ================================== -->
-
-      <div
-        class="reward-actions"
-      >
-
-
-        <button
-          type="button"
-          class="btn-close-reward"
-          onclick="closeRewardModal();"
-        >
-          關閉
-        </button>
-
-
-        <button
-          type="button"
-          id="send_line_button"
-          class="btn-send-line"
-          disabled
-          onclick="sendRewardToLine();"
-        >
-          💬 分享給官方 LINE@
-        </button>
-
-
-      </div>
-
-
+      尚未選擇任何獎品
     </div>
 
   </div>
 
+
+  <!-- ==================================
+       點數計算
+       ================================== -->
+
+  <div
+    class="points-box"
+  >
+
+    <div
+      class="points-title"
+    >
+      💰 點數計算
+    </div>
+
+
+    <div
+      id="points_calculation"
+    >
+      尚未選擇兌換品項
+    </div>
+
+  </div>
+
+
+  <!-- ==================================
+       即時預覽
+       ================================== -->
+
+  <div
+    class="preview-box"
+  >
+
+    <div
+      class="preview-title"
+    >
+      👀 即時預覽
+    </div>
+
+
+    <div
+      id="reward_preview"
+    >
+      尚未選擇兌換品項
+    </div>
+
+  </div>
+
+
+  <!-- Loading -->
+
+  <div
+    id="reward_loading"
+    class="reward-loading"
+    style="display: none;"
+  >
+    獎品讀取中...
+  </div>
+
+
+  <!-- Error -->
+
+  <div
+    id="reward_error"
+    class="reward-error"
+  ></div>
+
+
+  <!-- ==================================
+       按鈕
+       ================================== -->
+
+  <div
+    class="reward-actions"
+  >
+
+
+    <button
+      type="button"
+      class="btn-close-reward"
+      onclick="closeRewardModal();"
+    >
+      關閉
+    </button>
+
+
+    <button
+      type="button"
+      id="send_line_button"
+      class="btn-send-line"
+      disabled
+      data-mode="share"
+      onclick="sendRewardToLine();"
+    >
+      💬 分享給官方 LINE@
+    </button>
+
+
+  </div>
+
+
+</div>
+
+  </div>
 
   <!-- Copyright -->
 
@@ -3372,7 +4067,6 @@
   >
     Copyright © 2026 ｊLINE: jimi102
   </div>
-
 
 </body>
 
