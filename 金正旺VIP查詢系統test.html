@@ -9,7 +9,6 @@
 <meta
 name="viewport"
 content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover"
-
 >
 
   <link rel="icon" type="image/x-icon" href="./Jicon.ico">
@@ -251,6 +250,19 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
     }
 
 
+    button:disabled,
+    .btn:disabled {
+
+      cursor: not-allowed;
+
+      opacity: 0.6;
+
+      filter: grayscale(30%);
+
+      pointer-events: none;
+    }
+
+
     /* ========================================
        查詢按鈕
        ======================================== */
@@ -285,6 +297,8 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
       opacity: 0.6;
 
       filter: grayscale(30%);
+
+      pointer-events: none;
     }
 
 
@@ -518,6 +532,22 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
 
       animation:
         breathe 2.5s ease-in-out infinite;
+    }
+
+
+    .btn-reward:disabled {
+
+      cursor: not-allowed;
+
+      opacity: 0.6;
+
+      filter: grayscale(30%);
+
+      pointer-events: none;
+
+      animation: none;
+
+      box-shadow: none;
     }
 
 
@@ -1064,9 +1094,8 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
 
       padding: 20px 0;
     }
-
-
-    .reward-error {
+    
+        .reward-error {
 
       text-align: center;
 
@@ -1159,6 +1188,17 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
 
 
     // ========================================
+    // 兌換按鈕目前是否正在處理
+    //
+    // ★ 防止連點
+    // ★ 點擊後直到點數同步完成前
+    // ★ 絕對不能再次執行
+    // ========================================
+
+    let REWARD_OPENING = false;
+
+
+    // ========================================
     // 獎品快取
     // ========================================
 
@@ -1210,14 +1250,6 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
 
     // ========================================
     // 取得獎品點數
-    //
-    // 例如：
-    // ⚡雷神索爾2 100點
-    // 🪙mycard 150點
-    //
-    // 會取得：
-    // 100
-    // 150
     // ========================================
 
     function getRewardPoints(
@@ -1598,14 +1630,6 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
       }
 
 
-      /*
-        如果已經分享過，
-        按鈕會是「返回 官方LINE@」。
-
-        這時不因為 renderSelectedRewards()
-        而把它重新 disabled。
-      */
-
       if (
         sendButton.dataset.mode ===
         "return-line"
@@ -1621,6 +1645,59 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
 
       sendButton.disabled =
         !canSendReward();
+
+    }
+
+
+    // ========================================
+    // ★ 更新「兌換獎品」按鈕狀態
+    //
+    // disabled = true
+    // 代表正在同步點數 / 讀取獎品
+    //
+    // disabled = false
+    // 代表目前可以重新點擊
+    // ========================================
+
+    function setRewardButtonDisabled(
+      disabled
+    ) {
+
+      const rewardButton =
+        document.querySelector(
+          ".btn-reward"
+        );
+
+
+      if (
+        !rewardButton
+      ) {
+
+        return;
+
+      }
+
+
+      rewardButton.disabled =
+        disabled;
+
+
+      if (
+        disabled
+      ) {
+
+        rewardButton.setAttribute(
+          "aria-disabled",
+          "true"
+        );
+
+      } else {
+
+        rewardButton.removeAttribute(
+          "aria-disabled"
+        );
+
+      }
 
     }
 
@@ -2126,9 +2203,8 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
         "reward-ready-text";
 
     }
-
-
-    // ========================================
+    
+        // ========================================
     // 填入獎品選單
     // ========================================
 
@@ -2316,6 +2392,11 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
           "none";
 
 
+        setRewardButtonDisabled(
+          true
+        );
+
+
         return;
 
       }
@@ -2349,6 +2430,11 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
         "none";
 
 
+      setRewardButtonDisabled(
+        true
+      );
+
+
       CURRENT_UID =
         "";
 
@@ -2371,6 +2457,10 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
 
       REWARDS_LOADING_PROMISE =
         null;
+
+
+      REWARD_OPENING =
+        false;
 
 
       updateRewardReadyStatus();
@@ -2476,6 +2566,11 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
 
           rewardButtonArea.style.display =
             "none";
+
+
+          setRewardButtonDisabled(
+            true
+          );
 
 
           return;
@@ -2584,6 +2679,70 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
           "block";
 
 
+        /*
+          ★ 查詢完成後才讓兌換按鈕恢復
+          ★ 但如果獎品還在讀取，仍保持禁止
+        */
+
+        if (
+          REWARDS_READY
+        ) {
+
+          setRewardButtonDisabled(
+            false
+          );
+
+        } else if (
+          REWARDS_LOADING_PROMISE
+        ) {
+
+          setRewardButtonDisabled(
+            true
+          );
+
+          REWARDS_LOADING_PROMISE
+            .then(
+              function() {
+
+                if (
+                  CURRENT_UID &&
+                  !REWARD_OPENING
+                ) {
+
+                  setRewardButtonDisabled(
+                    false
+                  );
+
+                }
+
+              }
+            )
+            .catch(
+              function() {
+
+                if (
+                  CURRENT_UID &&
+                  !REWARD_OPENING
+                ) {
+
+                  setRewardButtonDisabled(
+                    false
+                  );
+
+                }
+
+              }
+            );
+
+        } else {
+
+          setRewardButtonDisabled(
+            false
+          );
+
+        }
+
+
         updateRewardReadyStatus();
 
 
@@ -2615,6 +2774,11 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
           "none";
 
 
+        setRewardButtonDisabled(
+          true
+        );
+
+
       } finally {
 
         loadingSpan.style.display =
@@ -2635,9 +2799,6 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
 
     // ========================================
     // 重置分享按鈕
-    //
-    // 每次重新開啟 Modal
-    // 都一定從「分享」開始
     // ========================================
 
     function resetRewardShareButton() {
@@ -2676,10 +2837,241 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
 
 
     // ========================================
+    // 同步更新目前會員點數
+    // ========================================
+
+    async function syncCurrentMemberPoints() {
+
+      if (
+        !CURRENT_UID
+      ) {
+
+        return false;
+
+      }
+
+
+      try {
+
+        const apiUrl =
+          await getApiUrl();
+
+
+        const separator =
+          apiUrl.indexOf("?") === -1
+            ? "?"
+            : "&";
+
+
+        const requestUrl =
+          apiUrl +
+          separator +
+          "uid=" +
+          encodeURIComponent(
+            CURRENT_UID
+          );
+
+
+        const response =
+          await fetch(
+            requestUrl,
+            {
+              method: "GET",
+              cache: "no-store"
+            }
+          );
+
+
+        if (
+          !response.ok
+        ) {
+
+          throw new Error(
+            "POINTS_SYNC_REQUEST_ERROR"
+          );
+
+        }
+
+
+        const result =
+          await response.json();
+
+
+        if (
+          !result.success
+        ) {
+
+          throw new Error(
+            result.message ||
+            "POINTS_SYNC_ERROR"
+          );
+
+        }
+
+
+        CURRENT_UID =
+          String(
+            result.uid ||
+            CURRENT_UID
+          );
+
+
+        CURRENT_POINTS =
+          result.points;
+
+
+        const orderStatus =
+          document.getElementById(
+            "order_status"
+          );
+
+
+        if (
+          orderStatus
+        ) {
+
+          orderStatus.innerHTML =
+
+            "<table>" +
+
+              "<tr>" +
+
+                "<th>會員</th>" +
+
+                "<th>目前點數</th>" +
+
+              "</tr>" +
+
+              "<tr>" +
+
+                "<td>" +
+
+                  escapeHtml(
+                    CURRENT_UID
+                  ) +
+
+                "</td>" +
+
+                "<td>" +
+
+                  escapeHtml(
+                    String(
+                      CURRENT_POINTS
+                    )
+                  ) +
+
+                "</td>" +
+
+              "</tr>" +
+
+            "</table>";
+
+        }
+
+
+        const currentTimeSpan =
+          document.getElementById(
+            "current_time"
+          );
+
+
+        if (
+          currentTimeSpan
+        ) {
+
+          const now =
+            new Date();
+
+
+          const formattedTime =
+
+            now.getFullYear() +
+            "/" +
+
+            String(
+              now.getMonth() + 1
+            ).padStart(2, "0") +
+
+            "/" +
+
+            String(
+              now.getDate()
+            ).padStart(2, "0") +
+
+            " " +
+
+            String(
+              now.getHours()
+            ).padStart(2, "0") +
+
+            ":" +
+
+            String(
+              now.getMinutes()
+            ).padStart(2, "0") +
+
+            ":" +
+
+            String(
+              now.getSeconds()
+            ).padStart(2, "0");
+
+
+          currentTimeSpan.innerText =
+            "點數更新時間：" +
+            formattedTime;
+
+        }
+
+
+        console.log(
+          "會員點數已同步更新：",
+          CURRENT_POINTS
+        );
+
+
+        return true;
+
+
+      } catch (error) {
+
+        console.error(
+          "同步會員點數錯誤：",
+          error
+        );
+
+
+        return false;
+
+      }
+
+    }
+
+
+    // ========================================
     // 開啟兌換獎品
+    //
+    // ★ 重要：
+    // ★ 點擊後立即鎖住按鈕
+    // ★ 等最新點數同步完成
+    // ★ 才允許再次點擊
     // ========================================
 
     async function openRewardModal() {
+
+      /*
+        ★ 防止快速連點
+        ★ 如果前一次還沒完成，直接不執行
+      */
+
+      if (
+        REWARD_OPENING
+      ) {
+
+        return;
+
+      }
+
 
       if (
         !CURRENT_UID
@@ -2688,6 +3080,25 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
         return;
 
       }
+
+
+      const rewardButton =
+        document.querySelector(
+          ".btn-reward"
+        );
+
+
+      /*
+        ★ 立即禁止按鈕
+      */
+
+      REWARD_OPENING =
+        true;
+
+
+      setRewardButtonDisabled(
+        true
+      );
 
 
       const modal =
@@ -2708,107 +3119,193 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
         );
 
 
-      /*
-        ★ 每次重新開啟 Modal
-        ★ 都重新開始
-        ★ 不保留上一次分享狀態
-      */
-
-      SELECTED_REWARDS =
-        {};
-
-
-      resetRewardShareButton();
-
-
-      renderSelectedRewards();
-
-
-      error.innerText =
-        "";
-
-
-      modal.style.display =
-        "flex";
-
-
-      if (
-        REWARDS_READY
-      ) {
-
-        loading.style.display =
-          "none";
-
-
-        fillRewardSelect(
-          REWARDS_CACHE
-        );
-
-
-        if (
-          REWARDS_CACHE.length === 0
-        ) {
-
-          error.innerText =
-            "目前沒有可兌換的獎品";
-
-        }
-
-
-        updateRewardPreview();
-
-
-        updateSendButtonState();
-
-
-        return;
-
-      }
-
-
-      loading.style.display =
-        "block";
-
-
       try {
 
-        const rewards =
-          await preloadRewards();
+        // ========================================
+        // 開啟 Modal 前先同步最新點數
+        // ========================================
+
+        error.innerText =
+          "正在同步最新點數...";
 
 
-        loading.style.display =
-          "none";
+        const pointsSynced =
+          await syncCurrentMemberPoints();
 
 
-        fillRewardSelect(
-          rewards
-        );
-
+        /*
+          ★ 點數還沒拿到結果
+          ★ 就絕對不進入下一步
+        */
 
         if (
-          rewards.length === 0
+          !pointsSynced
         ) {
 
           error.innerText =
-            "目前沒有可兌換的獎品";
+            "目前點數更新失敗，請稍後再試";
+
+
+          return;
 
         }
 
 
-      } catch (err) {
+        // ========================================
+        // 點數同步成功
+        // ========================================
 
-        console.error(
-          "開啟獎品時讀取錯誤：",
-          err
-        );
+        SELECTED_REWARDS =
+          {};
 
 
-        loading.style.display =
-          "none";
+        resetRewardShareButton();
+
+
+        renderSelectedRewards();
 
 
         error.innerText =
-          "獎品讀取失敗，請稍後再試";
+          "";
+
+
+        modal.style.display =
+          "flex";
+
+
+        // ========================================
+        // 獎品已經讀取完成
+        // ========================================
+
+        if (
+          REWARDS_READY
+        ) {
+
+          loading.style.display =
+            "none";
+
+
+          fillRewardSelect(
+            REWARDS_CACHE
+          );
+
+
+          if (
+            REWARDS_CACHE.length === 0
+          ) {
+
+            error.innerText =
+              "目前沒有可兌換的獎品";
+
+          }
+
+
+          updatePointsCalculation();
+
+
+          updateRewardPreview();
+
+
+          updateSendButtonState();
+
+
+          return;
+
+        }
+
+
+        // ========================================
+        // 尚未讀取獎品
+        // ========================================
+
+        loading.style.display =
+          "block";
+
+
+        try {
+
+          const rewards =
+            await preloadRewards();
+
+
+          loading.style.display =
+            "none";
+
+
+          fillRewardSelect(
+            rewards
+          );
+
+
+          if (
+            rewards.length === 0
+          ) {
+
+            error.innerText =
+              "目前沒有可兌換的獎品";
+
+          }
+
+
+          updatePointsCalculation();
+
+
+          updateRewardPreview();
+
+
+          updateSendButtonState();
+
+
+        } catch (err) {
+
+          console.error(
+            "開啟獎品時讀取錯誤：",
+            err
+          );
+
+
+          loading.style.display =
+            "none";
+
+
+          error.innerText =
+            "獎品讀取失敗，請稍後再試";
+
+        }
+
+
+      } finally {
+
+        /*
+          ★ 整個開啟流程結束
+          ★ 才解除 REWARD_OPENING
+          ★ 按鈕才恢復可以點
+        */
+
+        REWARD_OPENING =
+          false;
+
+
+        /*
+          ★ 只有還有會員資料時才恢復
+          ★ 如果查詢已經被其他操作清掉，就維持禁止
+        */
+
+        if (
+          CURRENT_UID
+        ) {
+
+          setRewardButtonDisabled(
+            false
+          );
+
+        } else {
+
+          setRewardButtonDisabled(
+            true
+          );
+
+        }
 
       }
 
@@ -2873,11 +3370,6 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
       }
 
 
-      /*
-        如果修改了選擇內容，
-        尚未重新分享前保持 share 模式。
-      */
-
       const sendButton =
         document.getElementById(
           "send_line_button"
@@ -2906,9 +3398,8 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
         "";
 
     }
-
-
-    // ========================================
+    
+        // ========================================
     // 增加數量
     // ========================================
 
@@ -3518,15 +4009,6 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
 
     // ========================================
     // LINE 分享
-    //
-    // 第一次點擊：
-    // 分享兌換內容
-    //
-    // 分享後：
-    // 文字變成「返回 官方LINE@」
-    //
-    // 再點擊：
-    // 開啟官方 LINE@
     // ========================================
 
     function sendRewardToLine() {
@@ -3536,12 +4018,6 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
           "send_line_button"
         );
 
-
-      /*
-        如果按鈕已經切換成
-        「返回 官方LINE@」
-        就直接開啟官方 LINE@
-      */
 
       if (
         sendButton &&
@@ -3574,10 +4050,6 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
         );
 
 
-      /*
-        檢查會員與獎品
-      */
-
       if (
         !CURRENT_UID ||
         rewards.length === 0
@@ -3587,11 +4059,6 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
 
       }
 
-
-      /*
-        ★ 檢查點數
-        ★ 不足時完全不允許分享
-      */
 
       if (
         !canSendReward()
@@ -3604,41 +4071,22 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
       }
 
 
-      /*
-        建立最終分享文字
-      */
-
       const message =
         buildRewardMessage();
 
 
-      /*
-        LINE 分享網址
-      */
-
       const lineShareUrl =
-        //"https://line.me/R/msg/text/?" +
-           "https://line.me/R/share?text=" +
+        "https://line.me/R/share?text=" +
         encodeURIComponent(
           message
         );
 
-
-      /*
-        開啟 LINE
-      */
 
       window.open(
         lineShareUrl,
         "_blank"
       );
 
-
-      /*
-        ★ 分享後
-        ★ 只修改文字與功能
-        ★ 完全保留原本 class
-      */
 
       if (
         sendButton
@@ -3760,10 +4208,6 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
 </h2>
 
 
-<!-- ====================================
-     會員輸入
-     ==================================== -->
-
 <div class="input-group">
 
   <input
@@ -3791,8 +4235,6 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
 </div>
 
 
-<!-- Loading -->
-
 <span
   id="loading"
   class="loading"
@@ -3801,21 +4243,15 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
 </span>
 
 
-<!-- 錯誤 -->
-
 <span
   id="error_message"
 ></span>
 
 
-<!-- 查詢結果 -->
-
 <div
   id="order_status"
 ></div>
 
-
-<!-- 查詢時間 -->
 
 <span
   id="current_time"
@@ -3833,6 +4269,7 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
   <button
     type="button"
     class="btn btn-reward"
+    disabled
     onclick="openRewardModal();"
   >
     🎁 兌換獎品
@@ -3849,10 +4286,6 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
 </div>
 
 
-<!-- ====================================
-     提醒
-     ==================================== -->
-
 <div
   id="notice_box"
   class="notice-box"
@@ -3867,10 +4300,6 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
 </div>
 
 
-<!-- ====================================
-     官方 LINE@
-     ==================================== -->
-
 <a
   class="btn btn-line"
   href="https://line.me/R/ti/p/@goldwon888"
@@ -3880,6 +4309,7 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
 </a>
 
   </div>
+
 
   <!-- ======================================
        兌換獎品 Modal
@@ -3895,18 +4325,12 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
 >
 
 
-  <!-- 標題 -->
-
   <div
     class="reward-title"
   >
     🎁 請選擇兌換獎品
   </div>
 
-
-  <!-- ==================================
-       選擇品項
-       ================================== -->
 
   <div
     class="reward-label"
@@ -3933,10 +4357,6 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
   </select>
 
 
-  <!-- ==================================
-       已選品項
-       ================================== -->
-
   <div
     class="selected-title"
   >
@@ -3956,10 +4376,6 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
 
   </div>
 
-
-  <!-- ==================================
-       點數計算
-       ================================== -->
 
   <div
     class="points-box"
@@ -3981,10 +4397,6 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
   </div>
 
 
-  <!-- ==================================
-       即時預覽
-       ================================== -->
-
   <div
     class="preview-box"
   >
@@ -4005,8 +4417,6 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
   </div>
 
 
-  <!-- Loading -->
-
   <div
     id="reward_loading"
     class="reward-loading"
@@ -4016,17 +4426,11 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
   </div>
 
 
-  <!-- Error -->
-
   <div
     id="reward_error"
     class="reward-error"
   ></div>
 
-
-  <!-- ==================================
-       按鈕
-       ================================== -->
 
   <div
     class="reward-actions"
@@ -4061,7 +4465,6 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale
 
   </div>
 
-  <!-- Copyright -->
 
   <div
     class="copyright"
