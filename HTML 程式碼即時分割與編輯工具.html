@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML 程式碼即時分割與編輯工具</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darker: '#0f172a',
+                        darkPanel: '#1e293b',
+                        darkBorder: '#334155'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .code-font { font-family: 'Fira Code', monospace; }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="bg-darker text-slate-100 h-screen flex flex-col overflow-hidden select-none">
+
+    <header class="bg-darkPanel border-b border-darkBorder px-4 py-3 flex items-center justify-between shrink-0">
+        <div class="flex items-center space-x-3">
+            <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-500/30 flex items-center justify-center">
+                <i class="fa-solid fa-code text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-base tracking-wide text-white">CodeSpliter <span class="text-xs font-normal text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded-full border border-indigo-800 ml-2">HTML/CSS/JS 即時分割工具</span></h1>
+                <p class="text-xs text-slate-400">貼上完整網頁原始碼一鍵自動拆解，或分開獨立編輯即時預覽</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button onclick="clearAll()" class="px-3 py-1.5 bg-slate-800 hover:bg-red-950 hover:border-red-800 text-slate-300 hover:text-red-400 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 border border-slate-700">
+                <i class="fa-solid fa-trash-can"></i>
+                <span>清空全部</span>
+            </button>
+            <button onclick="runCode()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold shadow-lg shadow-indigo-600/30 transition flex items-center space-x-1.5">
+                <i class="fa-solid fa-play"></i>
+                <span>重新整理預覽</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        
+        <!-- Left Panel: Tabs & Editors -->
+        <section class="w-full lg:w-1/2 flex flex-col border-r border-darkBorder bg-darker h-1/2 lg:h-full">
+            <!-- Tabs Bar -->
+            <div class="bg-darkPanel border-b border-darkBorder flex items-center overflow-x-auto px-2 shrink-0">
+                <button onclick="switchTab('import')" id="tab-btn-import" class="tab-btn px-4 py-2.5 text-xs font-semibold border-b-2 border-indigo-500 text-white flex items-center space-x-2 transition whitespace-nowrap">
+                    <i class="fa-solid fa-file-import text-indigo-400"></i>
+                    <span>1. 原始碼貼上與拆解</span>
+                </button>
+                <button onclick="switchTab('html')" id="tab-btn-html" class="tab-btn px-4 py-2.5 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition whitespace-nowrap">
+                    <i class="fa-brands fa-html5 text-orange-400"></i>
+                    <span>2. HTML 結構</span>
+                </button>
+                <button onclick="switchTab('css')" id="tab-btn-css" class="tab-btn px-4 py-2.5 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition whitespace-nowrap">
+                    <i class="fa-brands fa-css3-alt text-blue-400"></i>
+                    <span>3. CSS 樣式</span>
+                </button>
+                <button onclick="switchTab('js')" id="tab-btn-js" class="tab-btn px-4 py-2.5 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition whitespace-nowrap">
+                    <i class="fa-brands fa-square-js text-yellow-400"></i>
+                    <span>4. JS 行為</span>
+                </button>
+            </div>
+
+            <!-- Tab Content Container -->
+            <div class="flex-1 relative flex flex-col">
+                
+                <!-- Tab 1: Raw Import & Splitter -->
+                <div id="tab-import" class="tab-content absolute inset-0 flex flex-col p-4 bg-darker">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-xs font-medium text-slate-300 flex items-center space-x-1.5">
+                            <i class="fa-solid fa-paste text-indigo-400"></i>
+                            <span>在此貼上完整的單一 HTML 網頁原始碼：</span>
+                        </label>
+                        <button onclick="splitSourceCode()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium transition shadow-sm flex items-center space-x-1">
+                            <i class="fa-solid fa-scissors"></i>
+                            <span>執行一鍵拆解至 3 區塊</span>
+                        </button>
+                    </div>
+                    <textarea id="raw-source-input" placeholder="請在此貼上完整的 HTML 網頁原始碼..." class="flex-1 w-full bg-darkPanel text-slate-200 code-font text-xs p-3 rounded-xl border border-darkBorder focus:outline-none focus:border-indigo-500 resize-none shadow-inner"></textarea>
+                    <p class="text-[11px] text-slate-500 mt-2">提示：點擊「執行一鍵拆解」後，系統會自動將檔案中的 &lt;style&gt;、&lt;script&gt; 以及 HTML 本體拆分到獨立的編輯分頁中！</p>
+                </div>
+
+                <!-- Tab 2: HTML Editor -->
+                <div id="tab-html" class="tab-content absolute inset-0 hidden flex flex-col p-4 bg-darker">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-xs font-medium text-slate-300 flex items-center space-x-1.5">
+                            <i class="fa-brands fa-html5 text-orange-400"></i>
+                            <span>HTML 結構區塊（網頁內容標籤）</span>
+                        </label>
+                        <span class="text-[11px] text-slate-500">自動即時同步預覽</span>
+                    </div>
+                    <textarea id="html-editor" oninput="onCodeChange()" class="flex-1 w-full bg-darkPanel text-slate-200 code-font text-xs p-3 rounded-xl border border-darkBorder focus:outline-none focus:border-indigo-500 resize-none shadow-inner" placeholder="請輸入 HTML 內容..."></textarea>
+                </div>
+
+                <!-- Tab 3: CSS Editor -->
+                <div id="tab-css" class="tab-content absolute inset-0 hidden flex flex-col p-4 bg-darker">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-xs font-medium text-slate-300 flex items-center space-x-1.5">
+                            <i class="fa-brands fa-css3-alt text-blue-400"></i>
+                            <span>CSS 樣式區塊（外觀、顏色、排版）</span>
+                        </label>
+                        <span class="text-[11px] text-slate-500">自動即時同步預覽</span>
+                    </div>
+                    <textarea id="css-editor" oninput="onCodeChange()" class="flex-1 w-full bg-darkPanel text-slate-200 code-font text-xs p-3 rounded-xl border border-darkBorder focus:outline-none focus:border-indigo-500 resize-none shadow-inner" placeholder="請輸入 CSS 樣式語法..."></textarea>
+                </div>
+
+                <!-- Tab 4: JS Editor -->
+                <div id="tab-js" class="tab-content absolute inset-0 hidden flex flex-col p-4 bg-darker">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-xs font-medium text-slate-300 flex items-center space-x-1.5">
+                            <i class="fa-brands fa-square-js text-yellow-400"></i>
+                            <span>JS 行為區塊（互動邏輯、事件觸發）</span>
+                        </label>
+                        <span class="text-[11px] text-slate-500">自動即時同步預覽</span>
+                    </div>
+                    <textarea id="js-editor" oninput="onCodeChange()" class="flex-1 w-full bg-darkPanel text-slate-200 code-font text-xs p-3 rounded-xl border border-darkBorder focus:outline-none focus:border-indigo-500 resize-none shadow-inner" placeholder="請輸入 JavaScript 程式碼..."></textarea>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Right Panel: Live Preview Area -->
+        <section class="w-full lg:w-1/2 flex flex-col bg-slate-900 h-1/2 lg:h-full">
+            <!-- Preview Toolbar -->
+            <div class="bg-darkPanel border-b border-darkBorder px-4 py-2.5 flex items-center justify-between shrink-0">
+                <div class="flex items-center space-x-2">
+                    <div class="flex space-x-1.5 mr-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-300 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-display text-indigo-400"></i>
+                        <span>即時預覽區域 (Live Preview)</span>
+                    </span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span id="sync-status" class="text-[11px] text-emerald-400 flex items-center space-x-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>自動同步中</span>
+                    </span>
+                    <button onclick="popoutPreview()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-xs transition border border-slate-700" title="在新視窗開啟預覽">
+                        <i class="fa-solid fa-external-link-alt"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Preview Frame Container -->
+            <div class="flex-1 bg-slate-950 relative flex items-center justify-center overflow-hidden">
+                <iframe id="preview-frame" class="w-full h-full border-0 bg-white" sandbox="allow-scripts allow-modals"></iframe>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Custom Message Modal -->
+    <div id="custom-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-darkPanel border border-darkBorder rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div class="flex items-center space-x-3 mb-3">
+                <div id="modal-icon" class="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-circle-info"></i>
+                </div>
+                <h3 id="modal-title" class="font-semibold text-white text-base">提示訊息</h3>
+            </div>
+            <p id="modal-desc" class="text-sm text-slate-300 mb-5 leading-relaxed">訊息內容</p>
+            <div class="flex justify-end">
+                <button onclick="closeModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/30 transition">確定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let debounceTimer = null;
+
+        function showMessage(title, desc, type = 'info') {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-desc').innerText = desc;
+            const iconDiv = document.getElementById('modal-icon');
+            if (type === 'success') {
+                iconDiv.className = 'w-10 h-10 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center text-lg';
+                iconDiv.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+            } else {
+                iconDiv.className = 'w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-lg';
+                iconDiv.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
+            }
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+        }
+
+        function switchTab(tabName) {
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(el => el.classList.add('hidden'));
+
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('border-indigo-500', 'text-white');
+                btn.classList.add('border-transparent', 'text-slate-400');
+            });
+
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            const activeBtn = document.getElementById('tab-btn-' + tabName);
+            activeBtn.classList.remove('border-transparent', 'text-slate-400');
+            activeBtn.classList.add('border-indigo-500', 'text-white');
+        }
+
+        function splitSourceCode() {
+            const rawCode = document.getElementById('raw-source-input').value;
+            if (!rawCode.trim()) {
+                showMessage('提醒', '請先在文字框中貼上完整的原始碼！');
+                return;
+            }
+
+            let htmlPart = rawCode;
+            let cssPart = '';
+            let jsPart = '';
+
+            const styleRegex = /<style[^>]*>([\s\S]*?)<\/style>/gi;
+            let styleMatches;
+            let extractedStyles = [];
+            while ((styleMatches = styleRegex.exec(rawCode)) !== null) {
+                extractedStyles.push(styleMatches[1]);
+                htmlPart = htmlPart.replace(styleMatches[0], '');
+            }
+            if (extractedStyles.length > 0) {
+                cssPart = extractedStyles.join('\n\n/* --- 區塊分隔 --- */\n\n');
+            }
+
+            const scriptRegex = /<script\b[^>]*>([\s\S]*?)<\/script>/gi;
+            let scriptMatches;
+            let extractedScripts = [];
+            while ((scriptMatches = scriptRegex.exec(rawCode)) !== null) {
+                if (scriptMatches[1].trim()) {
+                    extractedScripts.push(scriptMatches[1]);
+                }
+                htmlPart = htmlPart.replace(scriptMatches[0], '');
+            }
+            if (extractedScripts.length > 0) {
+                jsPart = extractedScripts.join('\n\n// --- 區塊分隔 ---\n\n');
+            }
+
+            document.getElementById('html-editor').value = htmlPart.trim();
+            document.getElementById('css-editor').value = cssPart.trim();
+            document.getElementById('js-editor').value = jsPart.trim();
+
+            switchTab('html');
+            runCode();
+            showMessage('拆解成功', '已成功將原始碼拆分為 HTML、CSS 與 JS 三個獨立區塊！', 'success');
+        }
+
+        function onCodeChange() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                runCode();
+            }, 400);
+        }
+
+        function runCode() {
+            const htmlContent = document.getElementById('html-editor').value;
+            const cssContent = document.getElementById('css-editor').value;
+            const jsContent = document.getElementById('js-editor').value;
+            const iframe = document.getElementById('preview-frame');
+
+            // 如果完全沒有內容，顯示漂亮的等待提示頁面，避免版面破碎
+            if (!htmlContent.trim() && !cssContent.trim() && !jsContent.trim()) {
+                const emptyHTML = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #0f172a;
+            color: #94a3b8;
+            font-family: system-ui, -apple-system, sans-serif;
+            user-select: none;
+        }
+        .placeholder-box {
+            text-align: center;
+            padding: 2rem;
+        }
+        .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #4f46e5;
+            animation: pulse 2s infinite;
+        }
+        h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin: 0 0 0.5rem 0;
+        }
+        p {
+            font-size: 0.8rem;
+            margin: 0;
+            color: #64748b;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.95); }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="placeholder-box">
+        <div class="icon"><i class="fa-solid fa-code"></i></div>
+        <h2>等待輸入程式碼</h2>
+        <p>請在左側輸入 HTML、CSS、JS 或貼上原始碼以檢視即時預覽</p>
+    </div>
+</body>
+</html>`;
+                const blob = new Blob([emptyHTML], { type: 'text/html' });
+                iframe.src = URL.createObjectURL(blob);
+                return;
+            }
+
+            const combinedHTML = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        ${cssContent}
+    </style>
+</head>
+<body>
+    ${htmlContent}
+    <script>
+        try {
+            (function() {
+                ${jsContent}
+            })();
+        } catch (err) {
+            console.error('[預覽端執行錯誤]', err);
+        }
+    <\/script>
+</body>
+</html>`;
+
+            const blob = new Blob([combinedHTML], { type: 'text/html' });
+            iframe.src = URL.createObjectURL(blob);
+        }
+
+        function clearAll() {
+            document.getElementById('raw-source-input').value = '';
+            document.getElementById('html-editor').value = '';
+            document.getElementById('css-editor').value = '';
+            document.getElementById('js-editor').value = '';
+            runCode();
+            showMessage('已清空', '所有編輯器內容已重設。');
+        }
+
+        function popoutPreview() {
+            const htmlContent = document.getElementById('html-editor').value;
+            const cssContent = document.getElementById('css-editor').value;
+            const jsContent = document.getElementById('js-editor').value;
+
+            if (!htmlContent.trim() && !cssContent.trim() && !jsContent.trim()) {
+                showMessage('提示', '目前沒有可預覽的內容！');
+                return;
+            }
+
+            const combinedHTML = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>獨立預覽視窗</title>
+    <style>${cssContent}</style>
+</head>
+<body>
+    ${htmlContent}
+    <script>${jsContent}<\/script>
+</body>
+</html>`;
+            const win = window.open('', '_blank');
+            win.document.write(combinedHTML);
+            win.document.close();
+        }
+
+        window.onload = function() {
+            runCode();
+        };
+    </script>
+</body>
+</html>
