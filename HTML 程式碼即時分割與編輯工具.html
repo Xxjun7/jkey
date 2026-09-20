@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML 程式碼即時分割與編輯工具</title>
+    <title>HTML/CSS/JS 即時分割與預覽編輯器</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -42,8 +42,8 @@
                 <i class="fa-solid fa-code text-lg"></i>
             </div>
             <div>
-                <h1 class="font-bold text-base tracking-wide text-white">CodeSpliter <span class="text-xs font-normal text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded-full border border-indigo-800 ml-2">HTML/CSS/JS 即時分割工具</span></h1>
-                <p class="text-xs text-slate-400">貼上完整網頁原始碼一鍵自動拆解，或分開獨立編輯即時預覽</p>
+                <h1 class="font-bold text-base tracking-wide text-white">CodeSpliter <span class="text-xs font-normal text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded-full border border-indigo-800 ml-2">網頁即時分割預覽工具</span></h1>
+                <p class="text-xs text-slate-400">貼上完整網頁原始碼自動解析至各區塊，或獨立編寫 HTML/CSS/JS 即時預覽網頁成果</p>
             </div>
         </div>
         <div class="flex items-center space-x-2">
@@ -60,13 +60,13 @@
 
     <main class="flex-1 flex flex-col lg:flex-row overflow-hidden">
         
-        <!-- Left Panel: Tabs & Editors -->
+        <!-- Left Panel: Editors & Import -->
         <section class="w-full lg:w-1/2 flex flex-col border-r border-darkBorder bg-darker h-1/2 lg:h-full">
             <!-- Tabs Bar -->
             <div class="bg-darkPanel border-b border-darkBorder flex items-center overflow-x-auto px-2 shrink-0">
                 <button onclick="switchTab('import')" id="tab-btn-import" class="tab-btn px-4 py-2.5 text-xs font-semibold border-b-2 border-indigo-500 text-white flex items-center space-x-2 transition whitespace-nowrap">
-                    <i class="fa-solid fa-file-import text-indigo-400"></i>
-                    <span>1. 原始碼貼上與拆解</span>
+                    <i class="fa-solid fa-paste text-indigo-400"></i>
+                    <span>1. 原始碼貼上與自動解析</span>
                 </button>
                 <button onclick="switchTab('html')" id="tab-btn-html" class="tab-btn px-4 py-2.5 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition whitespace-nowrap">
                     <i class="fa-brands fa-html5 text-orange-400"></i>
@@ -85,20 +85,16 @@
             <!-- Tab Content Container -->
             <div class="flex-1 relative flex flex-col">
                 
-                <!-- Tab 1: Raw Import & Splitter -->
+                <!-- Tab 1: Raw Import & Auto Splitter -->
                 <div id="tab-import" class="tab-content absolute inset-0 flex flex-col p-4 bg-darker">
                     <div class="flex items-center justify-between mb-2">
                         <label class="text-xs font-medium text-slate-300 flex items-center space-x-1.5">
                             <i class="fa-solid fa-paste text-indigo-400"></i>
-                            <span>在此貼上完整的單一 HTML 網頁原始碼：</span>
+                            <span>在此貼上完整的單一 HTML 網頁原始碼（會自動即時解析）：</span>
                         </label>
-                        <button onclick="splitSourceCode()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium transition shadow-sm flex items-center space-x-1">
-                            <i class="fa-solid fa-scissors"></i>
-                            <span>執行一鍵拆解至 3 區塊</span>
-                        </button>
                     </div>
-                    <textarea id="raw-source-input" placeholder="請在此貼上完整的 HTML 網頁原始碼..." class="flex-1 w-full bg-darkPanel text-slate-200 code-font text-xs p-3 rounded-xl border border-darkBorder focus:outline-none focus:border-indigo-500 resize-none shadow-inner"></textarea>
-                    <p class="text-[11px] text-slate-500 mt-2">提示：點擊「執行一鍵拆解」後，系統會自動將檔案中的 &lt;style&gt;、&lt;script&gt; 以及 HTML 本體拆分到獨立的編輯分頁中！</p>
+                    <textarea id="raw-source-input" oninput="onRawPasteInput()" placeholder="在此貼上完整的 HTML/CSS/JS 網頁程式碼，會自動幫您拆解並呈現即時預覽..." class="flex-1 w-full bg-darkPanel text-slate-200 code-font text-xs p-3 rounded-xl border border-darkBorder focus:outline-none focus:border-indigo-500 resize-none shadow-inner"></textarea>
+                    <p class="text-[11px] text-slate-500 mt-2">提示：貼上後會自動切換至 HTML 分頁，並即時在右側呈現真正的渲染畫面！</p>
                 </div>
 
                 <!-- Tab 2: HTML Editor -->
@@ -140,7 +136,6 @@
             </div>
         </section>
 
-        <!-- Right Panel: Live Preview Area -->
         <section class="w-full lg:w-1/2 flex flex-col bg-slate-900 h-1/2 lg:h-full">
             <!-- Preview Toolbar -->
             <div class="bg-darkPanel border-b border-darkBorder px-4 py-2.5 flex items-center justify-between shrink-0">
@@ -152,7 +147,7 @@
                     </div>
                     <span class="text-xs font-semibold text-slate-300 flex items-center space-x-1.5">
                         <i class="fa-solid fa-display text-indigo-400"></i>
-                        <span>即時預覽區域 (Live Preview)</span>
+                        <span>即時預覽網頁 (Live Render Preview)</span>
                     </span>
                 </div>
                 <div class="flex items-center space-x-2">
@@ -227,12 +222,9 @@
             activeBtn.classList.add('border-indigo-500', 'text-white');
         }
 
-        function splitSourceCode() {
-            const rawCode = document.getElementById('raw-source-input').value;
-            if (!rawCode.trim()) {
-                showMessage('提醒', '請先在文字框中貼上完整的原始碼！');
-                return;
-            }
+        // 自動解析並拆解貼上的原始碼
+        function parseAndSplitCode(rawCode) {
+            if (!rawCode.trim()) return;
 
             let htmlPart = rawCode;
             let cssPart = '';
@@ -265,17 +257,25 @@
             document.getElementById('html-editor').value = htmlPart.trim();
             document.getElementById('css-editor').value = cssPart.trim();
             document.getElementById('js-editor').value = jsPart.trim();
+        }
 
-            switchTab('html');
-            runCode();
-            showMessage('拆解成功', '已成功將原始碼拆分為 HTML、CSS 與 JS 三個獨立區塊！', 'success');
+        function onRawPasteInput() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                const rawCode = document.getElementById('raw-source-input').value;
+                if (rawCode.trim()) {
+                    parseAndSplitCode(rawCode);
+                    switchTab('html');
+                    runCode();
+                }
+            }, 300);
         }
 
         function onCodeChange() {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => {
                 runCode();
-            }, 400);
+            }, 300);
         }
 
         function runCode() {
@@ -284,7 +284,7 @@
             const jsContent = document.getElementById('js-editor').value;
             const iframe = document.getElementById('preview-frame');
 
-            // 如果完全沒有內容，顯示漂亮的等待提示頁面，避免版面破碎
+            // 如果完全沒有內容，顯示等待畫面
             if (!htmlContent.trim() && !cssContent.trim() && !jsContent.trim()) {
                 const emptyHTML = `<!DOCTYPE html>
 <html>
@@ -335,7 +335,7 @@
     <div class="placeholder-box">
         <div class="icon"><i class="fa-solid fa-code"></i></div>
         <h2>等待輸入程式碼</h2>
-        <p>請在左側輸入 HTML、CSS、JS 或貼上原始碼以檢視即時預覽</p>
+        <p>請在左側貼上原始碼或輸入 HTML/CSS/JS 即可即時預覽網頁</p>
     </div>
 </body>
 </html>`;
@@ -376,6 +376,7 @@
             document.getElementById('html-editor').value = '';
             document.getElementById('css-editor').value = '';
             document.getElementById('js-editor').value = '';
+            switchTab('import');
             runCode();
             showMessage('已清空', '所有編輯器內容已重設。');
         }
@@ -386,7 +387,7 @@
             const jsContent = document.getElementById('js-editor').value;
 
             if (!htmlContent.trim() && !cssContent.trim() && !jsContent.trim()) {
-                showMessage('提示', '目前沒有可預覽的內容！');
+                showMessage('提示', '目前沒有可預覽的網頁內容！');
                 return;
             }
 
