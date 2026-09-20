@@ -43,7 +43,7 @@
             </div>
             <div>
                 <h1 class="font-bold text-base tracking-wide text-white">CodeSpliter <span class="text-xs font-normal text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded-full border border-indigo-800 ml-2">網頁即時分割預覽工具</span></h1>
-                <p class="text-xs text-slate-400">貼上完整網頁原始碼自動解析至各區塊，或獨立編寫 HTML/CSS/JS 即時預覽網頁成果</p>
+                <p class="text-xs text-slate-400">1. 原始碼為主核心，變動時即時同步更新 2/3/4 分頁與預覽畫面</p>
             </div>
         </div>
         <div class="flex items-center space-x-2">
@@ -66,7 +66,7 @@
             <div class="bg-darkPanel border-b border-darkBorder flex items-center overflow-x-auto px-2 shrink-0">
                 <button onclick="switchTab('import')" id="tab-btn-import" class="tab-btn px-4 py-2.5 text-xs font-semibold border-b-2 border-indigo-500 text-white flex items-center space-x-2 transition whitespace-nowrap">
                     <i class="fa-solid fa-paste text-indigo-400"></i>
-                    <span>1. 原始碼貼上與自動解析</span>
+                    <span>1. 原始碼 (主核心)</span>
                 </button>
                 <button onclick="switchTab('html')" id="tab-btn-html" class="tab-btn px-4 py-2.5 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition whitespace-nowrap">
                     <i class="fa-brands fa-html5 text-orange-400"></i>
@@ -90,11 +90,11 @@
                     <div class="flex items-center justify-between mb-2">
                         <label class="text-xs font-medium text-slate-300 flex items-center space-x-1.5">
                             <i class="fa-solid fa-paste text-indigo-400"></i>
-                            <span>在此貼上完整的單一 HTML 網頁原始碼（會自動即時解析）：</span>
+                            <span>在此貼上完整網頁原始碼（即時同步更新 2/3/4 區塊與預覽畫面）：</span>
                         </label>
                     </div>
-                    <textarea id="raw-source-input" oninput="onRawPasteInput()" placeholder="在此貼上完整的 HTML/CSS/JS 網頁程式碼，會自動幫您拆解並呈現即時預覽..." class="flex-1 w-full bg-darkPanel text-slate-200 code-font text-xs p-3 rounded-xl border border-darkBorder focus:outline-none focus:border-indigo-500 resize-none shadow-inner"></textarea>
-                    <p class="text-[11px] text-slate-500 mt-2">提示：貼上後會自動切換至 HTML 分頁，並即時在右側呈現真正的渲染畫面！</p>
+                    <textarea id="raw-source-input" oninput="onRawPasteInput()" placeholder="在此貼上完整的 HTML 網頁程式碼，預覽將會完整呈現該頁面..." class="flex-1 w-full bg-darkPanel text-slate-200 code-font text-xs p-3 rounded-xl border border-darkBorder focus:outline-none focus:border-indigo-500 resize-none shadow-inner"></textarea>
+                    <p class="text-[11px] text-slate-500 mt-2">提示：此區塊為主核心，任何變動皆會即時反映至右側預覽畫面及 2, 3, 4 分頁。</p>
                 </div>
 
                 <!-- Tab 2: HTML Editor -->
@@ -102,9 +102,9 @@
                     <div class="flex items-center justify-between mb-2">
                         <label class="text-xs font-medium text-slate-300 flex items-center space-x-1.5">
                             <i class="fa-brands fa-html5 text-orange-400"></i>
-                            <span>HTML 結構區塊（網頁內容標籤）</span>
+                            <span>HTML 結構區塊</span>
                         </label>
-                        <span class="text-[11px] text-slate-500">自動即時同步預覽</span>
+                        <span class="text-[11px] text-slate-500">自動即時同步主核心與預覽</span>
                     </div>
                     <textarea id="html-editor" oninput="onCodeChange()" class="flex-1 w-full bg-darkPanel text-slate-200 code-font text-xs p-3 rounded-xl border border-darkBorder focus:outline-none focus:border-indigo-500 resize-none shadow-inner" placeholder="請輸入 HTML 內容..."></textarea>
                 </div>
@@ -114,9 +114,9 @@
                     <div class="flex items-center justify-between mb-2">
                         <label class="text-xs font-medium text-slate-300 flex items-center space-x-1.5">
                             <i class="fa-brands fa-css3-alt text-blue-400"></i>
-                            <span>CSS 樣式區塊（外觀、顏色、排版）</span>
+                            <span>CSS 樣式區塊</span>
                         </label>
-                        <span class="text-[11px] text-slate-500">自動即時同步預覽</span>
+                        <span class="text-[11px] text-slate-500">自動即時同步主核心與預覽</span>
                     </div>
                     <textarea id="css-editor" oninput="onCodeChange()" class="flex-1 w-full bg-darkPanel text-slate-200 code-font text-xs p-3 rounded-xl border border-darkBorder focus:outline-none focus:border-indigo-500 resize-none shadow-inner" placeholder="請輸入 CSS 樣式語法..."></textarea>
                 </div>
@@ -126,9 +126,9 @@
                     <div class="flex items-center justify-between mb-2">
                         <label class="text-xs font-medium text-slate-300 flex items-center space-x-1.5">
                             <i class="fa-brands fa-square-js text-yellow-400"></i>
-                            <span>JS 行為區塊（互動邏輯、事件觸發）</span>
+                            <span>JS 行為區塊</span>
                         </label>
-                        <span class="text-[11px] text-slate-500">自動即時同步預覽</span>
+                        <span class="text-[11px] text-slate-500">自動即時同步主核心與預覽</span>
                     </div>
                     <textarea id="js-editor" oninput="onCodeChange()" class="flex-1 w-full bg-darkPanel text-slate-200 code-font text-xs p-3 rounded-xl border border-darkBorder focus:outline-none focus:border-indigo-500 resize-none shadow-inner" placeholder="請輸入 JavaScript 程式碼..."></textarea>
                 </div>
@@ -147,7 +147,7 @@
                     </div>
                     <span class="text-xs font-semibold text-slate-300 flex items-center space-x-1.5">
                         <i class="fa-solid fa-display text-indigo-400"></i>
-                        <span>即時預覽網頁 (Live Render Preview)</span>
+                        <span>即時預覽網頁 (對應 1. 原始碼整體呈現)</span>
                     </span>
                 </div>
                 <div class="flex items-center space-x-2">
@@ -187,6 +187,7 @@
 
     <script>
         let debounceTimer = null;
+        let isSyncingFromRaw = false;
 
         function showMessage(title, desc, type = 'info') {
             document.getElementById('modal-title').innerText = title;
@@ -222,133 +223,23 @@
             activeBtn.classList.add('border-indigo-500', 'text-white');
         }
 
-        // 自動解析並拆解貼上的原始碼
-        function parseAndSplitCode(rawCode) {
-            if (!rawCode.trim()) return;
+        // 當從 2/3/4 分頁編輯時，組合回 1. 原始碼主核心
+        function updateRawFromSubEditors() {
+            if (isSyncingFromRaw) return;
 
-            let htmlPart = rawCode;
-            let cssPart = '';
-            let jsPart = '';
-
-            const styleRegex = /<style[^>]*>([\s\S]*?)<\/style>/gi;
-            let styleMatches;
-            let extractedStyles = [];
-            while ((styleMatches = styleRegex.exec(rawCode)) !== null) {
-                extractedStyles.push(styleMatches[1]);
-                htmlPart = htmlPart.replace(styleMatches[0], '');
-            }
-            if (extractedStyles.length > 0) {
-                cssPart = extractedStyles.join('\n\n/* --- 區塊分隔 --- */\n\n');
-            }
-
-            const scriptRegex = /<script\b[^>]*>([\s\S]*?)<\/script>/gi;
-            let scriptMatches;
-            let extractedScripts = [];
-            while ((scriptMatches = scriptRegex.exec(rawCode)) !== null) {
-                if (scriptMatches[1].trim()) {
-                    extractedScripts.push(scriptMatches[1]);
-                }
-                htmlPart = htmlPart.replace(scriptMatches[0], '');
-            }
-            if (extractedScripts.length > 0) {
-                jsPart = extractedScripts.join('\n\n// --- 區塊分隔 ---\n\n');
-            }
-
-            document.getElementById('html-editor').value = htmlPart.trim();
-            document.getElementById('css-editor').value = cssPart.trim();
-            document.getElementById('js-editor').value = jsPart.trim();
-        }
-
-        function onRawPasteInput() {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                const rawCode = document.getElementById('raw-source-input').value;
-                if (rawCode.trim()) {
-                    parseAndSplitCode(rawCode);
-                    switchTab('html');
-                    runCode();
-                }
-            }, 300);
-        }
-
-        function onCodeChange() {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                runCode();
-            }, 300);
-        }
-
-        function runCode() {
             const htmlContent = document.getElementById('html-editor').value;
             const cssContent = document.getElementById('css-editor').value;
             const jsContent = document.getElementById('js-editor').value;
-            const iframe = document.getElementById('preview-frame');
 
-            // 如果完全沒有內容，顯示等待畫面
-            if (!htmlContent.trim() && !cssContent.trim() && !jsContent.trim()) {
-                const emptyHTML = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #0f172a;
-            color: #94a3b8;
-            font-family: system-ui, -apple-system, sans-serif;
-            user-select: none;
-        }
-        .placeholder-box {
-            text-align: center;
-            padding: 2rem;
-        }
-        .icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: #4f46e5;
-            animation: pulse 2s infinite;
-        }
-        h2 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #e2e8f0;
-            margin: 0 0 0.5rem 0;
-        }
-        p {
-            font-size: 0.8rem;
-            margin: 0;
-            color: #64748b;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(0.95); }
-        }
-    </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
-    <div class="placeholder-box">
-        <div class="icon"><i class="fa-solid fa-code"></i></div>
-        <h2>等待輸入程式碼</h2>
-        <p>請在左側貼上原始碼或輸入 HTML/CSS/JS 即可即時預覽網頁</p>
-    </div>
-</body>
-</html>`;
-                const blob = new Blob([emptyHTML], { type: 'text/html' });
-                iframe.src = URL.createObjectURL(blob);
-                return;
-            }
-
-            const combinedHTML = `<!DOCTYPE html>
-<html>
+            // 組合出帶有標準 CDN（Tailwind & FontAwesome）的完整網頁結構，避免純文字樣式跑版
+            const fullDoc = `<!DOCTYPE html>
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 內建常用的 Tailwind CSS 與 FontAwesome CDN，確保外觀正常 -->
+    <script src="https://cdn.tailwindcss.com"><\/script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         ${cssContent}
     </style>
@@ -367,7 +258,120 @@
 </body>
 </html>`;
 
-            const blob = new Blob([combinedHTML], { type: 'text/html' });
+            document.getElementById('raw-source-input').value = fullDoc;
+        }
+
+        // 解析並拆解 1. 原始碼至 2, 3, 4 分頁
+        function parseAndSplitCode(rawCode) {
+            isSyncingFromRaw = true;
+
+            let htmlPart = rawCode;
+            let cssPart = '';
+            let jsPart = '';
+
+            const styleRegex = new RegExp('<style[^>]*>([\\s\\S]*?)<\\/style>', 'gi');
+            let styleMatches;
+            let extractedStyles = [];
+            while ((styleMatches = styleRegex.exec(rawCode)) !== null) {
+                extractedStyles.push(styleMatches[1]);
+                htmlPart = htmlPart.replace(styleMatches[0], '');
+            }
+            if (extractedStyles.length > 0) {
+                cssPart = extractedStyles.join('\n\n/* --- 區塊分隔 --- */\n\n');
+            }
+
+            const scriptRegex = new RegExp('<script\\b[^>]*>([\\s\\S]*?)<\\/script>', 'gi');
+            let scriptMatches;
+            let extractedScripts = [];
+            while ((scriptMatches = scriptRegex.exec(rawCode)) !== null) {
+                if (scriptMatches[1].trim()) {
+                    extractedScripts.push(scriptMatches[1]);
+                }
+                htmlPart = htmlPart.replace(scriptMatches[0], '');
+            }
+            if (extractedScripts.length > 0) {
+                jsPart = extractedScripts.join('\n\n// --- 區塊分隔 ---\n\n');
+            }
+
+            document.getElementById('html-editor').value = htmlPart.trim();
+            document.getElementById('css-editor').value = cssPart.trim();
+            document.getElementById('js-editor').value = jsPart.trim();
+
+            isSyncingFromRaw = false;
+        }
+
+        // 1. 原始碼區域變動時：拆解到 2/3/4，並直接將 1. 原始碼整體呈現至預覽
+        function onRawPasteInput() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                const rawCode = document.getElementById('raw-source-input').value;
+                if (rawCode.trim()) {
+                    parseAndSplitCode(rawCode);
+                    runCode();
+                } else {
+                    document.getElementById('html-editor').value = '';
+                    document.getElementById('css-editor').value = '';
+                    document.getElementById('js-editor').value = '';
+                    runCode();
+                }
+            }, 300);
+        }
+
+        // 2/3/4 分頁變動時：組合回 1. 原始碼，並更新預覽
+        function onCodeChange() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                updateRawFromSubEditors();
+                runCode();
+            }, 300);
+        }
+
+        // 核心預覽渲染：直接將 1. 原始碼內容完整呈現
+        function runCode() {
+            const rawCode = document.getElementById('raw-source-input').value;
+            const iframe = document.getElementById('preview-frame');
+
+            if (!rawCode.trim()) {
+                const emptyHTML = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #0f172a;
+            color: #94a3b8;
+            font-family: system-ui, -apple-system, sans-serif;
+            user-select: none;
+        }
+        .placeholder-box { text-align: center; padding: 2rem; }
+        .icon { font-size: 3rem; margin-bottom: 1rem; color: #4f46e5; animation: pulse 2s infinite; }
+        h2 { font-size: 1rem; font-weight: 600; color: #e2e8f0; margin: 0 0 0.5rem 0; }
+        p { font-size: 0.8rem; margin: 0; color: #64748b; }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.95); } }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="placeholder-box">
+        <div class="icon"><i class="fa-solid fa-code"></i></div>
+        <h2>等待輸入程式碼</h2>
+        <p>請在 1. 原始碼區域貼上完整網頁代碼，將即時呈現完整渲染頁面</p>
+    </div>
+</body>
+</html>`;
+                const blob = new Blob([emptyHTML], { type: 'text/html' });
+                iframe.src = URL.createObjectURL(blob);
+                return;
+            }
+
+            // 直接將 1. 原始碼完整餵給 iframe 渲染，確保原汁原味呈現
+            const blob = new Blob([rawCode], { type: 'text/html' });
             iframe.src = URL.createObjectURL(blob);
         }
 
@@ -382,29 +386,13 @@
         }
 
         function popoutPreview() {
-            const htmlContent = document.getElementById('html-editor').value;
-            const cssContent = document.getElementById('css-editor').value;
-            const jsContent = document.getElementById('js-editor').value;
-
-            if (!htmlContent.trim() && !cssContent.trim() && !jsContent.trim()) {
+            const rawCode = document.getElementById('raw-source-input').value;
+            if (!rawCode.trim()) {
                 showMessage('提示', '目前沒有可預覽的網頁內容！');
                 return;
             }
-
-            const combinedHTML = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>獨立預覽視窗</title>
-    <style>${cssContent}</style>
-</head>
-<body>
-    ${htmlContent}
-    <script>${jsContent}<\/script>
-</body>
-</html>`;
             const win = window.open('', '_blank');
-            win.document.write(combinedHTML);
+            win.document.write(rawCode);
             win.document.close();
         }
 
