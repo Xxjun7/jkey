@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美金即期賣出即時匯率工具</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+        }
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .animate-pulse-subtle {
+            animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-emerald-500 selection:text-white">
+    
+    <header class="w-full border-b border-slate-800 bg-slate-950/50 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-lg shadow-inner">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-slate-100">台銀美金即期匯率</h1>
+                    <p class="text-xs text-slate-400">即時即期賣出監控面板</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button id="themeToggle" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition" title="切換深淺色模式">
+                    <i class="fa-solid fa-moon" id="themeIcon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-4xl w-full mx-auto px-4 py-8 flex flex-col items-center justify-center">
+        
+        <!-- Status Notification Box -->
+        <div id="alertBox" class="hidden mb-6 w-full max-w-lg p-4 rounded-xl border text-sm transition-all duration-300 flex items-start space-x-3 shadow-lg">
+            <div id="alertIcon" class="mt-0.5 text-lg"></div>
+            <div class="flex-1">
+                <p id="alertTitle" class="font-semibold"></p>
+                <p id="alertMessage" class="text-xs opacity-90 mt-0.5"></p>
+            </div>
+            <button onclick="hideAlert()" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- Main Rate Display Card -->
+        <div class="w-full max-w-lg bg-slate-800/60 border border-slate-700/60 rounded-3xl p-8 shadow-2xl backdrop-blur relative overflow-hidden transition-all duration-300 hover:border-slate-600/80">
+            <!-- Decorative background blur orb -->
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center space-x-2.5">
+                    <span class="inline-block w-3 h-3 rounded-full bg-emerald-500 animate-ping absolute"></span>
+                    <span class="inline-block w-3 h-3 rounded-full bg-emerald-500 relative"></span>
+                    <span class="text-xs font-semibold tracking-wider uppercase text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">美金 (USD) · 本行即期賣出</span>
+                </div>
+                <div id="trendIndicator" class="text-xs font-medium text-slate-400 flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-slate-900/60 border border-slate-700/50">
+                    <i class="fa-solid fa-minus text-slate-400"></i>
+                    <span id="trendText">持平</span>
+                </div>
+            </div>
+
+            <!-- Rate Display Box -->
+            <div class="py-8 text-center relative">
+                <div id="loadingOverlay" class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center rounded-2xl z-10 transition-opacity duration-300">
+                    <div class="flex flex-col items-center space-y-3">
+                        <i class="fa-solid fa-circle-notch fa-spin text-3xl text-emerald-400"></i>
+                        <span class="text-xs text-slate-300 font-medium tracking-wide">正在同步台灣銀行匯率資料...</span>
+                    </div>
+                </div>
+                <div class="text-xs uppercase tracking-widest text-slate-400 mb-2">Spot Selling Rate</div>
+                <div class="flex items-baseline justify-center space-x-2">
+                    <span class="text-2xl font-semibold text-slate-400">$</span>
+                    <span id="rateValue" class="text-6xl sm:text-7xl font-extrabold tracking-tight text-white drop-shadow-md">--.---</span>
+                </div>
+                <div id="rateChangeSummary" class="text-xs text-slate-400 mt-3">上次變動: 尚無紀錄</div>
+            </div>
+
+            <!-- Metadata info row -->
+            <div class="grid grid-cols-2 gap-3 pt-4 border-t border-slate-700/60 text-xs text-slate-400 mb-6">
+                <div class="bg-slate-900/40 p-3 rounded-xl border border-slate-800">
+                    <div class="text-slate-500 mb-1">資料來源</div>
+                    <div class="font-medium text-slate-300 truncate">台灣銀行牌告匯率</div>
+                </div>
+                <div class="bg-slate-900/40 p-3 rounded-xl border border-slate-800">
+                    <div class="text-slate-500 mb-1">最後更新時間</div>
+                    <div id="updateTime" class="font-medium text-slate-300">--:--:--</div>
+                </div>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="flex items-center space-x-3">
+                <button id="refreshBtn" onclick="fetchExchangeRate()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-semibold py-3.5 px-6 rounded-xl shadow-lg shadow-emerald-900/30 transition-all duration-200 flex items-center justify-center space-x-2 group">
+                    <i class="fa-solid fa-rotate-right group-hover:rotate-180 transition-transform duration-500"></i>
+                    <span>立即重新整理</span>
+                </button>
+                <button id="autoRefreshToggle" onclick="toggleAutoRefresh()" class="px-4 py-3.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl transition font-medium flex items-center space-x-2 border border-slate-600" title="切換自動更新 (每 30 秒)">
+                    <i class="fa-solid fa-clock text-emerald-400" id="autoIcon"></i>
+                    <span id="autoStatusText" class="text-xs">自動更新: 開</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Additional Quick Calculator Preview -->
+        <div class="w-full max-w-lg mt-6 bg-slate-800/40 border border-slate-700/50 rounded-2xl p-5 backdrop-blur">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-xs font-semibold tracking-wide text-slate-300 uppercase flex items-center space-x-1.5">
+                    <i class="fa-solid fa-calculator text-emerald-400"></i>
+                    <span>簡易換算試算 (TWD / USD)</span>
+                </h3>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[11px] text-slate-400 mb-1">美金金額 (USD)</label>
+                    <input type="number" id="usdInput" value="1000" min="1" step="any" oninput="calculateTwd()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 transition">
+                </div>
+                <div>
+                    <label class="block text-[11px] text-slate-400 mb-1">所需台幣 (TWD)</label>
+                    <input type="text" id="twdResult" readonly class="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-3 py-2 text-sm text-emerald-400 font-bold focus:outline-none cursor-default" value="----">
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="w-full border-t border-slate-800 bg-slate-950/50 py-4 text-center text-xs text-slate-500">
+        <p>本資料透過 CORS 代理從台灣銀行牌告匯率即時解析取得，僅供參考，實際交易價格以台銀臨櫃或網銀為準。</p>
+    </footer>
+
+    <script>
+        // State variables
+        let previousRate = null;
+        let autoRefreshInterval = null;
+        let isAutoRefreshActive = true;
+        let countdownTimer = 30;
+        let countdownInterval = null;
+
+        const CORS_URL = 'https://corsproxy.io/?key=webdemo1&url=https%3A%2F%2Frate.bot.com.tw%2Fxrt%3FLang%3Dzh-TW';
+
+        // Initialize on window load
+        window.onload = function() {
+            fetchExchangeRate();
+            startAutoRefreshTimer();
+        };
+
+        // Fetch exchange rate function
+        async function fetchExchangeRate() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const refreshBtn = document.getElementById('refreshBtn');
+            
+            loadingOverlay.classList.remove('opacity-0', 'pointer-events-none');
+            refreshBtn.disabled = true;
+
+            try {
+                // Fetch via CORS proxy with timestamp cache buster
+                const response = await fetch(CORS_URL + '&_=' + new Date().getTime());
+                if (!response.ok) {
+                    throw new Error(`網路連線異常 (HTTP ${response.status})`);
+                }
+
+                const htmlText = await response.text();
+                
+                // Parse HTML string using DOMParser
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlText, 'text/html');
+
+                // Locate USD row or data-table elements as requested
+                // Based on user prompt structure:
+                // <td data-table="幣別"...> 美金 (USD) </td>
+                // We look for rows containing USD
+                let usdRateFound = null;
+
+                const rows = doc.querySelectorAll('tr');
+                for (let row of rows) {
+                    const currencyCell = row.querySelector('td.currency');
+                    if (currencyCell && currencyCell.textContent.includes('美金 (USD)')) {
+                        // Found USD row, now find <td data-table="本行即期賣出">
+                        const targetCell = row.querySelector('td[data-table="本行即期賣出"]');
+                        if (targetCell) {
+                            const val = targetCell.textContent.trim();
+                            if (val && !isNaN(parseFloat(val))) {
+                                usdRateFound = val;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Fallback direct query if table structure varies slightly
+                if (!usdRateFound) {
+                    const allCells = doc.querySelectorAll('td[data-table="本行即期賣出"]');
+                    for (let cell of allCells) {
+                        const parentRow = cell.closest('tr');
+                        if (parentRow && parentRow.textContent.includes('美金')) {
+                            const val = cell.textContent.trim();
+                            if (val && !isNaN(parseFloat(val))) {
+                                usdRateFound = val;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!usdRateFound) {
+                    throw new Error('無法在回傳的網頁結構中找到美金即期賣出欄位');
+                }
+
+                updateRateUI(usdRateFound);
+                hideAlert();
+            } catch (error) {
+                console.error('抓取匯率失敗:', error);
+                showAlert('資料擷取失敗', error.message || '請檢查網路連線或 CORS 代理服務是否正常。', 'error');
+            } finally {
+                loadingOverlay.classList.add('opacity-0', 'pointer-events-none');
+                refreshBtn.disabled = false;
+                resetCountdown();
+            }
+        }
+
+        // Update UI with parsed rate
+        function updateRateUI(newRateStr) {
+            const newRate = parseFloat(newRateStr);
+            const rateElement = document.getElementById('rateValue');
+            const timeElement = document.getElementById('updateTime');
+            const trendIndicator = document.getElementById('trendIndicator');
+            const trendText = document.getElementById('trendText');
+            const rateChangeSummary = document.getElementById('rateChangeSummary');
+
+            rateElement.textContent = newRate.toFixed(3);
+            
+            const now = new Date();
+            timeElement.textContent = now.toLocaleTimeString('zh-TW', { hour12: false });
+
+            if (previousRate !== null) {
+                if (newRate > previousRate) {
+                    trendIndicator.className = 'text-xs font-medium text-red-400 flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-red-950/40 border border-red-900/50';
+                    trendIndicator.innerHTML = '<i class="fa-solid fa-arrow-trend-up"></i><span>漲</span>';
+                    rateChangeSummary.textContent = `相較上次更新: +${(newRate - previousRate).toFixed(3)}`;
+                } else if (newRate < previousRate) {
+                    trendIndicator.className = 'text-xs font-medium text-emerald-400 flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-emerald-950/40 border border-emerald-900/50';
+                    trendIndicator.innerHTML = '<i class="fa-solid fa-arrow-trend-down"></i><span>跌</span>';
+                    rateChangeSummary.textContent = `相較上次更新: ${(newRate - previousRate).toFixed(3)}`;
+                } else {
+                    trendIndicator.className = 'text-xs font-medium text-slate-400 flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-slate-900/60 border border-slate-700/50';
+                    trendIndicator.innerHTML = '<i class="fa-solid fa-minus"></i><span>持平</span>';
+                    rateChangeSummary.textContent = '相較上次更新: 無變動';
+                }
+            } else {
+                rateChangeSummary.textContent = `首次成功載入數值`;
+            }
+
+            previousRate = newRate;
+            calculateTwd();
+        }
+
+        // Calculate TWD equivalent
+        function calculateTwd() {
+            const usdInput = parseFloat(document.getElementById('usdInput').value) || 0;
+            const currentRate = previousRate || 0;
+            const twdResult = document.getElementById('twdResult');
+            
+            if (currentRate > 0 && usdInput > 0) {
+                const total = usdInput * currentRate;
+                twdResult.value = total.toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            } else {
+                twdResult.value = '0.00';
+            }
+        }
+
+        // Auto refresh interval management
+        function startAutoRefreshTimer() {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            
+            autoRefreshInterval = setInterval(() => {
+                if (isAutoRefreshActive) {
+                    countdownTimer--;
+                    if (countdownTimer <= 0) {
+                        fetchExchangeRate();
+                    }
+                }
+            }, 1000);
+        }
+
+        function resetCountdown() {
+            countdownTimer = 30;
+        }
+
+        function toggleAutoRefresh() {
+            isAutoRefreshActive = !isAutoRefreshActive;
+            const autoIcon = document.getElementById('autoIcon');
+            const autoStatusText = document.getElementById('autoStatusText');
+            
+            if (isAutoRefreshActive) {
+                autoIcon.className = 'fa-solid fa-clock text-emerald-400';
+                autoStatusText.textContent = '自動更新: 開';
+                resetCountdown();
+            } else {
+                autoIcon.className = 'fa-solid fa-clock-rotate-left text-slate-400';
+                autoStatusText.textContent = '自動更新: 停';
+            }
+        }
+
+        // Notification alert helpers
+        function showAlert(title, message, type) {
+            const alertBox = document.getElementById('alertBox');
+            const alertTitle = document.getElementById('alertTitle');
+            const alertMessage = document.getElementById('alertMessage');
+            const alertIcon = document.getElementById('alertIcon');
+
+            alertTitle.textContent = title;
+            alertMessage.textContent = message;
+
+            if (type === 'error') {
+                alertBox.className = 'mb-6 w-full max-w-lg p-4 rounded-xl border text-sm transition-all duration-300 flex items-start space-x-3 shadow-lg bg-red-950/80 border-red-800/80 text-red-200';
+                alertIcon.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-400"></i>';
+            } else {
+                alertBox.className = 'mb-6 w-full max-w-lg p-4 rounded-xl border text-sm transition-all duration-300 flex items-start space-x-3 shadow-lg bg-emerald-950/80 border-emerald-800/80 text-emerald-200';
+                alertIcon.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
+            }
+
+            alertBox.classList.remove('hidden');
+        }
+
+        function hideAlert() {
+            document.getElementById('alertBox').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
