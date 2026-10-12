@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>卡片對換專區</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .top-right-toggle {
+            position: absolute;
+            top: 25px;
+            right: 30px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            color: #555;
+            user-select: none;
+        }
+        .top-right-toggle input {
+            margin-right: 5px;
+            cursor: pointer;
+        }
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            margin-top: 10px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        select, button {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccd1d1;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        select {
+            background-color: #fff;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result-section {
+            margin-top: 30px;
+            border-top: 2px solid #ecf0f1;
+            padding-top: 20px;
+        }
+        .result-card {
+            position: relative;
+            background: #f8f9fa;
+            border-left: 4px solid #2ecc71;
+            padding: 14px 70px 14px 15px; /* 右側預留空間給數字 */
+            margin-bottom: 10px;
+            border-radius: 4px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .result-value {
+            position: absolute;
+            right: 15px;
+            bottom: 10px;
+            color: #e74c3c;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .no-result {
+            color: #e74c3c;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 頁面最右上角的勾選框 -->
+    <label class="top-right-toggle">
+        <input type="checkbox" id="showValueToggle" checked onchange="toggleValueDisplay()"> 顯示
+    </label>
+
+    <h2>卡片對換專區</h2>
+    
+    <div class="form-group">
+        <label for="myCardSelect">選擇目前庫存有的卡片：(想要的卡)</label>
+        <select id="myCardSelect">
+            <!-- 選項會透過 JavaScript 自動篩選並帶入高手類與至尊類，且不顯示價格 -->
+        </select>
+    </div>
+
+    <button onclick="calculateExchange()">開始組合可對換的一般廳卡片</button>
+
+    <div class="result-section" id="resultSection" style="display: none;">
+        <h3>建議對換需求選項（一般廳卡）：</h3>
+        <div id="resultList"></div>
+    </div>
+</div>
+
+<script>
+    // 完整卡片資料庫
+    const cardsDatabase = [
+        { name: "體驗5星-紅", type: "體驗", price: 5 },
+        { name: "體驗5星-紫", type: "體驗", price: 25 },
+        { name: "一般1星-黃", type: "一般", price: 20 },
+        { name: "一般2星-黃", type: "一般", price: 40 },
+        { name: "一般3星-黃", type: "一般", price: 60 },
+        { name: "一般4星-黃", type: "一般", price: 105 },
+        { name: "一般5星-黃", type: "一般", price: 150 },
+        { name: "一般1星-紅", type: "一般", price: 80 },
+        { name: "一般2星-紅", type: "一般", price: 120 },
+        { name: "一般3星-紅", type: "一般", price: 200 },
+        { name: "一般4星-紅", type: "一般", price: 300 },
+        { name: "一般5星-紅", type: "一般", price: 400 },
+        { name: "一般1星-紫", type: "一般", price: 200 },
+        { name: "一般2星-紫", type: "一般", price: 300 },
+        { name: "一般3星-紫", type: "一般", price: 500 },
+        { name: "一般4星-紫", type: "一般", price: 750 },
+        { name: "一般5星-紫", type: "一般", price: 1000 },
+        { name: "高手1星-黃", type: "高手", price: 300 },
+        { name: "高手2星-黃", type: "高手", price: 350 },
+        { name: "高手3星-黃", type: "高手", price: 400 },
+        { name: "高手4星-黃", type: "高手", price: 0 },
+        { name: "高手5星-黃", type: "高手", price: 0 },
+        { name: "高手1星-紅", type: "高手", price: 800 },
+        { name: "高手2星-紅", type: "高手", price: 1000 },
+        { name: "高手3星-紅", type: "高手", price: 1200 },
+        { name: "高手4星-紅", type: "高手", price: 1500 },
+        { name: "高手5星-紅", type: "高手", price: 2000 },
+        { name: "高手1星-紫", type: "高手", price: 2000 },
+        { name: "高手2星-紫", type: "高手", price: 2400 },
+        { name: "高手3星-紫", type: "高手", price: 3000 },
+        { name: "高手4星-紫", type: "高手", price: 3750 },
+        { name: "高手5星-紫", type: "高手", price: 4500 },
+        { name: "至尊1星-黃", type: "至尊", price: 1200 },
+        { name: "至尊2星-黃", type: "至尊", price: 0 },
+        { name: "至尊3星-黃", type: "至尊", price: 0 },
+        { name: "至尊4星-黃", type: "至尊", price: 0 },
+        { name: "至尊5星-黃", type: "至尊", price: 0 },
+        { name: "至尊1星-紅", type: "至尊", price: 2500 }
+    ];
+
+    // 初始化下拉選單：僅篩選出「高手類」與「至尊類」且價格大於 0 的卡片供會員選擇
+    function initSelect() {
+        const select = document.getElementById("myCardSelect");
+        cardsDatabase.forEach(card => {
+            if ((card.type === "高手" || card.type === "至尊") && card.price > 0) {
+                const option = document.createElement("option");
+                option.value = card.name;
+                option.textContent = card.name; // 不顯示價格
+                select.appendChild(option);
+            }
+        });
+    }
+
+    // 遞迴尋找最多 6 張以內的一般類卡片組合
+    function findCombinations(targetValue, generalCards, startIndex, currentCombo, results) {
+        if (currentCombo.length > 0 && currentCombo.length <= 6) {
+            const sum = currentCombo.reduce((acc, c) => acc + c.price, 0);
+            const diff = targetValue - sum;
+            if (diff >= 0 && diff <= 20) {
+                const comboNames = currentCombo.map(c => c.name).sort();
+                results.add({
+                    text: comboNames.join(" + "),
+                    sum: sum
+                });
+            }
+        }
+
+        if (currentCombo.length >= 6) {
+            return;
+        }
+
+        for (let i = startIndex; i < generalCards.length; i++) {
+            currentCombo.push(generalCards[i]);
+            findCombinations(targetValue, generalCards, i, currentCombo, results);
+            currentCombo.pop();
+        }
+    }
+
+    // 控制總價數字的顯示與隱藏
+    function toggleValueDisplay() {
+        const isChecked = document.getElementById("showValueToggle").checked;
+        const valueElements = document.querySelectorAll(".result-value");
+        valueElements.forEach(el => {
+            el.style.display = isChecked ? "block" : "none";
+        });
+    }
+
+    // 計算對換組合
+    function calculateExchange() {
+        const selectedName = document.getElementById("myCardSelect").value;
+        const targetCard = cardsDatabase.find(c => c.name === selectedName);
+        const resultSection = document.getElementById("resultSection");
+        const resultList = document.getElementById("resultList");
+        
+        resultSection.style.display = "block";
+        resultList.innerHTML = "";
+
+        if (!targetCard) return;
+
+        const targetValue = targetCard.price;
+        const generalCards = cardsDatabase.filter(c => c.type === "一般");
+        
+        const resultsSet = new Set();
+        findCombinations(targetValue, generalCards, 0, [], resultsSet);
+
+        const uniqueMap = new Map();
+        resultsSet.forEach(item => {
+            uniqueMap.set(item.text, item.sum);
+        });
+
+        const sortedResults = Array.from(uniqueMap.entries()).sort((a, b) => {
+            const countA = a[0].split(" + ").length;
+            const countB = b[0].split(" + ").length;
+            if (countA !== countB) return countA - countB;
+            return a[0].localeCompare(b[0]);
+        });
+
+        const isChecked = document.getElementById("showValueToggle").checked;
+
+        if (sortedResults.length > 0) {
+            sortedResults.forEach(([text, sum], index) => {
+                const div = document.createElement("div");
+                div.className = "result-card";
+                div.innerHTML = `
+                    <span>${index + 1}. 對換需求組合：${text}</span>
+                    <span class="result-value" style="display: ${isChecked ? 'block' : 'none'};">（${sum}）</span>
+                `;
+                resultList.appendChild(div);
+            });
+        } else {
+            resultList.innerHTML = `<div class="no-result">目前沒有找到符合條件的一般類卡片對換組合。</div>`;
+        }
+    }
+
+    // 頁面載入時初始化
+    window.onload = initSelect;
+</script>
+
+</body>
+</html>
