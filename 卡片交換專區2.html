@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>卡片交換</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            position: relative;
+            max-width: 650px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .top-right-toggle {
+            position: absolute;
+            top: 25px;
+            right: 30px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            color: #555;
+            user-select: none;
+        }
+        .top-right-toggle input {
+            margin-right: 5px;
+            cursor: pointer;
+        }
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            margin-top: 10px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccd1d1;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+        .checkbox-container {
+            border: 1px solid #ccd1d1;
+            border-radius: 8px;
+            padding: 10px;
+            background-color: #fafbfc;
+        }
+        .quantity-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 8px;
+            border-bottom: 1px solid #eee;
+            font-size: 15px;
+        }
+        .quantity-item:last-child {
+            border-bottom: none;
+        }
+        .qty-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .qty-btn {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            margin: 0;
+            background-color: #e0e6ed;
+            color: #333;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .qty-btn:hover {
+            background-color: #cbd5e1;
+        }
+        .qty-display {
+            min-width: 24px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .selected-summary {
+            font-size: 13px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        .result-section {
+            margin-top: 30px;
+            border-top: 2px solid #ecf0f1;
+            padding-top: 20px;
+        }
+        .result-card {
+            position: relative;
+            background: #f8f9fa;
+            border-left: 4px solid #2ecc71;
+            padding: 14px 70px 14px 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            font-size: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .result-card-content {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .missing-info {
+            font-size: 13px;
+            color: #e74c3c;
+            margin-top: 4px;
+            font-weight: bold;
+        }
+        .result-value {
+            position: absolute;
+            right: 15px;
+            bottom: 10px;
+            color: #e74c3c;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .no-result {
+            color: #e74c3c;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <label class="top-right-toggle">
+        <input type="checkbox" id="showValueToggle" checked onchange="toggleValueDisplay()"> 顯示總價
+    </label>
+
+    <h2>"一般卡" 換 "高階卡" (隨機不選遊戲)</h2>
+    
+    <div class="form-group">
+        <label for="myCardSelect">選擇想要的高階卡：</label>
+        <select id="myCardSelect" onchange="calculateExchange()">
+            <option value="" disabled selected>--- 請選擇您想要的卡片 ---</option>
+            <option value="高手1星-黃">高手1星-黃</option>
+            <option value="高手2星-黃">高手2星-黃</option>
+            <option value="高手3星-黃">高手3星-黃</option>
+            <option value="高手1星-紅">高手1星-紅</option>
+            <option value="高手2星-紅">高手2星-紅</option>
+            <option value="高手3星-紅">高手3星-紅</option>
+            <option value="高手4星-紅">高手4星-紅</option>
+            <option value="高手5星-紅">高手5星-紅</option>
+            <option value="高手1星-紫">高手1星-紫</option>
+            <option value="高手2星-紫">高手2星-紫</option>
+            <option value="高手3星-紫">高手3星-紫</option>
+            <option value="高手4星-紫">高手4星-紫</option>
+            <option value="高手5星-紫">高手5星-紫</option>
+            <option value="至尊1星-黃">至尊1星-黃</option>
+            <option value="至尊1星-紅">至尊1星-紅</option>
+        </select>
+    </div>
+
+    <div class="form-group" style="margin-top: 25px;">
+        <label>選擇您目前手邊擁有的一般廳卡片與張數：</label>
+        <div class="checkbox-container" id="myGeneralCardsContainer">
+            <!-- 動態產生一般卡片的數量調整列 -->
+        </div>
+        <div class="selected-summary" id="selectedSummary">總計擁有：0 張一般卡片</div>
+    </div>
+
+    <div class="result-section" id="resultSection">
+        <h3>建議交換需求選項（一般廳卡）：</h3>
+        <div id="resultList"></div>
+    </div>
+</div>
+
+<script>
+    const cardsDatabase = [
+        { name: "體驗5星-紅", type: "體驗", price: 5 },
+        { name: "體驗5星-紫", type: "體驗", price: 25 },
+        { name: "一般1星-黃", type: "一般", price: 20 },
+        { name: "一般2星-黃", type: "一般", price: 40 },
+        { name: "一般3星-黃", type: "一般", price: 60 },
+        { name: "一般4星-黃", type: "一般", price: 105 },
+        { name: "一般5星-黃", type: "一般", price: 150 },
+        { name: "一般1星-紅", type: "一般", price: 80 },
+        { name: "一般2星-紅", type: "一般", price: 120 },
+        { name: "一般3星-紅", type: "一般", price: 200 },
+        { name: "一般4星-紅", type: "一般", price: 300 },
+        { name: "一般5星-紅", type: "一般", price: 400 },
+        { name: "一般1星-紫", type: "一般", price: 200 },
+        { name: "一般2星-紫", type: "一般", price: 300 },
+        { name: "一般3星-紫", type: "一般", price: 500 },
+        { name: "一般4星-紫", type: "一般", price: 750 },
+        { name: "一般5星-紫", type: "一般", price: 1000 },
+        { name: "高手1星-黃", type: "高手", price: 300 },
+        { name: "高手2星-黃", type: "高手", price: 350 },
+        { name: "高手3星-黃", type: "高手", price: 400 },
+        { name: "高手4星-黃", type: "高手", price: 0 },
+        { name: "高手5星-黃", type: "高手", price: 0 },
+        { name: "高手1星-紅", type: "高手", price: 800 },
+        { name: "高手2星-紅", type: "高手", price: 1000 },
+        { name: "高手3星-紅", type: "高手", price: 1200 },
+        { name: "高手4星-紅", type: "高手", price: 1500 },
+        { name: "高手5星-紅", type: "高手", price: 2000 },
+        { name: "高手1星-紫", type: "高手", price: 2000 },
+        { name: "高手2星-紫", type: "高手", price: 2400 },
+        { name: "高手3星-紫", type: "高手", price: 3000 },
+        { name: "高手4星-紫", type: "高手", price: 3750 },
+        { name: "高手5星-紫", type: "高手", price: 4500 },
+        { name: "至尊1星-黃", type: "至尊", price: 1200 },
+        { name: "至尊2星-黃", type: "至尊", price: 0 },
+        { name: "至尊3星-黃", type: "至尊", price: 0 },
+        { name: "至尊4星-黃", type: "至尊", price: 0 },
+        { name: "至尊5星-黃", type: "至尊", price: 0 },
+        { name: "至尊1星-紅", type: "至尊", price: 2500 }
+    ];
+
+    function initPage() {
+        const container = document.getElementById("myGeneralCardsContainer");
+
+        cardsDatabase.forEach(card => {
+            if (card.type === "一般") {
+                const itemDiv = document.createElement("div");
+                itemDiv.className = "quantity-item";
+                itemDiv.innerHTML = `
+                    <span>${card.name}</span>
+                    <div class="qty-controls">
+                        <button type="button" class="qty-btn" onclick="changeQty('${card.name}', -1)">-</button>
+                        <span class="qty-display" id="qty_${card.name}">0</span>
+                        <button type="button" class="qty-btn" onclick="changeQty('${card.name}', 1)">+</button>
+                    </div>
+                `;
+                container.appendChild(itemDiv);
+            }
+        });
+
+        document.getElementById("resultList").innerHTML = `<div class="no-result" style="color: #7f8c8d;">請先在上方選擇想要交換的卡片。</div>`;
+    }
+
+    function changeQty(cardName, delta) {
+        const qtySpan = document.getElementById(`qty_${cardName}`);
+        let currentQty = parseInt(qtySpan.textContent) || 0;
+        currentQty += delta;
+        if (currentQty < 0) currentQty = 0;
+        qtySpan.textContent = currentQty;
+        updateSelectedSummary();
+        calculateExchange();
+    }
+
+    function updateSelectedSummary() {
+        let total = 0;
+        document.querySelectorAll('.qty-display').forEach(span => {
+            total += parseInt(span.textContent) || 0;
+        });
+        document.getElementById("selectedSummary").textContent = `總計擁有：${total} 張一般卡片`;
+    }
+
+    function findCombinations(targetValue, generalCards, startIndex, currentCombo, results) {
+        if (currentCombo.length > 0 && currentCombo.length <= 6) {
+            const sum = currentCombo.reduce((acc, c) => acc + c.price, 0);
+            const diff = targetValue - sum;
+            if (diff >= 0 && diff <= 20) {
+                const comboNames = currentCombo.map(c => c.name);
+                results.add({
+                    items: [...comboNames],
+                    sum: sum
+                });
+            }
+        }
+
+        if (currentCombo.length >= 6) {
+            return;
+        }
+
+        for (let i = startIndex; i < generalCards.length; i++) {
+            currentCombo.push(generalCards[i]);
+            findCombinations(targetValue, generalCards, i, currentCombo, results);
+            currentCombo.pop();
+        }
+    }
+
+    // 將卡片陣列轉為帶有 x數量的格式字串（例如：一般1星-紅 x1 + 一般5星-黃 x2）
+    function formatComboDisplay(items) {
+        const counts = {};
+        items.forEach(item => {
+            counts[item] = (counts[item] || 0) + 1;
+        });
+        
+        let parts = [];
+        for (let name in counts) {
+            parts.push(`${name} x${counts[name]}`);
+        }
+        return parts.join(" + ");
+    }
+
+    function toggleValueDisplay() {
+        const isChecked = document.getElementById("showValueToggle").checked;
+        const valueElements = document.querySelectorAll(".result-value");
+        valueElements.forEach(el => {
+            el.style.display = isChecked ? 'block' : 'none';
+        });
+    }
+
+    function calculateExchange() {
+        const selectedName = document.getElementById("myCardSelect").value;
+        const resultList = document.getElementById("resultList");
+        
+        resultList.innerHTML = "";
+
+        if (!selectedName) {
+            resultList.innerHTML = `<div class="no-result" style="color: #7f8c8d;">請先在上方選擇想要交換的卡片。</div>`;
+            return;
+        }
+
+        const targetCard = cardsDatabase.find(c => c.name === selectedName);
+        if (!targetCard) return;
+
+        const targetValue = targetCard.price;
+        const generalCards = cardsDatabase.filter(c => c.type === "一般");
+        
+        const resultsSet = new Set();
+        findCombinations(targetValue, generalCards, 0, [], resultsSet);
+
+        const userInventory = new Map();
+        document.querySelectorAll('.qty-display').forEach(span => {
+            const cardName = span.id.replace('qty_', '');
+            const qty = parseInt(span.textContent) || 0;
+            if (qty > 0) {
+                userInventory.set(cardName, qty);
+            }
+        });
+
+        const uniqueMap = new Map();
+        resultsSet.forEach(item => {
+            const key = item.items.sort().join(" + ");
+            uniqueMap.set(key, { items: item.items, sum: item.sum });
+        });
+
+        const processedResults = Array.from(uniqueMap.values()).map(resObj => {
+            const tempInventory = new Map(userInventory);
+            let missingCount = 0;
+            let missingMap = new Map();
+
+            resObj.items.forEach(cardName => {
+                const available = tempInventory.get(cardName) || 0;
+                if (available > 0) {
+                    tempInventory.set(cardName, available - 1);
+                } else {
+                    missingCount++;
+                    missingMap.set(cardName, (missingMap.get(cardName) || 0) + 1);
+                }
+            });
+
+            return {
+                ...resObj,
+                missingCount: missingCount,
+                missingMap: missingMap
+            };
+        });
+
+        processedResults.sort((a, b) => {
+            if (a.missingCount !== b.missingCount) {
+                return a.missingCount - b.missingCount;
+            }
+            if (a.items.length !== b.items.length) {
+                return a.items.length - b.items.length;
+            }
+            return a.items.join(" + ").localeCompare(b.items.join(" + "));
+        });
+
+        const isChecked = document.getElementById("showValueToggle").checked;
+
+        if (processedResults.length > 0) {
+            processedResults.forEach((resObj, index) => {
+                const div = document.createElement("div");
+                div.className = "result-card";
+
+                let missingTextHtml = "";
+                if (resObj.missingMap.size > 0) {
+                    let missingDetails = [];
+                    resObj.missingMap.forEach((qty, name) => {
+                        missingDetails.push(`${name} x${qty}`);
+                    });
+                    missingTextHtml = `<div class="missing-info">還缺少：${missingDetails.join("、")}</div>`;
+                } else {
+                    missingTextHtml = `<div class="missing-info" style="color: #27ae60;">（您手邊的庫存已足夠湊出此組卡片！）</div>`;
+                }
+
+                const displayString = formatComboDisplay(resObj.items);
+
+                div.innerHTML = `
+                    <div class="result-card-content">
+                        <span>${index + 1}. 交換需求組合：${displayString}</span>
+                    </div>
+                    ${missingTextHtml}
+                    <span class="result-value" style="display: ${isChecked ? 'block' : 'none'};">（${resObj.sum}）</span>
+                `;
+                resultList.appendChild(div);
+            });
+        } else {
+            resultList.innerHTML = `<div class="no-result">目前沒有找到符合條件的一般類卡片交換組合。</div>`;
+        }
+    }
+
+    window.onload = initPage;
+</script>
+
+</body>
+</html>
