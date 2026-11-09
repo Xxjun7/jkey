@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>卡片對換專區</title>
+    <title>卡片交換專區</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -113,10 +113,10 @@
         <input type="checkbox" id="showValueToggle" checked onchange="toggleValueDisplay()"> 顯示
     </label>
 
-    <h2>卡片對換專區</h2>
+    <h2>卡片交換專區</h2>
     
     <div class="form-group">
-        <label for="myCardSelect">選擇目前庫存有的卡片：(想要的卡)</label>
+        <label for="myCardSelect">選擇目前庫存有的卡片：(選想要的卡)</label>
         <select id="myCardSelect">
             <!-- 選項會透過 JavaScript 自動篩選並帶入高手類與至尊類，且不顯示價格 -->
         </select>
@@ -125,7 +125,7 @@
     <button onclick="calculateExchange()">開始組合(需求一般廳卡片)</button>
 
     <div class="result-section" id="resultSection" style="display: none;">
-        <h3>建議對換需求選項（一般廳卡）：</h3>
+        <h3>建議交換需求選項（一般廳卡）：</h3>
         <div id="resultList"></div>
     </div>
 </div>
@@ -220,7 +220,7 @@
         });
     }
 
-    // 計算對換組合
+    // 計算交換組合
     function calculateExchange() {
         const selectedName = document.getElementById("myCardSelect").value;
         const targetCard = cardsDatabase.find(c => c.name === selectedName);
@@ -257,13 +257,13 @@
                 const div = document.createElement("div");
                 div.className = "result-card";
                 div.innerHTML = `
-                    <span>${index + 1}. 對換需求組合：${text}</span>
+                    <span>${index + 1}. 交換需求組合：${text}</span>
                     <span class="result-value" style="display: ${isChecked ? 'block' : 'none'};">（${sum}）</span>
                 `;
                 resultList.appendChild(div);
             });
         } else {
-            resultList.innerHTML = `<div class="no-result">目前沒有找到符合條件的一般類卡片對換組合。</div>`;
+            resultList.innerHTML = `<div class="no-result">目前沒有找到符合條件的一般類卡片交換組合。</div>`;
         }
     }
 
